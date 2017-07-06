@@ -1,0 +1,23 @@
+language: python
+sudo: false
+env:
+  - PYTHON_VERSION=3.5
+before_install:
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -f -b -p $PWD/miniconda3
+  - export PATH=$PWD/miniconda3/bin:$PATH
+  # Update conda itself
+  - conda update --yes conda
+install:
+  # install setup environment
+  - conda create -n ratsnake_shotgun --file environment.yaml
+before_script:
+  # download database to setup humann2
+script:
+  # run workflow
+  - source activate ratsnake_shotgun
+  - snakemake all
+after_success:
+  # 
+  - coveralls
