@@ -118,7 +118,6 @@ rule function_humann2:
         --output-basename {wildcards.sample} \
         --o-log {log} \
         --threads {threads} \
-        --metaphlan {params.metaphlan2} \
         {params.humann2} 2> {log} 1>&2
         """
 

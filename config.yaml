@@ -1,7 +1,7 @@
 params:
   atropos: "-a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT -q 15 --minimum-length 100 --pair-filter any"
   filter: "-x test_data/phix --very-sensitive"
-  humann2: "--protein-database uniref90_mini --nucleotide-database test_data/chocophlan_test"
+  humann2: "--protein-database test_data/uniref50_filtered --nucleotide-database test_data/chocophlan_test --metaphlan-options='--bowtie2db test_data/mp2_test_db/mpa_v20_m200 --mpa_pk test_data/mp2_test_db/mpa_v20_m200.pkl'"
   metaphlan2: "metaphlan2"
 samples:
   S22205:
