@@ -4,3 +4,4 @@ channels:
   - biocore
 dependencies:
   - humann2
+  - biom-format
