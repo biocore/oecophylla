@@ -201,7 +201,7 @@ rule function_humann2_combine_tables:
           for f in test_out/humann2/*.tsv
           do
           fn=$(basename "$f")
-          biom convert -i $f -o "${fn%.*}" --to-hdf5
+          biom convert -i $f -o "${{fn%.*}}" --to-hdf5
           done
           """
 
