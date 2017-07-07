@@ -1,0 +1,6 @@
+channels:
+  - bioconda
+  - anaconda
+  - biocore
+dependencies:
+  - humann2

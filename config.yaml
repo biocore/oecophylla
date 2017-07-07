@@ -1,7 +1,8 @@
 params:
   atropos: "-a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT -q 15 --minimum-length 100 --pair-filter any"
   filter: "-x test_data/phix --very-sensitive"
-  humann2: "--protein-database test_data/uniref_test --nucleotide-database test_data/chocophlan_test"
+  humann2: "--protein-database uniref90_mini --nucleotide-database test_data/chocophlan_test"
+  metaphlan2: "metaphlan2"
 samples:
   S22205:
     forward: test_data/S22205.R1.fastq.gz

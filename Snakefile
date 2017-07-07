@@ -25,7 +25,7 @@ rule qc_atropos:
     threads:
         2
     conda:
-        "envs/qp-shotgun.yaml"
+        "envs/shotgun-qc.yaml"
     params:
         atropos = config['params']['atropos']
     log:
@@ -62,7 +62,7 @@ rule qc_filter:
     threads:
         2
     conda:
-        "envs/qp-shotgun.yaml"
+        "envs/shotgun-qc.yaml"
     log:
         bowtie = "test_out/logs/qc_filter.bowtie.sample=[{sample}].log",
         other = "test_out/logs/qc_filter.other.sample=[{sample}].log"
@@ -100,21 +100,25 @@ rule function_humann2:
         pathcoverage = temp("test_out/humann2/{sample}/{sample}_pathcoverage.txt"),
         pathabundance = temp("test_out/humann2/{sample}/{sample}_pathabundance.txt")
     params:
-        humann2 = config['params']['humann2']
+        humann2 = config['params']['humann2'],
+        metaphlan2 = config['params']['metaphlan2']
     threads:
         8
+    conda:
+        "envs/shotgun-humann2.yaml"
     log:
         "test_out/logs/function_humann2_{sample}.log"
     shell:
         """
         mkdir -p test_out/humann2/{wildcards.sample}/temp
-        gzcat {input.forward} {input.reverse} > test_out/humann2/{wildcards.sample}/temp/input.fastq
+        cat {input.forward} {input.reverse} > test_out/humann2/{wildcards.sample}/temp/input.fastq.gz
 
-        humann2 --input test_out/humann2/{wildcards.sample}/temp/input.fastq \
+        humann2 --input test_out/humann2/{wildcards.sample}/temp/input.fastq.gz \
         --output test_out/humann2/{wildcards.sample}/temp \
         --output-basename {wildcards.sample} \
         --o-log {log} \
         --threads {threads} \
+        --metaphlan {params.metaphlan2} \
         {params.humann2} 2> {log} 1>&2
         """
 
@@ -146,6 +150,8 @@ rule function_humann2_combine_tables:
         genefamilies_cpm_unstrat = "test_out/humann2/genefamilies_cpm_unstratified.txt",
         pathcoverage_relab_unstrat = "test_out/humann2/pathcoverage_relab_unstratified.txt",
         pathabundance_relab_unstrat = "test_out/humann2/pathabundance_relab_unstratified.txt"
+    conda:
+        "envs/shotgun-humann2.yaml"
     log:
         "test_out/logs/function_humann2_combine_tables.log"
     shell:
