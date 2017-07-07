@@ -17,7 +17,7 @@ before_script:
 script:
   # run workflow
   - source activate ratsnake_shotgun
-  - snakemake all --use-conda
+  - snakemake all --use-conda --cores 2
 after_success:
   # 
   - coveralls
