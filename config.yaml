@@ -1,2 +1,35 @@
 params:
-  atropos: ""
+  atropos: "-a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT -q 15 --minimum-length 100 --pair-filter any"
+  filter: "-x test_data/phix --very-sensitive"
+  humann2: "--protein-database test_data/uniref_test --nucleotide-database test_data/chocophlan_test"
+samples:
+  S22205:
+    forward: test_data/S22205.R1.fastq.gz
+    reverse: test_data/S22205.R2.fastq.gz
+  S22207:
+    forward: test_data/S22207.R1.fastq.gz
+    reverse: test_data/S22207.R2.fastq.gz
+  # S22282:
+  #   forward: test_data/S22282.R1.fastq.gz
+  #   reverse: test_data/S22282.R2.fastq.gz
+  # S22400:
+  #   forward: test_data/S22400.R1.fastq.gz
+  #   reverse: test_data/S22400.R2.fastq.gz
+  # S22401:
+  #   forward: test_data/S22401.R1.fastq.gz
+  #   reverse: test_data/S22401.R2.fastq.gz
+  # S22402:
+  #   forward: test_data/S22402.R1.fastq.gz
+  #   reverse: test_data/S22402.R2.fastq.gz
+  # S33289:
+  #   forward: test_data/S33289.R1.fastq.gz
+  #   reverse: test_data/S33289.R2.fastq.gz
+  # S33290:
+  #   forward: test_data/S33290.R1.fastq.gz
+  #   reverse: test_data/S33290.R2.fastq.gz
+  # S38481:
+  #   forward: test_data/S38481.R1.fastq.gz
+  #   reverse: test_data/S38481.R2.fastq.gz
+  # S39657:
+  #   forward: test_data/S39657.R1.fastq.gz
+  #   reverse: test_data/S39657.R2.fastq.gz
