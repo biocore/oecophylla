@@ -103,7 +103,7 @@ rule function_humann2:
         humann2 = config['params']['humann2'],
         metaphlan2 = config['params']['metaphlan2']
     threads:
-        8
+        1
     conda:
         "envs/shotgun-humann2.yaml"
     log:
@@ -114,7 +114,7 @@ rule function_humann2:
         cat {input.forward} {input.reverse} > test_out/humann2/{wildcards.sample}/temp/input.fastq.gz
 
         humann2 --input test_out/humann2/{wildcards.sample}/temp/input.fastq.gz \
-        --output test_out/humann2/{wildcards.sample}/temp \
+        --output test_out/humann2/ \
         --output-basename {wildcards.sample} \
         --o-log {log} \
         --threads {threads} \
