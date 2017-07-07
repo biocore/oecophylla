@@ -113,7 +113,7 @@ rule function_humann2:
         mkdir -p test_out/humann2/{wildcards.sample}
         cat {input.forward} {input.reverse} > test_out/humann2/{wildcards.sample}/input.fastq.gz
 
-        humann2 --input test_out/humann2/{wildcards.sample}/temp/input.fastq.gz \
+        humann2 --input test_out/humann2/{wildcards.sample}/input.fastq.gz \
         --output test_out/humann2/{wildcards.sample} \
         --output-basename {wildcards.sample} \
         --o-log {log} \
