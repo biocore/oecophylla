@@ -1,7 +1,0 @@
-name:
-  ratsnake_shotgun
-channels:
-  - anaconda
-  - bioconda
-dependencies:
-  - snakemake==3.13.3
