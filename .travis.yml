@@ -14,6 +14,10 @@ install:
   - conda env create --name ratsnake_shotgun -f environment.yml
 before_script:
   # download database to setup humann2
+  wget http://huttenhower.sph.harvard.edu/humann2_data/uniprot/uniref_ec_filtered/uniref50_ec_filtered_1_1.tar.gz
+  tar -xzvf uniref50_ec_filtered_1_1.tar.gz
+  mkdir test_data/uniref50_filtered
+  mv uniref50.ec_filtered.1.1.dmnd test_data/uniref50_filtered/.
 script:
   # run workflow
   - source activate ratsnake_shotgun
