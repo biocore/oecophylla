@@ -139,18 +139,18 @@ rule function_humann2_combine_tables:
         lambda wildcards: expand("test_out/humann2/{sample}/{sample}_pathabundance.tsv",
                sample=samples)
     output:
-        genefamilies = "test_out/humann2/genefamilies.tsv",
-        pathcoverage = "test_out/humann2/pathcoverage.tsv",
-        pathabundance = "test_out/humann2/pathabundance.tsv",
-        genefamilies_cpm = "test_out/humann2/genefamilies_cpm.tsv",
-        pathcoverage_relab = "test_out/humann2/pathcoverage_relab.tsv",
-        pathabundance_relab = "test_out/humann2/pathabundance_relab.tsv",
-        genefamilies_cpm_strat = "test_out/humann2/genefamilies_cpm_stratified.tsv",
-        pathcoverage_relab_strat = "test_out/humann2/pathcoverage_relab_stratified.tsv",
-        pathabundance_relab_strat = "test_out/humann2/pathabundance_relab_stratified.tsv",
-        genefamilies_cpm_unstrat = "test_out/humann2/genefamilies_cpm_unstratified.tsv",
-        pathcoverage_relab_unstrat = "test_out/humann2/pathcoverage_relab_unstratified.tsv",
-        pathabundance_relab_unstrat = "test_out/humann2/pathabundance_relab_unstratified.tsv"
+        genefamilies = "test_out/humann2/genefamilies.biom",
+        pathcoverage = "test_out/humann2/pathcoverage.biom",
+        pathabundance = "test_out/humann2/pathabundance.biom",
+        genefamilies_cpm = "test_out/humann2/genefamilies_cpm.biom",
+        pathcoverage_relab = "test_out/humann2/pathcoverage_relab.biom",
+        pathabundance_relab = "test_out/humann2/pathabundance_relab.biom",
+        genefamilies_cpm_strat = "test_out/humann2/genefamilies_cpm_stratified.biom",
+        pathcoverage_relab_strat = "test_out/humann2/pathcoverage_relab_stratified.biom",
+        pathabundance_relab_strat = "test_out/humann2/pathabundance_relab_stratified.biom",
+        genefamilies_cpm_unstrat = "test_out/humann2/genefamilies_cpm_unstratified.biom",
+        pathcoverage_relab_unstrat = "test_out/humann2/pathcoverage_relab_unstratified.biom",
+        pathabundance_relab_unstrat = "test_out/humann2/pathabundance_relab_unstratified.biom"
     conda:
         "envs/shotgun-humann2.yaml"
     log:
@@ -196,5 +196,12 @@ rule function_humann2_combine_tables:
 
           humann2_split_stratified_table --input test_out/humann2/pathabundance_relab.tsv \
           --output test_out/humann2 2>> {log} 1>&2
+
+          # convert to biom
+          for f in test_out/humann2/*.tsv
+          do
+          fn=$(basename "$f")
+          biom convert -i $f -o "${fn%.*}" --to-hdf5
+          done
           """
 
