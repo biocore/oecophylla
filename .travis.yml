@@ -11,7 +11,7 @@ before_install:
   - conda update --yes conda
 install:
   # install setup environment
-  - conda create -n ratsnake_shotgun --file environment.yaml
+  - conda env create -f environment.yml
 before_script:
   # download database to setup humann2
 script:
