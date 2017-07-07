@@ -7,7 +7,7 @@ rule all:
     input:
         fwd = expand("test_out/filtered/{sample}.trimmed.filtered.R1.fastq.gz", sample=samples),
         rev = expand("test_out/filtered/{sample}.trimmed.filtered.R2.fastq.gz", sample=samples),
-        humann2 = "test_out/humann2/genefamilies.txt"
+        humann2 = "test_out/humann2/genefamilies.tsv"
     run:
         print('Fooing foo:')
 
@@ -96,9 +96,9 @@ rule function_humann2:
         forward = "test_out/filtered/{sample}.trimmed.filtered.R1.fastq.gz",
         reverse = "test_out/filtered/{sample}.trimmed.filtered.R2.fastq.gz"
     output:
-        genefamilies = temp("test_out/humann2/{sample}/{sample}_genefamilies.txt"),
-        pathcoverage = temp("test_out/humann2/{sample}/{sample}_pathcoverage.txt"),
-        pathabundance = temp("test_out/humann2/{sample}/{sample}_pathabundance.txt")
+        genefamilies = temp("test_out/humann2/{sample}/{sample}_genefamilies.tsv"),
+        pathcoverage = temp("test_out/humann2/{sample}/{sample}_pathcoverage.tsv"),
+        pathabundance = temp("test_out/humann2/{sample}/{sample}_pathabundance.tsv")
     params:
         humann2 = config['params']['humann2'],
         metaphlan2 = config['params']['metaphlan2']
@@ -132,25 +132,25 @@ rule function_humann2_combine_tables:
     tables generated in this run to a temp directory and runs on that.
     """
     input:
-        lambda wildcards: expand("test_out/humann2/{sample}/{sample}_genefamilies.txt",
+        lambda wildcards: expand("test_out/humann2/{sample}/{sample}_genefamilies.tsv",
                sample=samples),
-        lambda wildcards: expand("test_out/humann2/{sample}/{sample}_pathcoverage.txt",
+        lambda wildcards: expand("test_out/humann2/{sample}/{sample}_pathcoverage.tsv",
                sample=samples),
-        lambda wildcards: expand("test_out/humann2/{sample}/{sample}_pathabundance.txt",
+        lambda wildcards: expand("test_out/humann2/{sample}/{sample}_pathabundance.tsv",
                sample=samples)
     output:
-        genefamilies = "test_out/humann2/genefamilies.txt",
-        pathcoverage = "test_out/humann2/pathcoverage.txt",
-        pathabundance = "test_out/humann2/pathabundance.txt",
-        genefamilies_cpm = "test_out/humann2/genefamilies_cpm.txt",
-        pathcoverage_relab = "test_out/humann2/pathcoverage_relab.txt",
-        pathabundance_relab = "test_out/humann2/pathabundance_relab.txt",
-        genefamilies_cpm_strat = "test_out/humann2/genefamilies_cpm_stratified.txt",
-        pathcoverage_relab_strat = "test_out/humann2/pathcoverage_relab_stratified.txt",
-        pathabundance_relab_strat = "test_out/humann2/pathabundance_relab_stratified.txt",
-        genefamilies_cpm_unstrat = "test_out/humann2/genefamilies_cpm_unstratified.txt",
-        pathcoverage_relab_unstrat = "test_out/humann2/pathcoverage_relab_unstratified.txt",
-        pathabundance_relab_unstrat = "test_out/humann2/pathabundance_relab_unstratified.txt"
+        genefamilies = "test_out/humann2/genefamilies.tsv",
+        pathcoverage = "test_out/humann2/pathcoverage.tsv",
+        pathabundance = "test_out/humann2/pathabundance.tsv",
+        genefamilies_cpm = "test_out/humann2/genefamilies_cpm.tsv",
+        pathcoverage_relab = "test_out/humann2/pathcoverage_relab.tsv",
+        pathabundance_relab = "test_out/humann2/pathabundance_relab.tsv",
+        genefamilies_cpm_strat = "test_out/humann2/genefamilies_cpm_stratified.tsv",
+        pathcoverage_relab_strat = "test_out/humann2/pathcoverage_relab_stratified.tsv",
+        pathabundance_relab_strat = "test_out/humann2/pathabundance_relab_stratified.tsv",
+        genefamilies_cpm_unstrat = "test_out/humann2/genefamilies_cpm_unstratified.tsv",
+        pathcoverage_relab_unstrat = "test_out/humann2/pathcoverage_relab_unstratified.tsv",
+        pathabundance_relab_unstrat = "test_out/humann2/pathabundance_relab_unstratified.tsv"
     conda:
         "envs/shotgun-humann2.yaml"
     log:
@@ -159,42 +159,42 @@ rule function_humann2_combine_tables:
         """
           humann2_join_tables --input test_out/humann2/ \
           --search-subdirectories \
-          --output test_out/humann2/genefamilies.txt \
+          --output test_out/humann2/genefamilies.tsv \
           --file_name genefamilies 2> {log} 1>&2
 
           humann2_join_tables --input test_out/humann2/ \
           --search-subdirectories \
-          --output test_out/humann2/pathcoverage.txt \
+          --output test_out/humann2/pathcoverage.tsv \
           --file_name pathcoverage 2>> {log} 1>&2
 
           humann2_join_tables --input test_out/humann2/ \
           --search-subdirectories \
-          --output test_out/humann2/pathabundance.txt \
+          --output test_out/humann2/pathabundance.tsv \
           --file_name pathabundance 2>> {log} 1>&2
 
 
           # normalize
-          humann2_renorm_table --input test_out/humann2/genefamilies.txt \
-          --output test_out/humann2/genefamilies_cpm.txt \
+          humann2_renorm_table --input test_out/humann2/genefamilies.tsv \
+          --output test_out/humann2/genefamilies_cpm.tsv \
           --units cpm -s n 2>> {log} 1>&2
 
-          humann2_renorm_table --input test_out/humann2/pathcoverage.txt \
-          --output test_out/humann2/pathcoverage_relab.txt \
+          humann2_renorm_table --input test_out/humann2/pathcoverage.tsv \
+          --output test_out/humann2/pathcoverage_relab.tsv \
           --units relab -s n 2>> {log} 1>&2
 
-          humann2_renorm_table --input test_out/humann2/pathabundance.txt \
-          --output test_out/humann2/pathabundance_relab.txt \
+          humann2_renorm_table --input test_out/humann2/pathabundance.tsv \
+          --output test_out/humann2/pathabundance_relab.tsv \
           --units relab -s n 2>> {log} 1>&2
 
 
           # stratify
-          humann2_split_stratified_table --input test_out/humann2/genefamilies_cpm.txt \
+          humann2_split_stratified_table --input test_out/humann2/genefamilies_cpm.tsv \
           --output test_out/humann2 2>> {log} 1>&2
 
-          humann2_split_stratified_table --input test_out/humann2/pathcoverage_relab.txt \
+          humann2_split_stratified_table --input test_out/humann2/pathcoverage_relab.tsv \
           --output test_out/humann2 2>> {log} 1>&2
 
-          humann2_split_stratified_table --input test_out/humann2/pathabundance_relab.txt \
+          humann2_split_stratified_table --input test_out/humann2/pathabundance_relab.tsv \
           --output test_out/humann2 2>> {log} 1>&2
           """
 
