@@ -110,15 +110,17 @@ rule function_humann2:
         "test_out/logs/function_humann2_{sample}.log"
     shell:
         """
-        mkdir -p test_out/humann2/{wildcards.sample}/temp
-        cat {input.forward} {input.reverse} > test_out/humann2/{wildcards.sample}/temp/input.fastq.gz
+        mkdir -p test_out/humann2/{wildcards.sample}
+        cat {input.forward} {input.reverse} > test_out/humann2/{wildcards.sample}/input.fastq.gz
 
         humann2 --input test_out/humann2/{wildcards.sample}/temp/input.fastq.gz \
-        --output test_out/humann2/ \
+        --output test_out/humann2/{wildcards.sample} \
         --output-basename {wildcards.sample} \
         --o-log {log} \
         --threads {threads} \
         {params.humann2} 2> {log} 1>&2
+    
+        rm test_out/humann2/{wildcards.sample}/input.fastq.gz
         """
 
 
