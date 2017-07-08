@@ -196,3 +196,84 @@ rule function_humann2_combine_tables:
           --output test_out/humann2 2>> {log} 1>&2
           """
 
+
+rule function_shogun:
+    """
+    Runs SHOGUN to infer taxonomic composition of sample.
+    """
+    input:
+        forward = "test_out/filtered/{sample}.trimmed.filtered.R1.fastq.gz",
+        reverse = "test_out/filtered/{sample}.trimmed.filtered.R2.fastq.gz"
+    output:
+        taxon_counts = temp("test_out/shogun/{sample}/{sample}.taxon_counts.tsv")
+    params:
+        shogun = config['params']['shogun']
+    threads:
+        8
+    conda:
+        "envs/shotgun-shogun.yaml"
+    log:
+        "test_out/logs/function_shogun_{sample}.log"
+    shell:
+        """
+        mkdir -p test_out/shogun/{wildcards.sample}/temp
+
+        # convert and merge fastq's into fasta
+        zcat {input.forward} {input.reverse} | \
+        awk 'NR%4==1{printf ">%s\n", substr($0,2)}NR%4==2{print}' \
+        > test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
+
+        # run shogun with utree
+        {params.shogun} --threads {threads} \
+        --input test_out/shogun/{wildcards.sample}/temp \
+        --output test_out/shogun/{wildcards.sample}/temp \
+        2> {log} 1>&2
+
+        # parse output
+        echo '#'SampleID$'\t'{wildcards.sample} > {output.taxon_counts}
+        cat test_out/shogun/{wildcards.sample}/temp/taxon_counts.csv | \
+        tail -n+2 | tr "," "\\t" >> {output.taxon_counts}
+
+        rm -rf test_out/shogun/{wildcards.sample}/temp
+        """
+
+
+rule function_shogun_combine_tables:
+    """
+    Combines the per-sample normalized tables into a single run-wide table. 
+    """
+    input:
+        lambda wildcards: expand("test_out/shogun/{sample}/{sample}.taxon_counts.tsv",
+               sample=samples)
+    output:
+        "test_out/shogun/joined_taxon_counts.tsv"
+    conda:
+        "envs/shotgun-shogun.yaml"
+    log:
+        "test_out/logs/function_shogun_combine_tables.log"
+    run:
+        taxa, samples = {}, []
+        for file in {input}:
+            with open(file, 'r') as f:
+                sample = f.readline().strip().split('\t')[1]
+                samples.append(sample)
+                for line in f:
+                    taxon, count = line.strip().split('\t')
+                    if taxon in taxa:
+                        taxa[taxon][sample] = count
+                    else:
+                        taxa[taxon] = {sample: count}
+        with open({output}, 'w') as f:
+            f.write('#SampleID\t%s\n' % '\t'.join(samples))
+            for taxon in sorted(taxa):
+                row = [taxon]
+                for sample in samples:
+                    if sample in taxa[taxon]:
+                        row.append(taxa[taxon][sample])
+                    else:
+                        row.append('0.0')
+                f.write('%s\n' % '\t'.join(row))
+        with open({log}, 'w') as f:
+            f.write('Successfully merged counts of %d taxa from %d samples.\n'
+                    % (len(taxa), len(samples)))
+
