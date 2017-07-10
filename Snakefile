@@ -263,7 +263,7 @@ rule function_shogun_combine_tables:
         "test_out/logs/function_shogun_combine_tables.log"
     run:
         taxa, samples = {}, []
-        for file in {input}:
+        for file in input:
             with open(file, 'r') as f:
                 sample = f.readline().strip().split('\t')[1]
                 samples.append(sample)
@@ -273,7 +273,7 @@ rule function_shogun_combine_tables:
                         taxa[taxon][sample] = count
                     else:
                         taxa[taxon] = {sample: count}
-        with open({output}, 'w') as f:
+        with open(output[0], 'w') as f:
             f.write('#SampleID\t%s\n' % '\t'.join(samples))
             for taxon in sorted(taxa):
                 row = [taxon]
@@ -283,7 +283,7 @@ rule function_shogun_combine_tables:
                     else:
                         row.append('0.0')
                 f.write('%s\n' % '\t'.join(row))
-        with open({log}, 'w') as f:
+        with open(log, 'w') as f:
             f.write('Successfully merged counts of %d taxa from %d samples.\n'
                     % (len(taxa), len(samples)))
 
