@@ -13,11 +13,14 @@ install:
   # install setup environment
   - conda env create --name ratsnake_shotgun -f environment.yml
 before_script:
-  # download database to setup humann2
+  # download UTree binary and add to path
+  - wget https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
+  - unzip utree_1.2_linux.zip -d utree
+  - chmod 755 utree/utree*
+  - export PATH=$PWD/utree
 script:
   # run workflow
   - source activate ratsnake_shotgun
   - snakemake all --use-conda --cores 2
 after_success:
-  # 
   - coveralls

@@ -221,7 +221,7 @@ rule function_shogun:
     params:
         shogun = config['params']['shogun']
     threads:
-        8
+        2
     conda:
         "envs/shotgun-shogun.yaml"
     log:
@@ -236,7 +236,7 @@ rule function_shogun:
         > test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
 
         # run shogun with utree
-        {params.shogun} --threads {threads} \
+        shogun_utree_lca {params.shogun} --threads {threads} \
         --input test_out/shogun/{wildcards.sample}/temp \
         --output test_out/shogun/{wildcards.sample}/temp \
         2> {log} 1>&2
@@ -259,8 +259,6 @@ rule function_shogun_combine_tables:
                sample=samples)
     output:
         "test_out/shogun/joined_taxon_counts.tsv"
-    conda:
-        "envs/shotgun-shogun.yaml"
     log:
         "test_out/logs/function_shogun_combine_tables.log"
     run:
