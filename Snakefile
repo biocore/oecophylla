@@ -232,9 +232,8 @@ rule function_shogun:
         mkdir -p test_out/shogun/{wildcards.sample}/temp
 
         # convert and merge fastq's into fasta
-        zcat {input.forward} {input.reverse} | \
-        awk 'NR%4==1{{printf ">%s\n", substr($0,2)}}NR%4==2{{print}}' \
-        > test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
+        seqtk seq -A {input.forward} > test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
+        seqtk seq -A {input.reverse} >> test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
 
         # run shogun with utree
         shogun_utree_lca {params.shogun} --threads {threads} \
