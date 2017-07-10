@@ -203,5 +203,8 @@ rule function_humann2_combine_tables:
           fn=$(basename "$f")
           biom convert -i $f -o test_out/humann2/"${{fn%.*}}".biom --to-hdf5
           done
+
+          # remove tsv
+          rm test_out/humann2/*.tsv
           """
 
