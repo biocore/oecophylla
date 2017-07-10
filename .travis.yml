@@ -17,11 +17,11 @@ before_script:
   - wget https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
   - unzip utree_1.2_linux.zip -d utree
   - chmod 755 utree/utree*
-  - export PATH=$PATH:$PWD/utree
   # unzip test db
   - bunzip2 test_data/shogun_test_db/phix.ctr.bz2
 script:
   # run workflow
+  - export PATH=$PATH:$PWD/utree
   - source activate ratsnake_shotgun
   - snakemake all --use-conda --cores 2
 after_success:

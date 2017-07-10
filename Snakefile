@@ -210,7 +210,7 @@ rule function_humann2_combine_tables:
           """
 
 
-rule function_shogun:
+rule taxonomy_shogun:
     """
     Runs SHOGUN to infer taxonomic composition of sample.
     """
@@ -226,7 +226,7 @@ rule function_shogun:
     conda:
         "envs/shotgun-shogun.yaml"
     log:
-        "test_out/logs/function_shogun_{sample}.log"
+        "test_out/logs/taxonomy_shogun_{sample}.log"
     shell:
         """
         mkdir -p test_out/shogun/{wildcards.sample}/temp
@@ -250,7 +250,7 @@ rule function_shogun:
         """
 
 
-rule function_shogun_combine_tables:
+rule taxonomy_shogun_combine_tables:
     """
     Combines the per-sample normalized tables into a single run-wide table. 
     """
@@ -260,7 +260,7 @@ rule function_shogun_combine_tables:
     output:
         "test_out/shogun/joined_taxon_counts.tsv"
     log:
-        "test_out/logs/function_shogun_combine_tables.log"
+        "test_out/logs/taxonomy_shogun_combine_tables.log"
     run:
         taxa, samples = {}, []
         for file in input:
