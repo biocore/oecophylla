@@ -283,7 +283,7 @@ rule function_shogun_combine_tables:
                     else:
                         row.append('0.0')
                 f.write('%s\n' % '\t'.join(row))
-        with open(log, 'w') as f:
+        with open(log[0], 'w') as f:
             f.write('Successfully merged counts of %d taxa from %d samples.\n'
                     % (len(taxa), len(samples)))
 
