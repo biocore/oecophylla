@@ -4,6 +4,7 @@ channels:
 dependencies:
   - python=3
   - numpy
+  - seqtk
   - cytoolz
   - pip
   - pip:
