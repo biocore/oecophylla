@@ -4,6 +4,10 @@ params:
   humann2: "--remove-column-description-output --protein-database test_data/uniref50_mini --nucleotide-database test_data/chocophlan_test --metaphlan-options='-t rel_ab --bowtie2db test_data/mp2_test_db/mpa_v20_m200 --mpa_pkl test_data/mp2_test_db/mpa_v20_m200.pkl'"
   metaphlan2: "metaphlan2"
   shogun: "--utree_indx test_data/shogun_test_db/phix.ctr"
+envs:
+  humann2: shotgun-humann2
+  qc: shotgun-qc
+  shogun: shotgun-shogun
 samples:
   S22205:
     forward: test_data/S22205.R1.fastq.gz

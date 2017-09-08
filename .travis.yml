@@ -11,18 +11,13 @@ before_install:
   - conda update --yes conda
 install:
   # install setup environment
-  - conda env create --name ratsnake_shotgun -f environment.yml
+  - bash install.sh
 before_script:
-  # download UTree binary and add to path
-  - wget https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
-  - unzip utree_1.2_linux.zip -d utree
-  - chmod 755 utree/utree*
-  # unzip test db
-  - bunzip2 test_data/shogun_test_db/phix.ctr.bz2
+  - echo 'foo'
 script:
   # run workflow
   - export PATH=$PATH:$PWD/utree
   - source activate ratsnake_shotgun
-  - snakemake all --use-conda --cores 2
+  - snakemake all --cores 2
 after_success:
   - coveralls
