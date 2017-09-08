@@ -34,7 +34,9 @@ rule qc_atropos:
         """
         set +u; {params.env}; set -u
 
-        atropos --threads {threads} {params.atropos} --report-file {log} --report-formats txt -o {output.forward} -p {output.reverse} -pe1 {input.forward} -pe2 {input.reverse}"
+        atropos --threads {threads} {params.atropos} --report-file {log} \
+                --report-formats txt -o {output.forward} -p {output.reverse} \
+                -pe1 {input.forward} -pe2 {input.reverse}
         """
 
 rule qc_filter:
@@ -72,11 +74,14 @@ rule qc_filter:
         """
         set +u; {params.env}; set -u
 
-        bowtie2 -p {threads} {params.filter} -1 {input.forward} -2 {input.reverse} 2> {log.bowtie} | \
-        samtools view -f 12 -F 256 2> {log.other} | \
-        samtools sort -@ {threads} -n 2> {log.other} | \
-        samtools view -bS 2> {log.other} | \
-        bedtools bamtofastq -i - -fq {wildcards.sample}.R1.trimmed.filtered.fastq -fq2 {wildcards.sample}.R2.trimmed.filtered.fastq 2> {log.other}
+        bowtie2 -p {threads} {params.filter} -1 {input.forward} \
+            -2 {input.reverse} 2> {log.bowtie} | \
+            samtools view -f 12 -F 256 2> {log.other} | \
+            samtools sort -@ {threads} -n 2> {log.other} | \
+            samtools view -bS 2> {log.other} | \
+            bedtools bamtofastq -i - -fq \
+            {wildcards.sample}.R1.trimmed.filtered.fastq \
+            -fq2 {wildcards.sample}.R2.trimmed.filtered.fastq 2> {log.other}
 
         gzip -c {wildcards.sample}.R1.trimmed.filtered.fastq > {output.forward}
         gzip -c {wildcards.sample}.R2.trimmed.filtered.fastq > {output.reverse}
@@ -116,7 +121,8 @@ rule function_humann2:
         set +u; {params.env}; set -u
         
         mkdir -p test_out/humann2/{wildcards.sample}
-        cat {input.forward} {input.reverse} > test_out/humann2/{wildcards.sample}/input.fastq.gz
+        cat {input.forward} {input.reverse} > \
+            test_out/humann2/{wildcards.sample}/input.fastq.gz
 
         humann2 --input test_out/humann2/{wildcards.sample}/input.fastq.gz \
         --output test_out/humann2/{wildcards.sample} \
@@ -239,8 +245,10 @@ rule taxonomy_shogun:
         mkdir -p test_out/shogun/{wildcards.sample}/temp
 
         # convert and merge fastq's into fasta
-        seqtk seq -A {input.forward} > test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
-        seqtk seq -A {input.reverse} >> test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
+        seqtk seq -A {input.forward} > \
+            test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
+        seqtk seq -A {input.reverse} >> \
+            test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
 
         # run shogun with utree
         shogun_utree_lca {params.shogun} --threads {threads} \
