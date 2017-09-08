@@ -111,7 +111,7 @@ rule function_humann2:
     params:
         humann2 = config['params']['humann2'],
         metaphlan2 = config['params']['metaphlan2'],
-        env = config['envs']['qc']
+        env = config['envs']['humann2']
     threads:
         1
     log:
@@ -165,7 +165,7 @@ rule function_humann2_combine_tables:
     log:
         "/dev/stdout"
     params:
-        env = config['envs']['qc']
+        env = config['envs']['humann2']
     shell:
         """
         set +u; {params.env}; set -u
@@ -233,11 +233,11 @@ rule taxonomy_shogun:
         taxon_counts = temp("test_out/shogun/{sample}/{sample}.taxon_counts.tsv")
     params:
         shogun = config['params']['shogun'],
-        env = config['envs']['qc']
+        env = config['envs']['shogun']
     threads:
         2
     log:
-        "test_out/logs/taxonomy_shogun_{sample}.log"
+        "/dev/stdout"
     shell:
         """
         set +u; {params.env}; set -u
@@ -275,7 +275,7 @@ rule taxonomy_shogun_combine_tables:
     output:
         "test_out/shogun/joined_taxon_counts.tsv"
     log:
-        "test_out/logs/taxonomy_shogun_combine_tables.log"
+        "/dev/stdout"
     run:
         taxa, samples = {}, []
         for file in input:
