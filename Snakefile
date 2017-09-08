@@ -115,7 +115,7 @@ rule function_humann2:
     threads:
         1
     log:
-        "test_out/logs/function_humann2_{sample}.log"
+        "/dev/stdout"
     shell:
         """
         set +u; {params.env}; set -u
@@ -163,7 +163,7 @@ rule function_humann2_combine_tables:
         pathcoverage_relab_unstrat = "test_out/humann2/pathcoverage_relab_unstratified.biom",
         pathabundance_relab_unstrat = "test_out/humann2/pathabundance_relab_unstratified.biom"
     log:
-        "test_out/logs/function_humann2_combine_tables.log"
+        "/dev/stdout"
     params:
         env = config['envs']['qc']
     shell:
