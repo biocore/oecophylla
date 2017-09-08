@@ -17,7 +17,7 @@ before_script:
 script:
   # run workflow
   - export PATH=$PATH:$PWD/utree
-  - source activate ratsnake_shotgun
+  - source activate oecophylla
   - snakemake all --cores 2
 after_success:
   - coveralls
