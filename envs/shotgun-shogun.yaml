@@ -10,4 +10,4 @@ dependencies:
   - pip:
     - "git+https://github.com/knights-lab/NINJA-utils.git"
     - "git+https://github.com/knights-lab/DOJO.git"
-    - "git+https://github.com/knights-lab/SHOGUN.git"
+    - "git+https://github.com/knights-lab/SHOGUN.git@5bd84469f8c8c139c3be111cb2163012cd47e569"
