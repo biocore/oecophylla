@@ -1,4 +1,5 @@
-conda env create -n shotgun-shogun -f shotgun-shogun.yaml
+conda env create --name shotgun-shogun -f envs/shotgun-shogun.yaml
+
 source activate shotgun-shogun
 
 echo $CONDA_PREFIX
