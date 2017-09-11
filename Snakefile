@@ -7,7 +7,7 @@ rule all:
     input:
         fwd = expand("test_out/filtered/{sample}.trimmed.filtered.R1.fastq.gz", sample=samples),
         rev = expand("test_out/filtered/{sample}.trimmed.filtered.R2.fastq.gz", sample=samples),
-        humann2 = "test_out/humann2/genefamilies.biom",
+        # humann2 = "test_out/humann2/genefamilies.biom",
         shogun = "test_out/shogun/joined_taxon_counts.tsv"
     run:
         print('Fooing foo:')
