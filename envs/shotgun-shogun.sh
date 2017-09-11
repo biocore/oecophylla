@@ -1,6 +1,8 @@
 conda env create -n shotgun-shogun -f shotgun-shogun.yaml
 source activate shotgun-shogun
 
+echo $CONDA_PREFIX
+
 mkdir -p $CONDA_PREFIX/etc/conda/activate.d
 mkdir -p $CONDA_PREFIX/etc/conda/deactivate.d
 
