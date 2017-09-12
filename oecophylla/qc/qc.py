@@ -12,6 +12,7 @@ rule qc_atropos:
         8
     params:
         atropos = config['params']['atropos']
+        env = config['envs']['qc']
     log:
         qc_dir + "logs/qc_atropos.sample=[{sample}].log"
     benchmark:
@@ -21,10 +22,12 @@ rule qc_atropos:
             f_fp = os.path.basename(output.forward)
             r_fp = os.path.basename(output.reverse)
             shell("""
-                    atropos --threads {threads} {params.atropos} --report-file {log} --report-formats txt -o {temp_dir}/{f_fp} -p {temp_dir}/{r_fp} -pe1 {input.forward} -pe2 {input.reverse}
+                  set +u; {params.env}; set -u
+              
+                  atropos --threads {threads} {params.atropos} --report-file {log} --report-formats txt -o {temp_dir}/{f_fp} -p {temp_dir}/{r_fp} -pe1 {input.forward} -pe2 {input.reverse}
 
-                    scp {temp_dir}/{f_fp} {output.forward}
-                    scp {temp_dir}/{r_fp} {output.reverse}
+                  scp {temp_dir}/{f_fp} {output.forward}
+                  scp {temp_dir}/{r_fp} {output.reverse}
                   """)
 
 rule qc_filter:
@@ -52,6 +55,7 @@ rule qc_filter:
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     params:
         filter_db = lambda wildcards: config['samples'][wildcards.sample]['filter_db']
+        env = config['envs']['qc']
     threads:
         4
     log:
@@ -64,15 +68,17 @@ rule qc_filter:
             f_fp = os.path.abspath(input.forward)
             r_fp = os.path.abspath(input.reverse)
             shell("""
-                    ln -s {f_fp} {output.forward}
-                    ln -s {r_fp} {output.reverse}
+                  ln -s {f_fp} {output.forward}
+                  ln -s {r_fp} {output.reverse}
 
-                    echo 'No DB provided; sample not filtered.' > {log.bowtie}
-                    echo 'No DB provided; sample not filtered.' > {log.other}
+                  echo 'No DB provided; sample not filtered.' > {log.bowtie}
+                  echo 'No DB provided; sample not filtered.' > {log.other}
                   """)
         else:
             with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
                 shell("""
+                      set +u; {params.env}; set -u
+          
                       bowtie2 -p {threads} -x {params.filter_db} --very-sensitive -1 {input.forward} -2 {input.reverse} 2> {log.bowtie}| \
                       samtools view -f 12 -F 256 2> {log.other}| \
                       samtools sort -T {temp_dir} -@ {threads} -n 2> {log.other} | \
@@ -99,13 +105,19 @@ rule qc_per_sample_fastqc:
         zip = qc_dir + "{sample}/fastqc_per_sample/{sample}.R2.trimmed.filtered_fastqc.zip"
     threads:
         4
+    params:
+        env = config['envs']['qc']
     log:
         qc_dir + "logs/qc_per_sample_fastqc.sample=[{sample}].log"
     benchmark:
         "benchmarks/qc/qc_per_sample_fastqc.sample=[{sample}].txt"
     run:
         out_dir = os.path.dirname(output[0])
-        shell("fastqc --threads {threads} --outdir {out_dir} {input.forward} {input.reverse} 2> {log} 1>&2")
+        shell("""
+              set +u; {params.env}; set -u
+          
+              fastqc --threads {threads} --outdir {out_dir} {input.forward} {input.reverse} 2> {log} 1>&2
+              """)
 
 
 rule qc_per_sample_multiqc:
@@ -118,11 +130,17 @@ rule qc_per_sample_multiqc:
         qc_dir + "multiQC_per_sample/multiqc_report.html"
     threads:
         4
+    params:
+        env = config['envs']['qc']
     log:
         qc_dir + "logs/qc_per_sample_multiqc.log"
     run:
         out_dir = os.path.dirname(output[0])
-        shell("multiqc -f -s -o {out_dir} {qc_dir}/*/fastqc_per_sample {qc_dir}/logs 2> {log} 1>&2")
+        shell("""
+              set +u; {params.env}; set -u
+          
+              multiqc -f -s -o {out_dir} {qc_dir}/*/fastqc_per_sample {qc_dir}/logs 2> {log} 1>&2
+              """)
 
 
 rule qc:
