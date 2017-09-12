@@ -14,9 +14,6 @@ install:
   - bash install.sh
 before_script:
   - echo 'foo'
-  - source activate shotgun-humann2; humann2 --version; source deactivate;
-  - source activate shotgun-qc; atropos --version; source deactivate;
-  - source activate shotgun-shogun; shogun_utree_lca; source deactivate;
 script:
   # run workflow
   - export PATH=$PATH:$PWD/utree

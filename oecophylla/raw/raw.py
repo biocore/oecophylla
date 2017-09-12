@@ -1,25 +1,3 @@
-rule raw_make_links:    
-    """
-    Makes symlinks from raw sequences files to the analysis directory.
-    """
-    input:
-        forward = lambda wildcards: config["samples"][wildcards.sample]["forward"],
-        reverse = lambda wildcards: config["samples"][wildcards.sample]["reverse"]
-    output:
-        touch(data_dir + "{sample}/{sample}_links.done")
-    threads:
-        1
-    log:
-        raw_dir + "logs/raw_make_links.sample=[{sample}].log"
-    run:
-        for f in input.forward + input.reverse:
-            in_fp = os.path.realpath(f)
-            out_fp = os.path.join(data_dir,
-                                 wildcards.sample,
-                                 os.path.basename(f))
-            shell("ln -s {in_fp} {out_fp} 2> {log}")
-
-
 rule raw_per_file_fastqc: 
     """
     Makes fastqc reports for each individual input file.
@@ -33,10 +11,14 @@ rule raw_per_file_fastqc:
         4
     log:
         raw_dir + "logs/raw_per_file_fastqc.sample=[{sample}].log"
+    params:
+        env = config['envs']['raw']
     run:
         out_dir = os.path.dirname(output[0])
         in_fastqs = ' '.join(input.forward + input.reverse)
         shell("""
+              set +u; {params.env}; set -u
+
               fastqc --threads {threads} --outdir {out_dir} {in_fastqs} 2> {log} 1>&2
 
               touch {output}
@@ -53,11 +35,17 @@ rule raw_per_file_multiqc:
         raw_dir + "multiQC_per_file/multiqc_report.html"
     threads:
         4
+    params:
+        env = config['envs']['raw']
     log:
         raw_dir + "logs/raw_per_file_multiqc.log"
     run:
         out_dir = os.path.dirname(output[0])
-        shell("multiqc -f -o {out_dir} {raw_dir}/*/fastqc_per_file 2> {log} 1>&2")
+        shell("""
+              set +u; {params.env}; set -u
+
+              multiqc -f -o {out_dir} {raw_dir}/*/fastqc_per_file 2> {log} 1>&2
+              """)
 
 
 rule raw_combine_files:
@@ -78,8 +66,8 @@ rule raw_combine_files:
         f_fastqs = ' '.join(input.forward)
         r_fastqs = ' '.join(input.reverse)
         shell("""
-                cat {f_fastqs} > {output.forward} 2> {log}
-                cat {r_fastqs} > {output.reverse} 2> {log}
+              cat {f_fastqs} > {output.forward} 2> {log}
+              cat {r_fastqs} > {output.reverse} 2> {log}
               """)
 
 
@@ -95,12 +83,18 @@ rule raw_per_sample_fastqc:
         zip = raw_dir + "{sample}/fastqc_per_sample/{sample}.R2_fastqc.zip"
     threads:
         4
+    params:
+        env = config['envs']['raw']
     log:
         raw_dir + "logs/raw_per_sample_fastqc.sample=[{sample}].log"
     run:
         out_dir = os.path.dirname(output[0])
         print(out_dir)
-        shell("fastqc --threads {threads} --outdir {out_dir} {input.forward} {input.reverse} 2> {log} 1>&2")
+        shell("""
+              set +u; {params.env}; set -u
+
+              fastqc --threads {threads} --outdir {out_dir} {input.forward} {input.reverse} 2> {log} 1>&2
+              """)
 
 
 rule raw_per_sample_multiqc:
@@ -113,11 +107,17 @@ rule raw_per_sample_multiqc:
         raw_dir + "multiQC_per_sample/multiqc_report.html"
     threads:
         4
+    params:
+        env = config['envs']['raw']
     log:
         raw_dir + "logs/raw_per_sample_multiqc.log"
     run:
         out_dir = os.path.dirname(output[0])
-        shell("multiqc -f -o {out_dir} {raw_dir}/*/fastqc_per_sample 2> {log} 1>&2")
+        shell("""
+              set +u; {params.env}; set -u
+
+              multiqc -f -o {out_dir} {raw_dir}/*/fastqc_per_sample 2> {log} 1>&2
+              """)
 
 
 rule raw:
