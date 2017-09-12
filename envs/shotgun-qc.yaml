@@ -8,4 +8,6 @@ dependencies:
   - bowtie2==2.3.0
   - bedtools==2.26.0
   - samtools==1.3.1
-  - biom-format==2.1.5 
+  - biom-format==2.1.5
+  - fastqc==0.11.5
+  - multiqc==1.2

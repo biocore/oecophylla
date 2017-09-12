@@ -9,22 +9,23 @@ samples = config["samples"]
 
 trimmer = config["trimmer"]
 
+
+include: "oecophylla/util/folders.py"
+
 include: "oecophylla/raw/raw.py"
 include: "oecophylla/qc/qc.py"
-include: "oecophylla/mash/mash.py"
-include: "oecophylla/assemble/assemble.py"
-include: "oecophylla/map/map.py"
-include: "oecophylla/bin/bin.py"
-include: "oecophylla/anvio/anvio.py"
-include: "oecophylla/tax/tax.py"
-include: "oecophylla/function/function.py"
-include: "oecophylla/report/report.py"
-include: "oecophylla/util/folders.py"
-include: "oecophylla/util/cleanv"
-include: "oecophylla/util/test.py"
+include: "oecophylla/util/clean.py"
+# include: "oecophylla/util/test.py"
 include: "oecophylla/util/util.py"
 include: "oecophylla/util/simplify_fasta.py"
-
+# include: "oecophylla/mash/mash.py"
+# include: "oecophylla/assemble/assemble.py"
+# include: "oecophylla/map/map.py"
+# include: "oecophylla/bin/bin.py"
+# include: "oecophylla/anvio/anvio.py"
+# include: "oecophylla/tax/tax.py"
+# include: "oecophylla/function/function.py"
+# include: "oecophylla/report/report.py"
 
 rule all:
     # raw
@@ -36,7 +37,7 @@ rule all:
         expand(qc_dir + "{sample}/{trimmer}_trimmed/{sample}.trimmed.R2.fastq.gz", sample=samples, trimmer=trimmer),
         expand(qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz", sample=samples),
         expand(qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz", sample=samples),
-        qc_dir + "multiQC_per_sample/multiqc_report.html",
+        qc_dir + "multiQC_per_sample/multiqc_report.html"#,
     # # Assembly
     #     expand(assemble_dir + "{sample}/{assembler}/{sample}.contigs.fa",
     #            sample=samples, assembler=config['assemblers']),

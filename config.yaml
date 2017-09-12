@@ -13,11 +13,17 @@ envs:
   humann2: source activate shotgun-humann2
 samples:
   S22205:
-    forward: test_data/S22205.R1.fastq.gz
-    reverse: test_data/S22205.R2.fastq.gz
+    filter_db: 'test_data/phix'
+    forward: 
+      - test_data/S22205.R1.fastq.gz
+    reverse: 
+      - test_data/S22205.R2.fastq.gz
   S22207:
-    forward: test_data/S22207.R1.fastq.gz
-    reverse: test_data/S22207.R2.fastq.gz
+    filter_db: 'test_data/phix'
+    forward: 
+      - test_data/S22207.R1.fastq.gz
+    reverse: 
+      - test_data/S22207.R2.fastq.gz
   # S22282:
   #   forward: test_data/S22282.R1.fastq.gz
   #   reverse: test_data/S22282.R2.fastq.gz

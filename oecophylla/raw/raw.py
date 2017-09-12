@@ -66,8 +66,8 @@ rule raw_combine_files:
         f_fastqs = ' '.join(input.forward)
         r_fastqs = ' '.join(input.reverse)
         shell("""
-                cat {f_fastqs} > {output.forward} 2> {log}
-                cat {r_fastqs} > {output.reverse} 2> {log}
+              cat {f_fastqs} > {output.forward} 2> {log}
+              cat {r_fastqs} > {output.reverse} 2> {log}
               """)
 
 
@@ -90,7 +90,11 @@ rule raw_per_sample_fastqc:
     run:
         out_dir = os.path.dirname(output[0])
         print(out_dir)
-        shell("fastqc --threads {threads} --outdir {out_dir} {input.forward} {input.reverse} 2> {log} 1>&2")
+        shell("""
+              set +u; {params.env}; set -u
+
+              fastqc --threads {threads} --outdir {out_dir} {input.forward} {input.reverse} 2> {log} 1>&2
+              """)
 
 
 rule raw_per_sample_multiqc:
@@ -109,7 +113,11 @@ rule raw_per_sample_multiqc:
         raw_dir + "logs/raw_per_sample_multiqc.log"
     run:
         out_dir = os.path.dirname(output[0])
-        shell("multiqc -f -o {out_dir} {raw_dir}/*/fastqc_per_sample 2> {log} 1>&2")
+        shell("""
+              set +u; {params.env}; set -u
+
+              multiqc -f -o {out_dir} {raw_dir}/*/fastqc_per_sample 2> {log} 1>&2
+              """)
 
 
 rule raw:

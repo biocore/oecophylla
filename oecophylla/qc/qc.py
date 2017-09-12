@@ -11,7 +11,7 @@ rule qc_atropos:
     threads:
         8
     params:
-        atropos = config['params']['atropos']
+        atropos = config['params']['atropos'],
         env = config['envs']['qc']
     log:
         qc_dir + "logs/qc_atropos.sample=[{sample}].log"
@@ -54,7 +54,7 @@ rule qc_filter:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     params:
-        filter_db = lambda wildcards: config['samples'][wildcards.sample]['filter_db']
+        filter_db = lambda wildcards: config['samples'][wildcards.sample]['filter_db'],
         env = config['envs']['qc']
     threads:
         4
