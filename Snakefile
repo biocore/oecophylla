@@ -7,7 +7,7 @@ rule all:
     input:
         fwd = expand("test_out/filtered/{sample}.trimmed.filtered.R1.fastq.gz", sample=samples),
         rev = expand("test_out/filtered/{sample}.trimmed.filtered.R2.fastq.gz", sample=samples),
-        humann2 = "test_out/humann2/genefamilies.biom",
+        # humann2 = "test_out/humann2/genefamilies.biom",
         shogun = "test_out/shogun/joined_taxon_counts.tsv"
     run:
         print('Fooing foo:')
@@ -25,15 +25,19 @@ rule qc_atropos:
         reverse = "test_out/trimmed/{sample}.trimmed.R2.fastq.gz"
     threads:
         2
-    conda:
-        "envs/shotgun-qc.yaml"
     params:
-        atropos = config['params']['atropos']
+        atropos = config['params']['atropos'],
+        env = config['envs']['qc']
     log:
         "test_out/logs/qc_atropos.sample=[{sample}].log"
     shell:
-        "atropos --threads {threads} {params.atropos} --report-file {log} --report-formats txt -o {output.forward} -p {output.reverse} -pe1 {input.forward} -pe2 {input.reverse}"
+        """
+        set +u; {params.env}; set -u
 
+        atropos --threads {threads} {params.atropos} --report-file {log} \
+                --report-formats txt -o {output.forward} -p {output.reverse} \
+                -pe1 {input.forward} -pe2 {input.reverse}
+        """
 
 rule qc_filter:
     """
@@ -59,21 +63,25 @@ rule qc_filter:
         forward = "test_out/filtered/{sample}.trimmed.filtered.R1.fastq.gz",
         reverse = "test_out/filtered/{sample}.trimmed.filtered.R2.fastq.gz"
     params:
-        filter = config['params']['filter']
+        filter = config['params']['filter'],
+        env = config['envs']['qc']
     threads:
         2
-    conda:
-        "envs/shotgun-qc.yaml"
     log:
         bowtie = "test_out/logs/qc_filter.bowtie.sample=[{sample}].log",
         other = "test_out/logs/qc_filter.other.sample=[{sample}].log"
     shell:
         """
-        bowtie2 -p {threads} {params.filter} -1 {input.forward} -2 {input.reverse} 2> {log.bowtie} | \
-        samtools view -f 12 -F 256 2> {log.other} | \
-        samtools sort -@ {threads} -n 2> {log.other} | \
-        samtools view -bS 2> {log.other} | \
-        bedtools bamtofastq -i - -fq {wildcards.sample}.R1.trimmed.filtered.fastq -fq2 {wildcards.sample}.R2.trimmed.filtered.fastq 2> {log.other}
+        set +u; {params.env}; set -u
+
+        bowtie2 -p {threads} {params.filter} -1 {input.forward} \
+            -2 {input.reverse} 2> {log.bowtie} | \
+            samtools view -f 12 -F 256 2> {log.other} | \
+            samtools sort -@ {threads} -n 2> {log.other} | \
+            samtools view -bS 2> {log.other} | \
+            bedtools bamtofastq -i - -fq \
+            {wildcards.sample}.R1.trimmed.filtered.fastq \
+            -fq2 {wildcards.sample}.R2.trimmed.filtered.fastq 2> {log.other}
 
         gzip -c {wildcards.sample}.R1.trimmed.filtered.fastq > {output.forward}
         gzip -c {wildcards.sample}.R2.trimmed.filtered.fastq > {output.reverse}
@@ -102,17 +110,19 @@ rule function_humann2:
         pathabundance = temp("test_out/humann2/{sample}/{sample}_pathabundance.tsv")
     params:
         humann2 = config['params']['humann2'],
-        metaphlan2 = config['params']['metaphlan2']
+        metaphlan2 = config['params']['metaphlan2'],
+        env = config['envs']['humann2']
     threads:
         1
-    conda:
-        "envs/shotgun-humann2.yaml"
     log:
-        "test_out/logs/function_humann2_{sample}.log"
+        "/dev/stdout"
     shell:
         """
+        set +u; {params.env}; set -u
+        
         mkdir -p test_out/humann2/{wildcards.sample}
-        cat {input.forward} {input.reverse} > test_out/humann2/{wildcards.sample}/input.fastq.gz
+        cat {input.forward} {input.reverse} > \
+            test_out/humann2/{wildcards.sample}/input.fastq.gz
 
         humann2 --input test_out/humann2/{wildcards.sample}/input.fastq.gz \
         --output test_out/humann2/{wildcards.sample} \
@@ -152,62 +162,64 @@ rule function_humann2_combine_tables:
         genefamilies_cpm_unstrat = "test_out/humann2/genefamilies_cpm_unstratified.biom",
         pathcoverage_relab_unstrat = "test_out/humann2/pathcoverage_relab_unstratified.biom",
         pathabundance_relab_unstrat = "test_out/humann2/pathabundance_relab_unstratified.biom"
-    conda:
-        "envs/shotgun-humann2.yaml"
     log:
-        "test_out/logs/function_humann2_combine_tables.log"
+        "/dev/stdout"
+    params:
+        env = config['envs']['humann2']
     shell:
         """
-          humann2_join_tables --input test_out/humann2/ \
-          --search-subdirectories \
-          --output test_out/humann2/genefamilies.tsv \
-          --file_name genefamilies 2> {log} 1>&2
+        set +u; {params.env}; set -u
 
-          humann2_join_tables --input test_out/humann2/ \
-          --search-subdirectories \
-          --output test_out/humann2/pathcoverage.tsv \
-          --file_name pathcoverage 2>> {log} 1>&2
+        humann2_join_tables --input test_out/humann2/ \
+        --search-subdirectories \
+        --output test_out/humann2/genefamilies.tsv \
+        --file_name genefamilies 2> {log} 1>&2
 
-          humann2_join_tables --input test_out/humann2/ \
-          --search-subdirectories \
-          --output test_out/humann2/pathabundance.tsv \
-          --file_name pathabundance 2>> {log} 1>&2
+        humann2_join_tables --input test_out/humann2/ \
+        --search-subdirectories \
+        --output test_out/humann2/pathcoverage.tsv \
+        --file_name pathcoverage 2>> {log} 1>&2
 
-
-          # normalize
-          humann2_renorm_table --input test_out/humann2/genefamilies.tsv \
-          --output test_out/humann2/genefamilies_cpm.tsv \
-          --units cpm -s n 2>> {log} 1>&2
-
-          humann2_renorm_table --input test_out/humann2/pathcoverage.tsv \
-          --output test_out/humann2/pathcoverage_relab.tsv \
-          --units relab -s n 2>> {log} 1>&2
-
-          humann2_renorm_table --input test_out/humann2/pathabundance.tsv \
-          --output test_out/humann2/pathabundance_relab.tsv \
-          --units relab -s n 2>> {log} 1>&2
+        humann2_join_tables --input test_out/humann2/ \
+        --search-subdirectories \
+        --output test_out/humann2/pathabundance.tsv \
+        --file_name pathabundance 2>> {log} 1>&2
 
 
-          # stratify
-          humann2_split_stratified_table --input test_out/humann2/genefamilies_cpm.tsv \
-          --output test_out/humann2 2>> {log} 1>&2
+        # normalize
+        humann2_renorm_table --input test_out/humann2/genefamilies.tsv \
+        --output test_out/humann2/genefamilies_cpm.tsv \
+        --units cpm -s n 2>> {log} 1>&2
 
-          humann2_split_stratified_table --input test_out/humann2/pathcoverage_relab.tsv \
-          --output test_out/humann2 2>> {log} 1>&2
+        humann2_renorm_table --input test_out/humann2/pathcoverage.tsv \
+        --output test_out/humann2/pathcoverage_relab.tsv \
+        --units relab -s n 2>> {log} 1>&2
 
-          humann2_split_stratified_table --input test_out/humann2/pathabundance_relab.tsv \
-          --output test_out/humann2 2>> {log} 1>&2
+        humann2_renorm_table --input test_out/humann2/pathabundance.tsv \
+        --output test_out/humann2/pathabundance_relab.tsv \
+        --units relab -s n 2>> {log} 1>&2
 
-          # convert to biom
-          for f in test_out/humann2/*.tsv
-          do
-          fn=$(basename "$f")
-          biom convert -i $f -o test_out/humann2/"${{fn%.*}}".biom --to-hdf5
-          done
 
-          # remove tsv
-          rm test_out/humann2/*.tsv
-          """
+        # stratify
+        humann2_split_stratified_table --input test_out/humann2/genefamilies_cpm.tsv \
+        --output test_out/humann2 2>> {log} 1>&2
+
+        humann2_split_stratified_table --input test_out/humann2/pathcoverage_relab.tsv \
+        --output test_out/humann2 2>> {log} 1>&2
+
+        humann2_split_stratified_table --input test_out/humann2/pathabundance_relab.tsv \
+        --output test_out/humann2 2>> {log} 1>&2
+
+        # convert to biom
+        for f in test_out/humann2/*.tsv
+        do
+        fn=$(basename "$f")
+        biom convert -i $f -o test_out/humann2/"${{fn%.*}}".biom --to-hdf5
+        done
+
+        # remove tsv
+        rm test_out/humann2/*.tsv
+        """
 
 
 rule taxonomy_shogun:
@@ -220,20 +232,23 @@ rule taxonomy_shogun:
     output:
         taxon_counts = temp("test_out/shogun/{sample}/{sample}.taxon_counts.tsv")
     params:
-        shogun = config['params']['shogun']
+        shogun = config['params']['shogun'],
+        env = config['envs']['shogun']
     threads:
         2
-    conda:
-        "envs/shotgun-shogun.yaml"
     log:
-        "test_out/logs/taxonomy_shogun_{sample}.log"
+        "/dev/stdout"
     shell:
         """
+        set +u; {params.env}; set -u
+
         mkdir -p test_out/shogun/{wildcards.sample}/temp
 
         # convert and merge fastq's into fasta
-        seqtk seq -A {input.forward} > test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
-        seqtk seq -A {input.reverse} >> test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
+        seqtk seq -A {input.forward} > \
+            test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
+        seqtk seq -A {input.reverse} >> \
+            test_out/shogun/{wildcards.sample}/temp/{wildcards.sample}.fna
 
         # run shogun with utree
         shogun_utree_lca {params.shogun} --threads {threads} \
@@ -260,7 +275,7 @@ rule taxonomy_shogun_combine_tables:
     output:
         "test_out/shogun/joined_taxon_counts.tsv"
     log:
-        "test_out/logs/taxonomy_shogun_combine_tables.log"
+        "/dev/stdout"
     run:
         taxa, samples = {}, []
         for file in input:
