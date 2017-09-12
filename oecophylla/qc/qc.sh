@@ -1,0 +1,1 @@
+conda env create --name shotgun-qc -f shotgun-qc.yaml
