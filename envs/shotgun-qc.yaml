@@ -3,7 +3,6 @@ channels:
   - anaconda
   - biocore
 dependencies:
-  - python==3.6
   - atropos==1.1.5
   - bowtie2==2.3.0
   - bedtools==2.26.0
