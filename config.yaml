@@ -1,3 +1,5 @@
+tmp_dir_root: './'
+trimmer: 'atropos'
 params:
   atropos: "-a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT -q 15 --minimum-length 100 --pair-filter any"
   filter: "-x test_data/phix --very-sensitive"
@@ -5,16 +7,23 @@ params:
   metaphlan2: "metaphlan2"
   shogun: "--utree_indx test_data/shogun_test_db/phix.ctr"
 envs:
-  humann2: source activate shotgun-humann2
+  raw: source activate shotgun-qc
   qc: source activate shotgun-qc
   shogun: source activate shotgun-shogun
+  humann2: source activate shotgun-humann2
 samples:
   S22205:
-    forward: test_data/S22205.R1.fastq.gz
-    reverse: test_data/S22205.R2.fastq.gz
+    filter_db: 'test_data/phix'
+    forward: 
+      - test_data/S22205.R1.fastq.gz
+    reverse: 
+      - test_data/S22205.R2.fastq.gz
   S22207:
-    forward: test_data/S22207.R1.fastq.gz
-    reverse: test_data/S22207.R2.fastq.gz
+    filter_db: 'test_data/phix'
+    forward: 
+      - test_data/S22207.R1.fastq.gz
+    reverse: 
+      - test_data/S22207.R2.fastq.gz
   # S22282:
   #   forward: test_data/S22282.R1.fastq.gz
   #   reverse: test_data/S22282.R2.fastq.gz
