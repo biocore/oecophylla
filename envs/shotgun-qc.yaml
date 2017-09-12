@@ -10,3 +10,4 @@ dependencies:
   - biom-format==2.1.5
   - fastqc==0.11.5
   - multiqc
+  - pigz
