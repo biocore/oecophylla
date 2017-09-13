@@ -1,4 +1,7 @@
-conda env create --name shotgun-shogun -f envs/shotgun-shogun.yaml
+# conda env create --name shotgun-shogun -f envs/shotgun-shogun.yaml
+# currently shogun is a hack, running the install script until we 
+# have stable conda install
+conda env create --name shotgun-shogun -f shotgun-shogun.yaml
 
 source activate shotgun-shogun
 
@@ -19,3 +22,8 @@ echo "#!/bin/sh" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
 echo "export PATH=$OLD_PATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
 echo "unset OLDPATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
 
+
+# download UTree binary and add to path
+wget https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
+unzip utree_1.2_linux.zip -d utree
+chmod 755 utree/utree*
