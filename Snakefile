@@ -1,14 +1,14 @@
 import os
 import tempfile
 
-configfile: "config.yaml"
 
-TMP_DIR_ROOT = config['tmp_dir_root']
-
-samples = config["samples"]
-
-trimmer = config["trimmer"]
-
+try:
+    TMP_DIR_ROOT = config['tmp_dir_root']
+    samples = config["samples"]
+    trimmer = config["trimmer"]
+except KeyError:
+    print('Error: you must pass a config file using --configfile')
+    raise
 
 include: "oecophylla/util/folders.py"
 
