@@ -1,2 +1,2 @@
-![bin](https://raw.githubusercontent.com/biocore/oecophylla/masterdoc/images/bin.jpeg "bin")
+![bin](https://raw.githubusercontent.com/biocore/oecophylla/master/doc/images/bin.jpeg "bin")
 
