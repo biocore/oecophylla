@@ -15,5 +15,5 @@ To run on a simple set of test data, run:
 ```bash
 export PATH=$PATH:$PWD/utree
 source activate oecophylla
-snakemake all --cores 2
+snakemake all --cores 2 --configfile config.yaml
 ```
