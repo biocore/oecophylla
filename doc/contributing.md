@@ -62,7 +62,7 @@ This enables the use of multiple mechanisms for specifying environments -- for
 example, a centralized install on a cluster could use `module load foo` while
 a local test installation could use `source activate oecophylla-foo`. 
 
-To specify the environment, make sure to access the corresponding declration
+To specify the environment, make sure to access the corresponding declaration
 in your `config.yaml` file in the `params` portion of the Snakemake rule, and
 then pass that during the shell execution block, as so:
 
@@ -75,6 +75,8 @@ rule foo1:
         file.foo.txt
     params:
         env = config['envs']['foo']
+        # 'foo' here is a string in the config.yaml, and should evaluate
+        # as a bash command -- e.g., source activate foo
     run:
         shell("""
               set +u; {params.env}; set -u
@@ -82,6 +84,10 @@ rule foo1:
               foo {input} > {output})
               """)
 ```
+
+Note that any Python surrounding the `shell()` code block will be executed
+within the base Oecophylla environment. 
+
 
 ## The environment install
 
