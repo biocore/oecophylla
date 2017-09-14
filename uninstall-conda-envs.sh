@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # deletes all oecophylla conda environments
-for e in `conda-env list | grep oecophylla | awk '{print $1}'`; do
+for e in `conda-env list | awk '{print $1}' | grep oecophylla`; do
   echo "removing conda env $e"
   source deactivate
   conda-env remove --quiet --yes --name $e > /dev/null ;
