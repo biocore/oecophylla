@@ -23,7 +23,7 @@ include: "oecophylla/assemble/assemble.py"
 # include: "oecophylla/map/map.py"
 # include: "oecophylla/bin/bin.py"
 # include: "oecophylla/anvio/anvio.py"
-# include: "oecophylla/taxonomy/taxonomy.py"
+include: "oecophylla/taxonomy/taxonomy.py"
 # include: "oecophylla/function/function.py"
 # include: "oecophylla/report/report.py"
 
@@ -44,7 +44,7 @@ rule all:
         expand(assemble_dir + "{sample}/metaquast/{sample}.metaquast.done",
                sample=samples),
         expand(assemble_dir + "{sample}/quast/{sample}.quast.done",
-               sample=samples)#,
+               sample=samples),
     # # Mapping
     #     # expand(map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.cram",
     #     #        sample=samples, bin_sample=config['binning_samples'],
@@ -59,9 +59,9 @@ rule all:
     #            bin_sample=config['binning_samples']),
     #     expand(anvio_dir + "{bin_sample}/{bin_sample}.db.anvi_add_maxbin.done",
     #            bin_sample=config['binning_samples']),
-    # # Taxonomy
-    #     taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-    #     taxonomy_dir + "kraken/combined_profile.tsv",
+    # Taxonomy
+        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
+        taxonomy_dir + "kraken/combined_profile.tsv"#,
     #     taxonomy_dir + "shogun/combined_profile.tsv",
     # # Function
     #     expand(# individual normed bioms
