@@ -38,7 +38,7 @@ def _arg_split(ctx, param, value):
               help='Directory containing log files.')
 @click.option('--restart', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
-@click.option('--output-dir',
+@click.option('--output-dir', type=click.PATH, required=False,
               help='Input directory of all of the samples.')
 # TODO: extra snakemake parameters with defaults
 
@@ -58,21 +58,23 @@ def local_workflow():
     pass
 
 @run.command()
-@click.option('--input-dir',
-              help='Input directory of all of the samples.')
-@click.option('--manifest',
-              help='Manifest file containing all of the paths (csv file).')
-@click.option('--params',
+@click.option('--input-dir', required=True, type=click.STRING,
+              callback=_arg_split,
+              help='Input directories of all of the samples.')
+@click.option('--sample-sheet', required=True, type=click.STRING,
+              callback=_arg_split,
+              help='Sample sheets used to demultiplex the illumina run.')
+@click.option('--params', type=click.PATH, required=True,
               help='Specify parameters for the tools.')
-@click.option('--cluster-file',
+@click.option('--cluster-params', type=click.PATH, required=True,
               help='Input biom table of abundances.')
 @click.option('--local-scratch',
               help='Temporary directory for storing intermediate files.')
 @click.option('--qsub/--slurm', is_flag=True,
               help='Temporary directory for storing intermediate files.')
-@click.option('--log-dir',
+@click.option('--log-dir', type=click.PATH, required=False,
               help='Directory containing log files.')
-@click.option('--output-dir',
+@click.option('--output-dir', type=click.PATH, required=False,
               help='Input directory of all of the samples.')
 def cluster_workflow():
     """
