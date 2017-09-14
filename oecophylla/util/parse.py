@@ -2,6 +2,7 @@ import os
 import re
 import pandas as pd
 import copy
+from io import StringIO
 
 
 # Option 1 : parse samples from directory
@@ -153,59 +154,106 @@ def add_filter_db(sample_fp_dict, db_fp, samples = None,
     return(samples_dict)
 
 # Option 2: read samples from sample sheet
-def read_sample_sheet(f, sep='\t'):
-    """ """
+def read_sample_sheet(f, sep='\t', comment='#'):
+    """ Outputs a dataframe from a sample sheet
+
+    Parameters
+    ----------
+    f : str
+       File name for reading in the sample sheet information.
+    sep : str
+       Delimiter for parsing the pandas input.
+
+    Returns
+    -------
+    data_df : pd.DataFrame
+       DataFrame containing the sample sheet information.
+    """
     data = False
     data_lines = ''
-    for line in f:
-        if data:
-            if line.startswith('[') or line.strip() == '':
-                data = False
+    with open(f) as fh:
+        for line in fh:
+            if data:
+                if line.startswith('[') or line.strip() == '':
+                    data = False
+                    continue
+                data_lines += line
+            elif line.startswith('[Data]'):
+                data = True
                 continue
-            data_lines += line
-        elif line.startswith('[Data]'):
-            data = True
-            continue
-        else:
-            continue
-
-    data_df = pd.read_csv(StringIO(data_lines), sep = '\t', comment='#')
+            else:
+                continue
+    data_df = pd.read_csv(StringIO(data_lines),
+                          sep=sep, comment=comment)
     return(data_df)
 
-def get_sample_reads_df_from_sample_sheet(ss_df, seq_dir,
-                                          sample_col='Description',
-                                          prefix_col='Sample_ID'):
+def extract_samples_from_sample_sheet(sample_sheet_df, seq_dir,
+                                      name_col='Description',
+                                      sample_col='Sample',
+                                      lane_col='Lane',
+                                      file_col='File',
+                                      read_col='Read',
+                                      prefix_col='Sample_ID'):
+    """
+    Parameters
+    ----------
+    sample_sheet_df : pd.DataFrame
+       DataFrame containing the sample sheet information.
+    seq_dir : str
+       Input directory containing all of the sample files.
+    sample_col : str
+       Column name for the samples in the sample sheet.
+    name_col : str
+       Column name indicating the true name of the sample.
+    lane_col : str
+       Column name for the lane in the sample sheet.
+    read_col : str
+       Column name for the reads in the sample sheet.
+    file_col : str
+       Column name for the filename in the sample sheet.
+    prefix_col : str
+       Column name for the sample id in the sample sheet.
+
+    Returns
+    -------
+    dict of list of str
+       Samples with a list of their forward and reverse files.
+
+    """
     sample_reads_dict = {}
 
-    samples = list(set(ss_df[sample_col]))
+    samples = list(set(sample_sheet_df[name_col]))
 
     fps = os.listdir(seq_dir)
 
-    files_df = parse_ilm_fps_to_df(fps)
+    files_df = illumina_filenames_to_df(fps)
 
     for s in samples:
         # get the subset of sample sheet rows for that sample
-        sample_rows = ss_df.loc[ss_df[sample_col] == s,]
+        sample_rows = sample_sheet_df.loc[sample_sheet_df[name_col] == s,]
 
         f_fps = []
         r_fps = []
 
         # iter across subset table and find file corresponding to each row
         for idx, row in sample_rows.iterrows():
-            lane = 'L{0:03d}'.format(row['Lane'])
+            lane = 'L{0:03d}'.format(row[lane_col])
+            f_fps.extend(files_df.loc[(files_df[sample_col] == row[prefix_col]) &
+                                      (files_df[lane_col] == lane) &
+                                      (files_df[read_col] == 'R1'),
+                                      file_col].values)
 
-            f_fps.extend(files_df.loc[(files_df['Sample'] == row['Sample_ID']) &
-                                      (files_df['Lane'] == lane) &
-                                      (files_df['Read'] == 'R1'), 'File'].values)
-
-            r_fps.extend(files_df.loc[(files_df['Sample'] == row['Sample_ID']) &
-                                      (files_df['Lane'] == lane) &
-                                      (files_df['Read'] == 'R2'), 'File'].values)
+            r_fps.extend(files_df.loc[(files_df[sample_col] == row[prefix_col]) &
+                                      (files_df[lane_col] == lane) &
+                                      (files_df[read_col] == 'R2'),
+                                      file_col].values)
 
         f_fps = sorted(f_fps)
         r_fps = sorted(r_fps)
 
-        sample_reads_dict[s] = {'forward': [os.path.join(seq_dir, x) for x in f_fps],
-                                'reverse': [os.path.join(seq_dir, x) for x in r_fps]}
+        sample_reads_dict[s] = {
+            'forward': [os.path.join(seq_dir, x) for x in f_fps],
+            'reverse': [os.path.join(seq_dir, x) for x in r_fps]
+        }
 
     return(sample_reads_dict)
