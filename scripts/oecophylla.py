@@ -1,7 +1,8 @@
 import click
-import json
+import yaml
 import os
 import glob
+from ..util import parse
 
 """
 This is the main Oecophylla script which handles launching of the entire
@@ -20,7 +21,7 @@ oecophylla install
 
 Execute Workflow:
 -----------------
-oecophylla workflow --input-dir ./inputs --sample-sheet sample.txt --params params.json --output-dir ./outputs
+oecophylla workflow --input-dir ./inputs --sample-sheet sample.txt --params params.yaml --output-dir ./outputs
 
 """
 
@@ -48,7 +49,7 @@ def _create_dir(_path):
               callback=_arg_split,
               help='Sample sheets used to demultiplex the Illumina run.')
 @click.option('--params', '-p', type=click.PATH, required=True,
-              help='Specify parameters for the tools in a JSON file.')
+              help='Specify parameters for the tools in a YAML file.')
 @click.option('--cluster-params', type=click.PATH, required=False,
               help='File with parameters for a cluster job.')
 @click.option('--local-scratch', type=click.PATH, default='/tmp'
@@ -70,6 +71,9 @@ def workflow():
     import snakemake
     from skbio.io.registry import sniff
 
+    # SNAKEMAKE
+    snakefile = "%s/../Snakefile" % __file__
+
     # INPUT DIR
     for inp_file in glob.glob('%s/*' % input_dir):
         file_format = sniff(inp_file)[0]
@@ -79,6 +83,7 @@ def workflow():
     # SAMPLE SHEET
     # If a manifest is not specified, the files containing forward and reverse reads
     # will be automatically identified using regex.
+    parse.read_sample_sheet(sample_sheet)
 
 
     # OUTPUT
@@ -95,11 +100,29 @@ def workflow():
         os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
 
     # CLUSTER SETUP
-
-
-    snakefile = "%s/../Snakefile" % __file__
     with open(cluster_params) as _file:
-        cluster = json.load(_file)
+        _cluster_config = yaml.load(_file)
+    # for now, everything under `extra` should be explicit freetext, e.g. --my-argument=value
+    cluster_freetext = _cluster_config['extra']
+    if run_location == 'torque':
+        cluster_freetext = yaml.
+        cluster_setup = "qsub -e {cluster.error} -o {cluster.output} \
+                         -m {cluster.email} \
+                         -l nodes=1:ppn={cluster.nodes} \
+                         -l mem={cluster.memory} \
+                         -l walltime={cluster.time} %s" % cluster_freetext
+    elif run_location == 'slurm':
+        cluster_setup = "srun -e {cluster.error} -o {cluster.output} \
+                         -mail-user={cluster.email} \
+                         -n {cluster.nodes} \
+                         --mem={cluster.memory} \
+                         --time={cluster.time} %s" % cluster_freetext
+    elif run_location == 'local':
+        cluster_setup = None
+    else:
+        raise ValueError('Incorrect run-location specified in launch script.')
+
+
 
     # TODO cluster queue logic
 
@@ -107,13 +130,9 @@ def workflow():
                         cores=cluster['cores'],
                         nodes=cluster['nodes'],
                         local_cores=cluster['local_cores'],
-                        resources={},
-                        config={}, configfile=None, config_args=None,
-                        workdir=None, targets=None, dryrun=False, touch=False,
-                        forcetargets=False, forceall=False, forcerun=[],
-                        until=[], omit_from=[], prioritytargets=[], stats=None,
-                        printreason=False, printshellcmds=False,
-                        debug_dag=False)
+                        cluster=cluster_setup,
+                        cluster_config=cluster_params,
+                        workdir="$@")
     # --no-lock?
 
     # parameters, samples and environmental variables will all have to be concatenated
