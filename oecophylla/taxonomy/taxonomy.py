@@ -1,38 +1,38 @@
-rule tax_metaphlan2:
+rule taxonomy_metaphlan2:
     """
     Runs MetaPhlan2 on a set of samples to create a joint taxonomic profile for
     input into HUMAnN2, based on the thinking that it is preferable to have a
     consistent Chocophlan reference database for the whole set of samples. This
-    is especially true for shallowly sequenced samples. 
+    is especially true for shallowly sequenced samples.
 
     Going to do just R1 reads for now. Because of how I've split PE vs SE
-    processing and naming, still will need to make a separate rule for PE. 
+    processing and naming, still will need to make a separate rule for PE.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
-        tax_dir + "{sample}/metaphlan2/{sample}_metaphlan_output.tsv"
+        taxonomy_dir + "{sample}/metaphlan2/{sample}_metaphlan2_output.tsv"
     params:
-        metaphlan_dir = config['params']['metaphlan']["metaphlan_dir"],
-        metaphlan_env = config['metaphlan_env']
+        metaphlan2_dir = config['params']['metaphlan2']["metaphlan2_dir"],
+        metaphlan2_env = config['envs']['metaphlan2']
     threads:
         4
     log:
-        tax_dir + "logs/tax_metaphlan2.{sample}.log"
+        taxonomy_dir + "logs/taxonomy_metaphlan2.{sample}.log"
     benchmark:
-        "benchmarks/tax/tax_metaphlan2.{sample}.json"
+        "benchmarks/taxonomy/taxonomy_metaphlan2.{sample}.json"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
-                  set +u; {params.metaphlan_env}; set -u
+                  set +u; {params.metaphlan2_env}; set -u
 
                   zcat {input.forward} {input.reverse} > {temp_dir}/input.fastq
 
-                  {params.metaphlan_dir}/metaphlan2.py {temp_dir}/input.fastq \
+                  {params.metaphlan2_dir}/metaphlan2.py {temp_dir}/input.fastq \
                     --input_type fastq \
-                    --mpa_pkl {params.metaphlan_dir}/db_v20/mpa_v20_m200.pkl \
-                    --bowtie2db {params.metaphlan_dir}/db_v20/mpa_v20_m200 \
+                    --mpa_pkl {params.metaphlan2_dir}/db_v20/mpa_v20_m200.pkl \
+                    --bowtie2db {params.metaphlan2_dir}/db_v20/mpa_v20_m200 \
                     --nproc {threads} \
                     --tmp_dir {temp_dir} \
                     --no_map \
@@ -40,24 +40,24 @@ rule tax_metaphlan2:
                   """)
 
 
-rule tax_combine_metaphlan2:
+rule taxonomy_combine_metaphlan2:
     """
-    Combines MetaPhlan2 output for unified taxonomic profile for Humann2.
+    Combines MetaPhlan2 output for unified taxonomic profile for HUMAnN2.
     """
     input:
-        expand(tax_dir + "{sample}/metaphlan2/{sample}_metaphlan_output.tsv",
+        expand(taxonomy_dir + "{sample}/metaphlan2/{sample}_metaphlan2_output.tsv",
                sample=samples)
     output:
-        joint_prof = tax_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-        max_prof = tax_dir + "metaphlan2/joined_taxonomic_profile_max.tsv"
+        joint_prof = taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
+        max_prof = taxonomy_dir + "metaphlan2/joined_taxonomic_profile_max.tsv"
     threads:
         1
     params:
-        humann2_env = config['humann2_env']
+        humann2_env = config['envs']['humann2']
     log:
-        tax_dir + "logs/tax_combine_metaphlan.log"
+        taxonomy_dir + "logs/taxonomy_combine_metaphlan2.log"
     benchmark:
-        "benchmarks/tax/tax_combine_metaphlan.json"
+        "benchmarks/taxonomy/taxonomy_combine_metaphlan2.json"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             for file in input:
@@ -71,12 +71,12 @@ rule tax_combine_metaphlan2:
                   """)
 
 
-rule metaphlan2: 
+rule metaphlan2:
     input:
-        tax_dir + "metaphlan2/joined_taxonomic_profile.tsv"
+        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv"
 
 
-rule tax_kraken:
+rule taxonomy_kraken:
     """
     Runs Kraken using general defaults.
     """
@@ -84,22 +84,22 @@ rule tax_kraken:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
-        map = tax_dir + "{sample}/kraken/{sample}_map.txt",
-        report = tax_dir + "{sample}/kraken/{sample}_report.txt"
+        map = taxonomy_dir + "{sample}/kraken/{sample}_map.txt",
+        report = taxonomy_dir + "{sample}/kraken/{sample}_report.txt"
     params:
         kraken_db = config['params']['kraken']['kraken_db'],
-        kraken_env = config['kraken_env']
+        kraken_env = config['envs']['kraken']
     threads:
         12
     log:
-        tax_dir + "logs/tax_kraken.sample=[{sample}].log"
+        taxonomy_dir + "logs/taxonomy_kraken.sample=[{sample}].log"
     benchmark:
-        "benchmarks/tax/tax_kraken.sample=[{sample}].txt"
+        "benchmarks/taxonomy/taxonomy_kraken.sample=[{sample}].txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             map_base = os.path.basename(output['map'])
             report_base = os.path.basename(output['report'])
-            
+
             shell("""
                   set +u; {params.kraken_env}; set -u
 
@@ -123,21 +123,21 @@ rule tax_kraken:
                   """)
 
 
-rule tax_kraken_combine_reports:
+rule taxonomy_kraken_combine_reports:
     """
-    Combines the per-sample taxonomic profiles into a single run-wide table. 
+    Combines the per-sample taxonomic profiles into a single run-wide table.
     """
     input:
-        expand(tax_dir + "{sample}/kraken/{sample}_map.txt", sample=samples)
+        expand(taxonomy_dir + "{sample}/kraken/{sample}_map.txt", sample=samples)
     output:
-        report = tax_dir + "kraken/combined_profile.tsv"
+        report = taxonomy_dir + "kraken/combined_profile.tsv"
     params:
         kraken_db = config['params']['kraken']["kraken_db"],
-        kraken_env = config['kraken_env']
+        kraken_env = config['envs']['kraken']
     log:
-        tax_dir + "logs/tax_kraken_combine_reports.log"
+        taxonomy_dir + "logs/taxonomy_kraken_combine_reports.log"
     benchmark:
-        "benchmarks/tax/tax_kraken_combine_reports.txt"
+        "benchmarks/taxonomy/taxonomy_kraken_combine_reports.txt"
     run:
         shell("""
               set +u; {params.kraken_env}; set -u
@@ -152,10 +152,10 @@ rule tax_kraken_combine_reports:
 
 rule kraken:
     input:
-        tax_dir + "kraken/combined_profile.tsv"
+        taxonomy_dir + "kraken/combined_profile.tsv"
 
 
-rule tax_shogun:
+rule taxonomy_shogun:
     """
     Runs SHOGUN to infer taxonomic composition of sample.
     """
@@ -163,33 +163,32 @@ rule tax_shogun:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
-        taxon_counts = tax_dir + "{sample}/shogun/{sample}.taxon_counts.tsv"
+        taxon_counts = taxonomy_dir + "{sample}/shogun/{sample}.taxon_counts.tsv"
     params:
         shogun = config['params']['shogun'],
-        seqtk = config['software']['seqtk'],
-        shogun_env = config['shogun_env']
+        shogun_env = config['envs']['shogun']
     threads:
         2
     log:
-        tax_dir + "logs/tax_shogun.sample=[{sample}].log"
+        taxonomy_dir + "logs/taxonomy_shogun.sample=[{sample}].log"
     benchmark:
-        "benchmarks/tax/tax_shogun.sample=[{sample}].txt"
+        "benchmarks/taxonomy/taxonomy_shogun.sample=[{sample}].txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
                   set +u; {params.shogun_env}; set -u
 
                   # convert and merge fastq's into fasta
-                  {params.seqtk} seq -A {input.forward} > {temp_dir}/{wildcards.sample}.fna
-                  {params.seqtk} seq -A {input.reverse} >> {temp_dir}/{wildcards.sample}.fna
-                  
+                  seqtk seq -A {input.forward} > {temp_dir}/{wildcards.sample}.fna
+                  seqtk seq -A {input.reverse} >> {temp_dir}/{wildcards.sample}.fna
+
                   # run shogun
                   shogun_utree_lca.py {params.shogun} \
                   --threads {threads} \
                   --input {temp_dir} \
                   --output {temp_dir} \
                   2> {log} 1>&2
-                  
+
                   # parse output
                   echo '#'SampleID$'\t'{wildcards.sample} > {output.taxon_counts}
                   cat {temp_dir}/taxon_counts.csv | \
@@ -197,19 +196,19 @@ rule tax_shogun:
                   """)
 
 
-rule tax_shogun_combine_tables:
+rule taxonomy_shogun_combine_tables:
     """
-    Combines the per-sample normalized tables into a single run-wide table. 
+    Combines the per-sample normalized tables into a single run-wide table.
     """
     input:
-        expand(tax_dir + "{sample}/shogun/{sample}.taxon_counts.tsv",
+        expand(taxonomy_dir + "{sample}/shogun/{sample}.taxon_counts.tsv",
                sample=samples)
     output:
-        report = tax_dir + "shogun/combined_profile.tsv"
+        report = taxonomy_dir + "shogun/combined_profile.tsv"
     log:
-        tax_dir + "logs/tax_shogun_combine_tables.log"
+        taxonomy_dir + "logs/taxonomy_shogun_combine_tables.log"
     benchmark:
-        "benchmarks/tax/tax_shogun_combine_tables.txt"
+        "benchmarks/taxonomy/taxonomy_shogun_combine_tables.txt"
     run:
         taxa, samples = {}, []
         for file in input:
@@ -239,13 +238,13 @@ rule tax_shogun_combine_tables:
 
 rule shogun:
     input:
-        tax_dir + "shogun/combined_profile.tsv"
+        taxonomy_dir + "shogun/combined_profile.tsv"
 
 
 rule taxonomy:
     input:
-        tax_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-        tax_dir + "kraken/combined_profile.tsv",
-        tax_dir + "shogun/combined_profile.tsv"
+        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
+        taxonomy_dir + "kraken/combined_profile.tsv",
+        taxonomy_dir + "shogun/combined_profile.tsv"
 
 

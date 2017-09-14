@@ -23,7 +23,7 @@ include: "oecophylla/util/simplify_fasta.py"
 # include: "oecophylla/map/map.py"
 # include: "oecophylla/bin/bin.py"
 # include: "oecophylla/anvio/anvio.py"
-# include: "oecophylla/tax/tax.py"
+# include: "oecophylla/taxonomy/taxonomy.py"
 # include: "oecophylla/function/function.py"
 # include: "oecophylla/report/report.py"
 
@@ -60,9 +60,9 @@ rule all:
     #     expand(anvio_dir + "{bin_sample}/{bin_sample}.db.anvi_add_maxbin.done",
     #            bin_sample=config['binning_samples']),
     # # Taxonomy
-    #     tax_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-    #     tax_dir + "kraken/combined_profile.tsv",
-    #     tax_dir + "shogun/combined_profile.tsv",
+    #     taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
+    #     taxonomy_dir + "kraken/combined_profile.tsv",
+    #     taxonomy_dir + "shogun/combined_profile.tsv",
     # # Function
     #     expand(# individual normed bioms
     #            func_dir + "{sample}/humann2/{sample}_genefamilies_{norm}.biom",
