@@ -2,16 +2,16 @@ rule function_humann2:
     """
     Runs HUMAnN2 pipeline using general defaults.
 
-    Other HUMAnN2 parameters can be specified as a quoted string in 
-    PARAMS: HUMANN2: OTHER. 
+    Other HUMAnN2 parameters can be specified as a quoted string in
+    PARAMS: HUMANN2: OTHER.
 
     Going to do just R1 reads for now. Because of how I've split PE vs SE
-    processing and naming, still will need to make a separate rule for PE. 
+    processing and naming, still will need to make a separate rule for PE.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz",
-        metaphlan_in = tax_dir + "metaphlan2/joined_taxonomic_profile_max.tsv"
+        metaphlan_in = taxonomy_dir + "metaphlan2/joined_taxonomic_profile_max.tsv"
     output:
         genefamilies = temp("test_out/humann2/{sample}/{sample}_genefamilies.txt"),
         pathcoverage = temp("test_out/humann2/{sample}/{sample}_pathcoverage.txt"),
@@ -27,7 +27,7 @@ rule function_humann2:
     benchmark:
         "benchmarks/function/function_humann2_{sample}.json"
     run:
-        
+
   shell("""
         mkdir -p test_out/humann2/{wildcards.sample}/temp
         zcat {input.forward} {input.reverse} > test_out/humann2/{wildcards.sample}/temp/input.fastq
@@ -45,7 +45,7 @@ rule function_humann2:
 
 rule function_humann2_combine_tables:
     """
-    Combines the per-sample normalized tables into a single run-wide table. 
+    Combines the per-sample normalized tables into a single run-wide table.
 
     Because HUMAnN2 takes a directory as input, first copies all the individual
     tables generated in this run to a temp directory and runs on that.
@@ -175,7 +175,7 @@ rule function_humann2_split_stratified_tables:
     reads (*_mapped).
 
     The un-stratified tables should then be directly useful for downstream
-    analysis in e.g. beta diversity. 
+    analysis in e.g. beta diversity.
     """
     input:
         genefamilies = func_dir + "humann2/combined_genefamilies_{norm}_{mapped}.biom",

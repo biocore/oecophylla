@@ -1,1 +1,1 @@
-![raw](https://raw.githubusercontent.com/biocore/oecophylla/masterdoc/images/raw.jpeg "raw")
+![raw](https://raw.githubusercontent.com/biocore/oecophylla/master/doc/images/raw.jpeg "raw")

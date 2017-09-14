@@ -1,1 +1,1 @@
-conda env create --name shotgun-qc -f shotgun-qc.yaml
+conda env create --name oecophylla-qc -f oecophylla-qc.yaml --quiet

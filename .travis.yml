@@ -13,7 +13,7 @@ install:
   # install setup environment
   - bash install.sh
 before_script:
-  - echo 'foo'
+  - echo 'oecophylla FTW!'
 script:
   # run workflow
   - export PATH=$PATH:$PWD/utree

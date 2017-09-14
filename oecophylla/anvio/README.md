@@ -1,1 +1,1 @@
-![anvio](https://raw.githubusercontent.com/biocore/oecophylla/masterdoc/images/anvio.jpeg "anvio")
+![anvio](https://raw.githubusercontent.com/biocore/oecophylla/master/doc/images/anvio.jpeg "anvio")
