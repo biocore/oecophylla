@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-conda env create --name oecophylla-metaphlan2 -f oecophylla-metaphlan2.yaml --quiet > /dev/null
+# conda env create --name oecophylla-metaphlan2 -f oecophylla-metaphlan2.yaml --quiet > /dev/null
 conda env create --name oecophylla-kraken -f oecophylla-kraken.yaml --quiet > /dev/null
 
 # currently shogun is a hack, running the install script until we
