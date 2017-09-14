@@ -39,3 +39,7 @@ Thumbs.db
 # emacs #
 #########
 *~
+
+# internal testing files
+results/
+.snakemake/
