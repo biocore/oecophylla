@@ -1,0 +1,1 @@
+conda env create --name shotgun-map -f shotgun-map.yaml
