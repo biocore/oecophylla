@@ -1,3 +1,7 @@
+#!/bin/bash
+set -e
+
+echo "Executing $0..."
 conda env create --name shotgun-metaphlan2 -f shotgun-metaphlan2.yaml
 conda env create --name shotgun-kraken -f shotgun-kraken.yaml
 
