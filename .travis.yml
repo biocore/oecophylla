@@ -19,5 +19,7 @@ script:
   - export PATH=$PATH:$PWD/utree
   - source activate oecophylla
   - snakemake all --cores 2 --configfile config.yaml --dryrun
+  - source deactivate
+  - bash uninstall-conda-envs.sh
 after_success:
   - coveralls
