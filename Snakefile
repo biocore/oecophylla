@@ -60,8 +60,8 @@ rule all:
     #     expand(anvio_dir + "{bin_sample}/{bin_sample}.db.anvi_add_maxbin.done",
     #            bin_sample=config['binning_samples']),
     # Taxonomy
-        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-        taxonomy_dir + "kraken/combined_profile.tsv"#,
+        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv"#,
+    #     taxonomy_dir + "kraken/combined_profile.tsv"#,
     #     taxonomy_dir + "shogun/combined_profile.tsv",
     # # Function
     #     expand(# individual normed bioms
