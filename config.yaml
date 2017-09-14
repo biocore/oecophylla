@@ -14,6 +14,7 @@ envs:
   qc: source activate shotgun-qc
   raw: source activate shotgun-qc
   shogun: source activate shotgun-shogun
+  assemble: source activate shotgun-assemble
 mapping_assembler: metaspades
 params:
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
