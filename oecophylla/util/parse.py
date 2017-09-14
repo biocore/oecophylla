@@ -1,6 +1,7 @@
 import os
 import re
 import pandas as pd
+import copy
 
 
 # Option 1 : parse samples from directory
@@ -88,24 +89,53 @@ def extract_sample_reads(df, seq_dir,
         sample_reads_dict[s] = {'forward': [os.path.join(seq_dir, x) for x in f_fps],
                                 'reverse': [os.path.join(seq_dir, x) for x in r_fps]}
 
-    return(sample_reads_dict)
+    return sample_reads_dict
 
 
-def get_sample_paths(seq_dir):
-    """
+def extract_sample_paths(seq_dir):
+    """ Obtain the sample paths.
+
     Parameters
     ----------
     seq_dir : str
+       Input directory containing all of the sample files.
+
+    Returns
+    -------
+    dict of list of str
+       Samples with a list of their forward and reverse files.
     """
     fps = os.listdir(seq_dir)
 
-    files_df = parse_ilm_fps_to_df(fps)
-    sample_reads_dict = get_sample_reads_df(files_df, seq_dir)
+    files_df = illumina_filenames_to_df(fps)
+    sample_reads_dict = extract_sample_reads(files_df, seq_dir)
 
-    return(sample_reads_dict)
+    return sample_reads_dict
 
 
-def add_filter_db(sample_fp_dict, db_fp, samples = None):
+def add_filter_db(sample_fp_dict, db_fp, samples = None,
+                  filter_col='filter_db'):
+    """ Add in a database for filtering out contaminant reads.
+
+    This is useful for filtering out reads from other sources
+    such as human DNA.
+
+    Parameters
+    ----------
+    sample_fp_dict : dict of list of str
+       Samples with a list of their forward and reverse files.
+    db_fp : str
+       Filepath of the database.
+    samples : list
+       List of sample names.
+    filter_col : str
+       Keyword name for the filtering database (default: 'filter_db')
+
+    Returns
+    -------
+    dict of list of str
+       Samples with a list of their forward and reverse files.
+    """
 
     if samples is None:
         samples = sample_fp_dict.keys()
@@ -114,16 +144,17 @@ def add_filter_db(sample_fp_dict, db_fp, samples = None):
 
     for s in samples_dict:
         if s in samples:
-            samples_dict[s]['filter_db'] = db_fp
-        elif 'filter_db' in samples_dict[s]:
+            samples_dict[s][filter_col] = db_fp
+        elif filter_col in samples_dict[s]:
             continue
         else:
-            samples_dict[s]['filter_db'] = None
+            samples_dict[s][filter_col] = None
 
     return(samples_dict)
 
 # Option 2: read samples from sample sheet
 def read_sample_sheet(f, sep='\t'):
+    """ """
     data = False
     data_lines = ''
     for line in f:
