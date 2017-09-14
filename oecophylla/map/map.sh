@@ -1,1 +1,1 @@
-conda env create --name shotgun-map -f shotgun-map.yaml
+conda env create --name shotgun-map -f map.yaml
