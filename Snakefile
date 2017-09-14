@@ -10,22 +10,22 @@ except KeyError:
     print('Error: you must pass a config file using --configfile')
     raise
 
-include: "oecophylla/util/folders.py"
+include: "oecophylla/util/folders.rule"
 
-include: "oecophylla/raw/raw.py"
-include: "oecophylla/qc/qc.py"
-include: "oecophylla/util/clean.py"
-# include: "oecophylla/util/test.py"
-include: "oecophylla/util/util.py"
-include: "oecophylla/util/simplify_fasta.py"
-# include: "oecophylla/mash/mash.py"
-include: "oecophylla/assemble/assemble.py"
-# include: "oecophylla/map/map.py"
-# include: "oecophylla/bin/bin.py"
-# include: "oecophylla/anvio/anvio.py"
-# include: "oecophylla/taxonomy/taxonomy.py"
-# include: "oecophylla/function/function.py"
-# include: "oecophylla/report/report.py"
+include: "oecophylla/raw/raw.rule"
+include: "oecophylla/qc/qc.rule"
+include: "oecophylla/util/clean.rule"
+# include: "oecophylla/util/test.rule"
+include: "oecophylla/util/util.rule"
+include: "oecophylla/util/simplify_fasta.rule"
+# include: "oecophylla/mash/mash.rule"
+include: "oecophylla/assemble/assemble.rule"
+# include: "oecophylla/map/map.rule"
+# include: "oecophylla/bin/bin.rule"
+# include: "oecophylla/anvio/anvio.rule"
+# include: "oecophylla/taxonomy/taxonomy.rule"
+# include: "oecophylla/function/function.rule"
+# include: "oecophylla/report/report.rule"
 
 rule all:
     # raw
