@@ -26,6 +26,10 @@ echo "unset OLDPATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
 
 
 # download UTree binary and add to path
-wget https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
+if hash wget 2>/dev/null; then
+    wget https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
+else
+    curl -L -o utree_1.2_linux.zip https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
+fi
 unzip utree_1.2_linux.zip -d utree
 chmod 755 utree/utree*
