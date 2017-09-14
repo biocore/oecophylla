@@ -11,7 +11,7 @@
 import re
 import ast
 import os
-
+import glob
 from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext as _build_ext
 
@@ -74,9 +74,10 @@ setup(name='oecophylla',
       maintainer_email="jonsan@gmail.com",
       packages=find_packages(),
       setup_requires=['numpy >= 1.9.2'],
+      scripts=glob.glob('scripts/*.py'),
       ext_modules=extensions,
       cmdclass={'build_ext': build_ext},
-      install_requires=[],
+      install_requires=['click'],
       classifiers=classifiers,
       package_data={
           },
