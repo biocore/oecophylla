@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/biocore/oecophylla.svg?branch=master)](https://travis-ci.org/biocore/oecophylla)
 
-# oecophylla
+# Oecophylla
 
 Canonically pronounced *eco-fill-uh*
 
