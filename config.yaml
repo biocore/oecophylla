@@ -13,7 +13,11 @@ envs:
   kraken: source activate shotgun-kraken
   qc: source activate shotgun-qc
   raw: source activate shotgun-qc
+  metaphlan2: source activate shotgun-metaphlan2
+  kraken: source activate shotgun-kraken
   shogun: source activate shotgun-shogun
+  assemble: source activate shotgun-assemble
+  mash: source activate shotgun-mash
 mapping_assembler: metaspades
 params:
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
@@ -21,7 +25,7 @@ params:
   humann2:
     humann2_aa_db: 'humann2_aa_db: /home/jgsanders/ref_data/humann2/uniref'
     humann2_nt_db: /home/jgsanders/ref_data/humann2/chocophlan
-    metaphlan_dir: /home/jgsanders/share/metaphlan2
+    metaphlan2_dir: /home/jgsanders/share/metaphlan2
     norms:
     - cpm
     - relab
@@ -29,8 +33,8 @@ params:
   kraken:
     kraken_db: /home/qiz173/Databases/Kraken/stdb
   maxbin: -plotmarker
-  metaphlan:
-    metaphlan_dir: /home/jgsanders/git_sw/metaphlan2
+  metaphlan2:
+    metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2
   shogun: --utree_indx /home/qiz173/Databases/SHOGUN/annotated/utree/stdb.ctr
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge

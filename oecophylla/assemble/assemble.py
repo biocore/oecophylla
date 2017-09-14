@@ -8,7 +8,8 @@ rule assemble_megahit:
     output:
         assemble_dir + "{sample}/megahit/{sample}.contigs.fa"
     params:
-        memory = 120
+        memory = 120,
+        env = config['envs']['assemble']
     threads:
         12
     log:
@@ -20,6 +21,8 @@ rule assemble_megahit:
             mem_b = params.memory * 1000000000
             outdir = os.path.dirname(output[0])
             shell("""
+                  set +u; {params.env}; set -u
+                  
                   #rm -r {outdir}
 
                   megahit -1 {input.forward} -2 {input.reverse} \
@@ -42,7 +45,8 @@ rule assemble_metaspades:
     benchmark:
         "benchmarks/assemble/assemble_metaspades.sample=[{sample}].txt"
     params:
-        mem=240
+        mem=240,
+        env = config['envs']['assemble']
     threads:
         12
     run:
@@ -50,13 +54,15 @@ rule assemble_metaspades:
             outdir = os.path.dirname(output[0])
             contigs_fp = os.path.abspath(os.path.join(outdir,'contigs.fasta'))
             shell("""
-                    spades.py --meta -t {threads} -m {params.mem} \
-                    -1 {input.forward} -2 {input.reverse} -o {temp_dir} \
-                    2> {log} 1>&2
+                  set +u; {params.env}; set -u
+                  
+                  spades.py --meta -t {threads} -m {params.mem} \
+                  -1 {input.forward} -2 {input.reverse} -o {temp_dir} \
+                  2> {log} 1>&2
 
-                    scp -r {temp_dir}/{{spades.log,*.fasta,assembly_graph*,*.paths}} {outdir}/.
+                  scp -r {temp_dir}/{{spades.log,*.fasta,assembly_graph*,*.paths}} {outdir}/.
 
-                    ln -s {contigs_fp} {outdir}/{wildcards.sample}.contigs.fa
+                  ln -s {contigs_fp} {outdir}/{wildcards.sample}.contigs.fa
                   """)
 
 
@@ -71,7 +77,8 @@ rule assemble_spades:
     benchmark:
         "benchmarks/assemble/assemble_spades.sample=[{sample}].txt"
     params:
-        mem=240
+        mem=240,
+        env = config['envs']['assemble']
     threads:
         12
     run:
@@ -79,13 +86,15 @@ rule assemble_spades:
             outdir = os.path.dirname(output[0])
             contigs_fp = os.path.abspath(os.path.join(outdir,'contigs.fasta'))
             shell("""
-                    spades.py -t {threads} -m {params.mem} \
-                    -1 {input.forward} -2 {input.reverse} -o {temp_dir} \
-                    2> {log} 1>&2
+                  set +u; {params.env}; set -u
+                  
+                  spades.py -t {threads} -m {params.mem} \
+                  -1 {input.forward} -2 {input.reverse} -o {temp_dir} \
+                  2> {log} 1>&2
 
-                    scp -r {temp_dir}/{{spades.log,*.fasta,assembly_graph*,*.paths}} {outdir}/.
+                  scp -r {temp_dir}/{{spades.log,*.fasta,assembly_graph*,*.paths}} {outdir}/.
 
-                    ln -s {contigs_fp} {outdir}/{wildcards.sample}.contigs.fa
+                  ln -s {contigs_fp} {outdir}/{wildcards.sample}.contigs.fa
                   """)
 
 
@@ -102,17 +111,21 @@ rule assemble_metaquast:
         12
     benchmark:
         "benchmarks/assemble/assemble_metaquast.sample=[{sample}].txt"
+    params:
+        env = config['envs']['assemble']
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             outdir = os.path.dirname(output.done)
             assemblies = ' '.join(input)
             shell("""
-                    metaquast.py -t {threads} -o {temp_dir}/metaquast \
-                    {assemblies} 2> {log} 1>&2
+                  set +u; {params.env}; set -u
+                  
+                  metaquast.py -t {threads} -o {temp_dir}/metaquast \
+                  {assemblies} 2> {log} 1>&2
 
-                    scp -r {temp_dir}/metaquast/* {outdir}/.
+                  scp -r {temp_dir}/metaquast/* {outdir}/.
 
-                    touch {output.done}
+                  touch {output.done}
                   """)
 
 
@@ -129,17 +142,21 @@ rule assemble_quast:
         8
     benchmark:
         "benchmarks/assemble/assemble_quast.sample=[{sample}].txt"
+    params:
+        env = config['envs']['assemble']
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             outdir = os.path.dirname(output.done)
             assemblies = ' '.join(input)
             shell("""
-                    quast.py -t {threads} -o {temp_dir}/quast \
-                    {assemblies} 2> {log} 1>&2
+                  set +u; {params.env}; set -u
+                  
+                  quast.py -t {threads} -o {temp_dir}/quast \
+                  {assemblies} 2> {log} 1>&2
 
-                    scp -r {temp_dir}/quast/* {outdir}/.
+                  scp -r {temp_dir}/quast/* {outdir}/.
 
-                    touch {output.done}
+                  touch {output.done}
                   """)
 
 
