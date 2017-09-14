@@ -1,13 +1,12 @@
 #!/bin/bash
 set -e
 
-echo -n "Executing $0... "
-conda env create --name shotgun-metaphlan2 -f shotgun-metaphlan2.yaml
-conda env create --name shotgun-kraken -f shotgun-kraken.yaml
+conda env create --name shotgun-metaphlan2 -f shotgun-metaphlan2.yaml --quite > /dev/null
+conda env create --name shotgun-kraken -f shotgun-kraken.yaml --quite > /dev/null
 
 # currently shogun is a hack, running the install script until we
 # have stable conda install
-conda env create --name shotgun-shogun -f shotgun-shogun.yaml
+conda env create --name shotgun-shogun -f shotgun-shogun.yaml --quite > /dev/null
 
 source activate shotgun-shogun
 
@@ -30,6 +29,6 @@ echo "unset OLDPATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
 
 
 # download UTree binary and add to path
-wget https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
-unzip utree_1.2_linux.zip -d utree
+wget https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip > /dev/null
+unzip utree_1.2_linux.zip -d utree > /dev/null
 chmod 755 utree/utree*
