@@ -10,7 +10,7 @@ except KeyError:
     print('Error: you must pass a config file using --configfile')
     raise
 
-include: "oecophylla/util/folders.py"
+include: "oecophylla/util/folders.rule"
 
 include: "oecophylla/raw/raw.py"
 include: "oecophylla/qc/qc.py"
