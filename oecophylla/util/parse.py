@@ -1,32 +1,39 @@
+import os
 import re
 import pandas as pd
 
-# Option 1 : parse samples from directory
 
-def parse_filenames_to_df(filepaths, pattern = None, column_names = None):
+# Option 1 : parse samples from directory
+def illumina_filenames_to_df(filepaths, pattern = None, column_names = None):
     """ Generates sample sheet from filenames using a regex pattern.
 
     Parameters
     ----------
     filepaths: list of str
         List of file paths to parse
-    pattern: str
+    pattern: str, optional
         Regex pattern to recognize the filenames, to load into the
         sample sheet.
         default: '^((.+?)_(S\d+)_(L\d+)_(R[12])_(\d+)\.(.+))$'
-    column_names: list
+    column_names: list, optional
         Column names for the generated sample sheet.  Note that this
         is assumed to be in the same ordering as the regex pattern.
         default: ['File', 'Sample', 'Index', 'Lane',
                   'Read', 'Run', 'Extension']
+    Returns
+    -------
+    df : pd.DataFrame
+       Sample sheet dataframe with all of the sample information.
 
-
+    Notes
+    -----
+    This function is very illumina specific.
     """
     if pattern is None:
         pattern = '^((.+?)_(S\d+)_(L\d+)_(R[12])_(\d+)\.(.+))$'
     if column_names is None:
         column_names = ['File', 'Sample', 'Index', 'Lane',
-                         'Read', 'Run', 'Extension']
+                        'Read', 'Run', 'Extension']
     p = re.compile(pattern)
     df = pd.DataFrame(columns = column_names)
 
@@ -38,27 +45,51 @@ def parse_filenames_to_df(filepaths, pattern = None, column_names = None):
     return df
 
 
-def get_sample_reads_df(df, seq_dir):
-    """
+def extract_sample_reads(df, seq_dir,
+                         sample_col='Sample',
+                         read_col='Read',
+                         file_col='File'):
+    """ Extracts all files according to their associated samples.
+
     Parameters
     ----------
     df : pd.DataFrame
-
+       Sample sheet dataframe with all of the sample information.
     seq_dir : str
+       Input directory containing all of the sample files.
+    sample_col : str
+       Column name for the samples in the sample sheet.
+    read_col : str
+       Column name for the read orientation in the sample sheet.
+    file_col : str
+       Column name for the file name in the sample sheet.
 
+    Returns
+    -------
+    dict of list of str
+       Samples with a list of their forward and reverse files.
+
+    Notes
+    -----
+    This function is very illumina specific, strictly assuming that
+    the fwd reads are denoted by `R1` and the reverse reads are denoted
+    by `R2`.
     """
     sample_reads_dict = {}
 
-    samples = list(set(df['Sample']))
+    samples = list(set(df[sample_col]))
 
     for s in samples:
-        f_fps = sorted(list(df.loc[(df['Sample'] == s) & (df['Read'] == 'R1'),'File'].values))
-        r_fps = sorted(list(df.loc[(df['Sample'] == s) & (df['Read'] == 'R2'),'File'].values))
+        fwd = df.loc[(df[sample_col] == s) & (df[read_col] == 'R1'), file_col]
+        rev = df.loc[(df[sample_col] == s) & (df[read_col] == 'R2'), file_col]
+        f_fps = sorted(list(fwd.values))
+        r_fps = sorted(list(rev.values))
 
         sample_reads_dict[s] = {'forward': [os.path.join(seq_dir, x) for x in f_fps],
                                 'reverse': [os.path.join(seq_dir, x) for x in r_fps]}
 
     return(sample_reads_dict)
+
 
 def get_sample_paths(seq_dir):
     """
@@ -91,7 +122,7 @@ def add_filter_db(sample_fp_dict, db_fp, samples = None):
 
     return(samples_dict)
 
-# Option 2: read samples from manifest
+# Option 2: read samples from sample sheet
 def read_sample_sheet(f, sep='\t'):
     data = False
     data_lines = ''
