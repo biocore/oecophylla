@@ -18,8 +18,8 @@ include: "oecophylla/util/clean.py"
 # include: "oecophylla/util/test.py"
 include: "oecophylla/util/util.py"
 include: "oecophylla/util/simplify_fasta.py"
-# include: "oecophylla/distance/distance.py"
-# include: "oecophylla/assemble/assemble.py"
+# include: "oecophylla/mash/mash.py"
+include: "oecophylla/assemble/assemble.py"
 # include: "oecophylla/map/map.py"
 # include: "oecophylla/bin/bin.py"
 # include: "oecophylla/anvio/anvio.py"
@@ -37,14 +37,14 @@ rule all:
         expand(qc_dir + "{sample}/{trimmer}_trimmed/{sample}.trimmed.R2.fastq.gz", sample=samples, trimmer=trimmer),
         expand(qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz", sample=samples),
         expand(qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz", sample=samples),
-        qc_dir + "multiQC_per_sample/multiqc_report.html"#,
-    # # Assembly
-    #     expand(assemble_dir + "{sample}/{assembler}/{sample}.contigs.fa",
-    #            sample=samples, assembler=config['assemblers']),
-    #     expand(assemble_dir + "{sample}/metaquast/{sample}.metaquast.done",
-    #            sample=samples),
-    #     expand(assemble_dir + "{sample}/quast/{sample}.quast.done",
-    #            sample=samples),
+        qc_dir + "multiQC_per_sample/multiqc_report.html",
+    # Assembly
+        expand(assemble_dir + "{sample}/{assembler}/{sample}.contigs.fa",
+               sample=samples, assembler=config['assemblers']),
+        expand(assemble_dir + "{sample}/metaquast/{sample}.metaquast.done",
+               sample=samples),
+        expand(assemble_dir + "{sample}/quast/{sample}.quast.done",
+               sample=samples)#,
     # # Mapping
     #     # expand(map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.cram",
     #     #        sample=samples, bin_sample=config['binning_samples'],
