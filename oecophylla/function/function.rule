@@ -3,11 +3,11 @@ rule function_humann2:
     """
     Runs HUMAnN2 pipeline using general defaults.
 
-    Other HUMAnN2 parameters can be specified as a quoted string in 
-    PARAMS: HUMANN2: OTHER. 
+    Other HUMAnN2 parameters can be specified as a quoted string in
+    PARAMS: HUMANN2: OTHER.
 
     Going to do just R1 reads for now. Because of how I've split PE vs SE
-    processing and naming, still will need to make a separate rule for PE. 
+    processing and naming, still will need to make a separate rule for PE.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
@@ -57,7 +57,7 @@ rule function_humann2:
 rule function_humann2_renorm_tables:
     """
     Renormalizes HUMAnN2 per-sample tables, per recommendation in the HUMAnN2
-    website. 
+    website.
 
     Counts-per-million (cpm) or Relative Abundance (Relabund) can be specified
     as a list in the PARAMS: HUMANN2: NORMS variable in the config file.
@@ -98,7 +98,7 @@ rule function_humann2_renorm_tables:
 
 rule function_humann2_combine_tables:
     """
-    Combines the per-sample normalized tables into a single run-wide table. 
+    Combines the per-sample normalized tables into a single run-wide table.
 
     Because HUMAnN2 takes a directory as input, first copies all the individual
     tables generated in this run to a temp directory and runs on that.
@@ -196,7 +196,7 @@ rule function_humann2_split_stratified_tables:
     reads (*_mapped).
 
     The un-stratified tables should then be directly useful for downstream
-    analysis in e.g. beta diversity. 
+    analysis in e.g. beta diversity.
     """
     input:
         genefamilies = func_dir + "humann2/combined_genefamilies_{norm}_{mapped}.biom",
