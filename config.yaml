@@ -17,7 +17,7 @@ envs:
   kraken: source activate oecophylla-kraken
   shogun: source activate oecophylla-shogun
   assemble: source activate oecophylla-assemble
-  mash: source activate oecophylla-mash
+  distance: source activate oecophylla-distance
 mapping_assembler: metaspades
 params:
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
@@ -32,6 +32,8 @@ params:
     other: ''
   kraken:
     kraken_db: /home/qiz173/Databases/Kraken/stdb
+  mash:
+    sketch_size: 1000
   maxbin: -plotmarker
   metaphlan2:
     metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2

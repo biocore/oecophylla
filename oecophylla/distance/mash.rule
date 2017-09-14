@@ -1,99 +1,51 @@
 rule mash_sketch:
     """
-    Sketches a trimmed and host-filtered fastq file.
-
-    There is almost no documentation for this tool, so it's problematic.
-
-    Relevant parameters might be:
-    -b : use bloom filtering on kmers to reduce impact of low-freq erros.
-    -m N: use explicit depth filtering on kmers (bigger memory impact than bloom)
+    Sketches a quality-controlled fastq file with mash.
     """
     input:
-        forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
-        reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
+        forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz"
     output:
-        sketch = distance_dir + '{sample}/mash/{sample}.msh'
+        distance_dir + '{sample}/mash/{sample}.msh'
     params:
-        mash = config['software']['mash'],
-        seqtk = config['software']['seqtk'],
-        mash_params = config['params']['mash']['other'],
-        depth = config['params']['mash']['depth']
+        env = config['envs']['distance'],
+        size = int(config['params']['mash']['sketch_size'])
     threads:
         1
     log:
         distance_dir + "logs/mash_sketch.sample=[{sample}].log"
     benchmark:
-        "benchmarks/distance/mash_sketch.sample=[{sample}].json"
-    run:
-        output_base = os.path.splitext(output['sketch'])[0]
+        "benchmarks/distance/mash_sketch.sample=[{sample}].txt"
+    shell:
+        # -r is for reads instead of genomes for mash sketch;
+        # remove suffix because mash will automatically add .msh
+        '''set +u; {params.env}; set -u
+        output_basename=`basename {output[0]} .msh`
+        mash sketch -r -i {params.size} -o $output_basename {input.forward}'''
 
-        with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
-            shell("""
-                  cat {input.forward} {input.reverse} > {temp_dir}/{wildcards.sample}
-
-                  if [ -n "{params.depth}" ]; then
-                    seqtk sample {temp_dir}/{wildcards.sample} {params.depth} > {temp_dir}/subsampled.fastq
-                    mv {temp_dir}/subsampled.fastq {temp_dir}/{wildcards.sample}
-                  fi
-
-                  {params.mash} sketch {params.mash_params} -o {output_base} {temp_dir}/{wildcards.sample}
-                  """)
-
-
-rule mash_refseq:
+rule mash_dist:
     """
-    Compares a mash sketch against refseq sketch.
-
-    Requires that the sketches have same -k values -- for RefSeqDefault,
-    -k should equal 21.
-    """
-    input:
-        sketch = distance_dir + '{sample}/mash/{sample}.msh'
-    output:
-        refseq = distance_dir + '{sample}/mash/{sample}.refseq.txt'
-    params:
-        mash = config['software']['mash'],
-        db = config['params']['mash']['refseq_db']
-    threads:
-        1
-    log:
-        distance_dir + "logs/mash_refseq.sample=[{sample}].log"
-    benchmark:
-        "benchmarks/distance/mash_refseq.sample=[{sample}].json"
-    run:
-        shell("""
-              {params.mash} dist {params.db} {input.sketch} | sort -gk3 > {output.refseq}
-              """)
-
-rule mash_dm:
-    """
-    Makes mash distance output file
+    compute mash distance between every pair of samples.
     """
     input:
         expand(distance_dir + '{sample}/mash/{sample}.msh',
             sample = samples)
     output:
         dm = distance_dir + 'combined_analysis/mash.dist.txt'
-    params:
-        mash = config['software']['mash']
     threads:
         1
     log:
         distance_dir + "logs/mash_dm.log"
     benchmark:
-        "benchmarks/distance/mash_dm.json"
+        "benchmarks/distance/mash_dm.txt"
     run:
-        for i in range(len(input)):
-            for j in range(i,len(input)):
-                thing1 = input[i]
-                thing2 = input[j]
-                shell("""
-                      {params.mash} dist {thing1} {thing2} >> {output.dm}
-                      """)
+        from itertools import combinations
+        for i, j in combinations(input, 2):
+            shell('mash dist {i} {j} >> {output.dm}')
 
-rule mash_dm_write:
+
+rule mash_dm:
     """
-    Writes square distance matrices from p values and distances that Mash makes
+    Make a distance matrix.
     """
     input:
         dm = distance_dir + 'combined_analysis/mash.dist.txt'
@@ -105,7 +57,7 @@ rule mash_dm_write:
     log:
         distance_dir + "logs/mash_dm_write.log"
     benchmark:
-        "benchmarks/distance/mash_dm_write.json"
+        "benchmarks/distance/mash_dm_write.txt"
     run:
         from skbio.stats.distance import DissimilarityMatrix
         import pandas as pd
@@ -136,13 +88,9 @@ rule mash_dm_write:
         sk_dm.write(output['dist_matrix'])
         sk_pm.write(output['p_matrix'])
 
-#### Mash rules
+
 rule mash:
     input:
-        expand(distance_dir + '{sample}/mash/{sample}.msh',
-               sample=samples),
-        expand(distance_dir + '{sample}/mash/{sample}.refseq.txt',
-               sample=samples),
-        distance_dir + 'combined_analysis/mash.dist.dm',
-        distance_dir + 'combined_analysis/mash.dist.p'
-
+        expand(rules.mash_sketch.output, sample=samples),
+        rules.mash_dist.output,
+        rules.mash_dm.output
