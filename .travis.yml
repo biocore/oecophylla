@@ -18,6 +18,6 @@ script:
   # run workflow
   - export PATH=$PATH:$PWD/utree
   - source activate oecophylla
-  - snakemake all --cores 2 --configfile config.yaml
+  - snakemake all --cores 2 --configfile config.yaml --dryrun
 after_success:
   - coveralls
