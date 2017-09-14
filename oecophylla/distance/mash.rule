@@ -8,7 +8,7 @@ rule mash_sketch:
         distance_dir + '{sample}/mash/{sample}.msh'
     params:
         env = config['envs']['distance'],
-        size = int(config['params']['mash']['sketch_size'])
+        size = config['params']['mash']['sketch_size']
     threads:
         1
     log:
@@ -27,8 +27,7 @@ rule mash_dist:
     compute mash distance between every pair of samples.
     """
     input:
-        expand(distance_dir + '{sample}/mash/{sample}.msh',
-            sample = samples)
+        expand(distance_dir + '{sample}/mash/{sample}.msh', sample=samples)
     output:
         dm = distance_dir + 'combined_analysis/mash.dist.txt'
     threads:
