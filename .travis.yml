@@ -13,11 +13,17 @@ install:
   # install setup environment
   - bash install.sh
 before_script:
-  - echo 'foo'
+  - echo 'oecophylla FTW!'
+  # decompress test databases
+  # these databases are huge when decompressed, and can fill up available disk space on Travis, so launch those test only when necessary
+  # - bunzip2 test_data/kraken_test_db/database.idx.bz2
+  # - bunzip2 test_data/shogun_test_db/phix.ctr.bz2
 script:
   # run workflow
   - export PATH=$PATH:$PWD/utree
   - source activate oecophylla
-  - snakemake all --cores 2 --configfile config.yaml
+  - snakemake all --cores 2 --configfile config.yaml --dryrun
+  - source deactivate
+  - bash uninstall-conda-envs.sh
 after_success:
   - coveralls

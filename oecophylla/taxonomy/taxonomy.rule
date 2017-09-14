@@ -14,7 +14,7 @@ rule taxonomy_metaphlan2:
     output:
         taxonomy_dir + "{sample}/metaphlan2/{sample}_metaphlan2_output.tsv"
     params:
-        metaphlan2_dir = config['params']['metaphlan2']["metaphlan2_dir"],
+        metaphlan2_db = config['params']['metaphlan2']["metaphlan2_db"],
         metaphlan2_env = config['envs']['metaphlan2']
     threads:
         4
@@ -29,10 +29,10 @@ rule taxonomy_metaphlan2:
 
                   zcat {input.forward} {input.reverse} > {temp_dir}/input.fastq
 
-                  {params.metaphlan2_dir}/metaphlan2.py {temp_dir}/input.fastq \
+                  metaphlan2.py {temp_dir}/input.fastq \
                     --input_type fastq \
-                    --mpa_pkl {params.metaphlan2_dir}/db_v20/mpa_v20_m200.pkl \
-                    --bowtie2db {params.metaphlan2_dir}/db_v20/mpa_v20_m200 \
+                    --mpa_pkl {params.metaphlan2_db}.pkl \
+                    --bowtie2db {params.metaphlan2_db} \
                     --nproc {threads} \
                     --tmp_dir {temp_dir} \
                     --no_map \

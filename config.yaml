@@ -8,16 +8,16 @@ binning_samples:
 - sample_S22282
 - sample_S22205
 envs:
-  anvi: source activate shotgun-anvi
-  humann2: source activate shotgun-humann2
-  kraken: source activate shotgun-kraken
-  qc: source activate shotgun-qc
-  raw: source activate shotgun-qc
-  metaphlan2: source activate shotgun-metaphlan2
-  kraken: source activate shotgun-kraken
-  shogun: source activate shotgun-shogun
-  assemble: source activate shotgun-assemble
-  mash: source activate shotgun-mash
+  anvi: source activate oecophylla-anvi
+  humann2: source activate oecophylla-humann2
+  kraken: source activate oecophylla-kraken
+  qc: source activate oecophylla-qc
+  raw: source activate oecophylla-qc
+  metaphlan2: source activate oecophylla-metaphlan2
+  kraken: source activate oecophylla-kraken
+  shogun: source activate oecophylla-shogun
+  assemble: source activate oecophylla-assemble
+  mash: source activate oecophylla-mash
 mapping_assembler: metaspades
 params:
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
@@ -25,16 +25,18 @@ params:
   humann2:
     humann2_aa_db: 'humann2_aa_db: /home/jgsanders/ref_data/humann2/uniref'
     humann2_nt_db: /home/jgsanders/ref_data/humann2/chocophlan
-    metaphlan2_dir: /home/jgsanders/share/metaphlan2
+    metaphlan_dir: /home/jgsanders/share/metaphlan2
     norms:
     - cpm
     - relab
     other: ''
   kraken:
-    kraken_db: /home/qiz173/Databases/Kraken/stdb
+    # kraken_db: /home/qiz173/Databases/Kraken/stdb
+    kraken_db: test_data/kraken_test_db
   maxbin: -plotmarker
   metaphlan2:
-    metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2
+    # metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2
+    metaphlan2_db: test_data/mp2_test_db/mpa_v20_m200
   shogun: --utree_indx /home/qiz173/Databases/SHOGUN/annotated/utree/stdb.ctr
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
