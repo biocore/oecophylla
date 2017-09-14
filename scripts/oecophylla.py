@@ -2,7 +2,7 @@ import click
 import yaml
 import os
 import glob
-from ..util import parse
+from oecophylla.util.parse import *
 
 """
 This is the main Oecophylla script which handles launching of the entire
@@ -41,20 +41,24 @@ def _create_dir(_path):
     if not os.path.exists(_path):
         os.makedirs(_path)
 
+
 @run.command()
 @click.option('--input-dir', '-i', required=True, type=click.STRING,
               callback=_arg_split,
               help='Input directory with all of the samples.')
-@click.option('--sample-sheet', '-s', required=True, type=click.STRING,
-              callback=_arg_split,
+@click.option('--sample-sheet', '-s', required=False, type=click.STRING,
+              callback=_arg_split, default=None,
               help='Sample sheets used to demultiplex the Illumina run.')
 @click.option('--params', '-p', type=click.PATH, required=True,
               help='Specify parameters for the tools in a YAML file.')
+#TODO need to cover that in code
+@click.option('--database', '-d', type=click.PATH, required=True,
+              help='Database path')
 @click.option('--cluster-params', type=click.PATH, required=False,
               help='File with parameters for a cluster job.')
 @click.option('--local-scratch', type=click.PATH, default='/tmp'
               help='Temporary directory for storing intermediate files.')
-@click.option('--run-location',
+@click.option('--workflow-type',
               type=click.Choice(['torque', 'slurm', 'local']),
               default='local',
               help='Temporary directory for storing intermediate files.')
@@ -65,8 +69,6 @@ def _create_dir(_path):
               help='Input directory of all of the samples.')
 @click.option('--restart', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
-# TODO: extra snakemake parameters with defaults
-# TODO: everything past here will be passed directly into snakemake
 def workflow():
     import snakemake
     from skbio.io.registry import sniff
@@ -122,11 +124,7 @@ def workflow():
     else:
         raise ValueError('Incorrect run-location specified in launch script.')
 
-
-
-    # TODO cluster queue logic
-
-    snakemake.snakemake(snakefile, listrules=False, list_target_rules=False,
+    snakemake.snakemake(snakefile,
                         cores=cluster['cores'],
                         nodes=cluster['nodes'],
                         local_cores=cluster['local_cores'],
