@@ -15,7 +15,7 @@ install:
 before_script:
   - echo 'oecophylla FTW!'
   # decompress test databases
-  # - bunzip2 test_data/kraken_test_db/database.idx.bz2
+  - bunzip2 test_data/kraken_test_db/database.idx.bz2
   # - bunzip2 test_data/shogun_test_db/phix.ctr.bz2
 script:
   # run workflow
