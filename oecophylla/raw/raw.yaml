@@ -3,4 +3,3 @@ channels:
 dependencies:
   - fastqc
   - multiqc
-  
