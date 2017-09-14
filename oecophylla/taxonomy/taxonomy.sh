@@ -1,11 +1,11 @@
-conda env create --name shotgun-metaphlan2 -f shotgun-metaphlan2.yaml
-conda env create --name shotgun-kraken -f shotgun-kraken.yaml
+conda env create --name oecophylla-metaphlan2 -f oecophylla-metaphlan2.yaml
+conda env create --name oecophylla-kraken -f oecophylla-kraken.yaml
 
 # currently shogun is a hack, running the install script until we
 # have stable conda install
-conda env create --name shotgun-shogun -f shotgun-shogun.yaml
+conda env create --name oecophylla-shogun -f oecophylla-shogun.yaml
 
-source activate shotgun-shogun
+source activate oecophylla-shogun
 
 echo $CONDA_PREFIX
 
