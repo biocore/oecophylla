@@ -18,7 +18,7 @@ include: "oecophylla/util/clean.py"
 # include: "oecophylla/util/test.py"
 include: "oecophylla/util/util.py"
 include: "oecophylla/util/simplify_fasta.py"
-# include: "oecophylla/mash/mash.py"
+# include: "oecophylla/distance/distance.py"
 # include: "oecophylla/assemble/assemble.py"
 # include: "oecophylla/map/map.py"
 # include: "oecophylla/bin/bin.py"
@@ -72,10 +72,10 @@ rule all:
     #            func_dir + "humann2/stratified/combined_genefamilies_{norm}_{mapped}_unstratified.biom",
     #            norm = config['params']['humann2']['norms'],
     #            mapped=['all','mapped']),
-    # # Mash
-    #     expand(mash_dir + '{sample}/mash/{sample}.msh',
+    # # Distance
+    #     expand(distance_dir + '{sample}/distance/{sample}.msh',
     #            sample=samples),
-    #     expand(mash_dir + '{sample}/mash/{sample}.refseq.txt',
+    #     expand(distance_dir + '{sample}/distance/{sample}.refseq.txt',
     #            sample=samples),
-    #     mash_dir + 'combined_analysis/mash.dist.dm',
-    #     mash_dir + 'combined_analysis/mash.dist.p'
+    #     distance_dir + 'combined_analysis/mash.dist.dm',
+    #     distance_dir + 'combined_analysis/mash.dist.p'
