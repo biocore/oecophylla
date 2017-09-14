@@ -54,7 +54,7 @@ specifics on formatting Snakemake rules.
 Rules can be executed in their own environment, allowing tools with potentially
 conflicting dependences to execute in the workflow.
 
-In `oecophylla`, we are specifying the environment for a rule's execution with
+In Oecophylla, we are specifying the environment for a rule's execution with
 a line at the beginning of a shell execution block that executes the commands
 necessary to initialize that environment. The necessary command is passed into
 the `params` object in the rule specification from the `config.yaml` file.
@@ -81,7 +81,7 @@ rule foo1:
 
               foo {input} > {output})
               """)
-'''
+```
 
 ## The environment install
 
