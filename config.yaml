@@ -8,16 +8,16 @@ binning_samples:
 - sample_S22282
 - sample_S22205
 envs:
-  anvi: source activate shotgun-anvi
-  humann2: source activate shotgun-humann2
-  kraken: source activate shotgun-kraken
-  qc: source activate shotgun-qc
-  raw: source activate shotgun-qc
-  metaphlan2: source activate shotgun-metaphlan2
-  kraken: source activate shotgun-kraken
-  shogun: source activate shotgun-shogun
-  assemble: source activate shotgun-assemble
-  mash: source activate shotgun-mash
+  anvi: source activate oecophylla-anvi
+  humann2: source activate oecophylla-humann2
+  kraken: source activate oecophylla-kraken
+  qc: source activate oecophylla-qc
+  raw: source activate oecophylla-qc
+  metaphlan2: source activate oecophylla-metaphlan2
+  kraken: source activate oecophylla-kraken
+  shogun: source activate oecophylla-shogun
+  assemble: source activate oecophylla-assemble
+  mash: source activate oecophylla-mash
 mapping_assembler: metaspades
 params:
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
