@@ -43,17 +43,17 @@ def _create_dir(_path):
 
 
 @run.command()
+#TODO add an option to process multiple directories
 @click.option('--input-dir', '-i', required=True, type=click.STRING,
-              callback=_arg_split,
               help='Input directory with all of the samples.')
+#TODO add an option to process multiple directories
 @click.option('--sample-sheet', '-s', required=False, type=click.STRING,
-              callback=_arg_split, default=None,
+              default=None,
               help='Sample sheets used to demultiplex the Illumina run.')
 @click.option('--params', '-p', type=click.PATH, required=True,
               help='Specify parameters for the tools in a YAML file.')
-#TODO need to cover that in code
-@click.option('--database', '-d', type=click.PATH, required=True,
-              help='Database path')
+@click.option('--envs', '-e', type=click.PATH, required=True,
+              help='Specify environments for the tools in a YAML file.')
 @click.option('--cluster-params', type=click.PATH, required=False,
               help='File with parameters for a cluster job.')
 @click.option('--local-scratch', type=click.PATH, default='/tmp'
@@ -67,7 +67,7 @@ def _create_dir(_path):
               help='Directory containing log files.')
 @click.option('--output-dir', '-o', type=click.PATH, required=True,
               help='Input directory of all of the samples.')
-@click.option('--restart', is_flag=True, default=False,
+@click.option('--force', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
 def workflow():
     import snakemake
@@ -82,18 +82,34 @@ def workflow():
         if (file_format != 'fasta') or (file_format != 'fastq'):
             raise TypeError('Input files need to be in FASTA or FASTQ format.')
 
-    # SAMPLE SHEET
-    # If a manifest is not specified, the files containing forward and reverse reads
-    # will be automatically identified using regex.
-    parse.read_sample_sheet(sample_sheet)
-
-
     # OUTPUT
     # create output directory, if does not exist
     _create_dir(output_dir)
 
-    # PARAMS
+    # SAMPLE SHEET
+    # If a manifest is not specified, the files containing forward and reverse reads
+    # will be automatically identified using regex.
+    if sample_sheet:
+        _sheet = read_sample_sheet(sample_sheet)
+        sample_dict = extract_samples_from_sample_sheet(_sheet, input_dir)
+    else:
+        sample_dict = extract_sample_paths(input_dir)
 
+    # PARAMS
+    params_dict = yaml.load(open(params, 'r'))
+
+    # ENVS
+    envs_dict = yaml.load(open(envs, 'r'))
+
+    # CONFIG
+    # merge PARAMS, SAMPLE_DICT, ENVS
+    config_dict['samples'] = sample_dict
+    config_dict['params'] = params_dict
+    config_dict['envs'] = envs_dict
+    config_yaml = yaml.dump(config_dict, default_flow_style=False)
+    config_fp = '%s/%s' % (local_scratch, 'config.yaml')
+    with open(config_fp, 'w') as f:
+        f.write(config_yaml)
 
     # LOGS
     if log_dir:
@@ -120,6 +136,10 @@ def workflow():
                          --mem={cluster.memory} \
                          --time={cluster.time} %s" % cluster_freetext
     elif run_location == 'local':
+        if not cluster_params:
+            cluster['cores'] = 4
+            cluster['nodes'] = 1
+            cluster['local_cores'] = 1
         cluster_setup = None
     else:
         raise ValueError('Incorrect run-location specified in launch script.')
@@ -130,16 +150,10 @@ def workflow():
                         local_cores=cluster['local_cores'],
                         cluster=cluster_setup,
                         cluster_config=cluster_params,
-                        workdir="$@")
-    # --no-lock?
-
-    # parameters, samples and environmental variables will all have to be concatenated
-    # together to feed into snakemake.
-
-
-    # below are some examples of cluster inputs
-    # -j 16 --local-cores 4 -w 90 --cluster-config cluster.json
-    # --cluster "qsub -e {cluster.error} -o {cluster.output} -m n -l nodes=1:ppn={cluster.n} -l mem={cluster.mem}gb -l walltime={cluster.time}"
+                        workdir="$@",
+                        forceall=force,
+                        config=config_fp,
+                        latency_wait=90)
 
 
 @run.command()
