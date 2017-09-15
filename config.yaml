@@ -37,8 +37,9 @@ params:
   mash:
     sketch_size: 1000
   kraken:
-    # kraken_db: test_data/kraken_test_db
-    kraken_db: /home/qiz173/Works/WoL/profiling/ref107/kraken
+    kraken_db: test_data/kraken_test_db
+    bracken_db: test_data/kraken_test_db/75mers_distr.txt
+    # kraken_db: /home/qiz173/Works/WoL/profiling/ref107/kraken
     bracken_db: /home/qiz173/Works/WoL/profiling/ref107/kraken/75mers_distr.txt
   maxbin: -plotmarker
   metaphlan2:
