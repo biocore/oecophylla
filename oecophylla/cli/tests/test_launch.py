@@ -4,6 +4,7 @@ from click.testing import CliRunner
 import shutil
 from oecophylla.cli.launch import workflow
 import yaml
+import subprocess
 
 
 class ProcessingTests(TestCase):
@@ -22,17 +23,21 @@ class ProcessingTests(TestCase):
         if os.path.exists(self.local_dir):
             shutil.rmtree(self.local_dir)
 
-    def test_local(self):
+    def test_config(self):
         _params = ['--input-dir', self.seq_dir,
                    '--params', '%s/data/tool_params.yml' % self.curdir,
                    '--envs', '%s/data/envs.yml' % self.curdir,
                    '--local-scratch', self.local_dir,
                    '--output-dir', self.output_dir,
-                   'all']
-        print('starting')
-        print(' '.join(_params))
-        res = CliRunner().invoke(workflow, _params)
-        print(res.exit_code)
+                   '--just-config',
+                   'all'
+                   ]
+
+        # res = CliRunner().invoke(workflow, _params)
+        cmd = 'oecophylla workflow %s' % ' '.join(_params)
+        proc = subprocess.Popen(cmd, shell=True)
+        proc.wait()
+
         # test the config file
         with open('%s/config.yaml' % self.local_dir, 'r') as f:
             res_config = yaml.load(f)
