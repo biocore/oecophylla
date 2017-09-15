@@ -90,7 +90,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     from skbio.io.registry import sniff
 
     # SNAKEMAKE
-    snakefile = "%s/../Snakefile" % os.path.abspath(__file__)
+    snakefile = "%s/../../Snakefile" % os.path.abspath(os.path.dirname(__file__))
 
     # INPUT DIR
     for inp_file in glob.glob('%s/*' % input_dir):
