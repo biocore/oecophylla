@@ -1,1 +1,4 @@
-conda env create --name shotgun-map -f map.yaml --quiet
+#!/bin/bash
+set -e
+
+conda env create --name oecophylla-map -f map.yaml --quiet > /dev/null

@@ -1,11 +1,17 @@
-conda env create --name shotgun-metaphlan2 -f shotgun-metaphlan2.yaml
-conda env create --name shotgun-kraken -f shotgun-kraken.yaml
+#!/bin/bash
+set -e
+
+# the MetaPhlAn package contains the whole database, which is huge
+# uncomment only when tests are necessary
+# conda env create --name oecophylla-metaphlan2 -f oecophylla-metaphlan2.yaml --quiet > /dev/null
+
+conda env create --name oecophylla-kraken -f oecophylla-kraken.yaml --quiet > /dev/null
 
 # currently shogun is a hack, running the install script until we
 # have stable conda install
-conda env create --name shotgun-shogun -f shotgun-shogun.yaml
+conda env create --name oecophylla-shogun -f oecophylla-shogun.yaml --quiet > /dev/null
 
-source activate shotgun-shogun
+source activate oecophylla-shogun
 
 echo $CONDA_PREFIX
 
@@ -26,6 +32,10 @@ echo "unset OLDPATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
 
 
 # download UTree binary and add to path
-wget https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
-unzip utree_1.2_linux.zip -d utree
+if hash wget 2>/dev/null; then
+    wget --quiet https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
+else
+    curl -s -L -o utree_1.2_linux.zip https://github.com/knights-lab/UTree/releases/download/v1.2/utree_1.2_linux.zip
+fi
+unzip utree_1.2_linux.zip -d utree > /dev/null
 chmod 755 utree/utree*
