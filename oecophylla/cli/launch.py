@@ -85,7 +85,6 @@ def _create_dir(_path):
 def workflow(targets, input_dir, sample_sheet, params, envs,
              cluster_config, local_scratch, workflow_type, output_dir,
              snakemake_args, force, just_config):
-    print('hello')
     import snakemake
     from skbio.io.registry import sniff
 
@@ -112,15 +111,15 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
         sample_dict = extract_samples_from_sample_sheet(_sheet, input_dir)
     else:
         sample_dict = extract_sample_paths(input_dir)
-    print(sample_dict)
+
     # PARAMS
     with open(params, 'r') as f:
         params_dict = yaml.load(f)
-    print(params_dict)
+
     # ENVS
     with open(envs, 'r') as f:
         envs_dict = yaml.load(f)
-    print(envs_dict)
+
     # CONFIG
     # merge PARAMS, SAMPLE_DICT, ENVS
     config_dict = {}
@@ -128,7 +127,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     config_dict['params'] = params_dict
     config_dict['envs'] = envs_dict
     config_dict['tmp_dir_root'] = local_scratch
-    print(config_dict)
+
     config_yaml = yaml.dump(config_dict, default_flow_style=False)
 
 
@@ -136,8 +135,6 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     config_fp = '%s/%s' % (output_dir, 'config.yaml')
     with open(config_fp, 'w') as f:
         f.write(config_yaml)
-    print(config_fp)
-    print(config_yaml)
 
     # TODO: LOGS
     # if log_dir:
@@ -200,7 +197,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         ' '.join(targets)])
     else:
         raise ValueError('Incorrect workflow-type specified in launch script.')
-    print(cmd)
+
     if just_config:
         proc = subprocess.Popen(cmd, shell=True)
         proc.wait()

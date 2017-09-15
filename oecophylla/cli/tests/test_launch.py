@@ -18,8 +18,8 @@ class ProcessingTests(TestCase):
         os.mkdir(self.local_dir)
 
     def tearDown(self):
-        #if os.path.exists(self.output_dir):
-        #    shutil.rmtree(self.output_dir)
+        if os.path.exists(self.output_dir):
+            shutil.rmtree(self.output_dir)
         if os.path.exists(self.local_dir):
             shutil.rmtree(self.local_dir)
 
