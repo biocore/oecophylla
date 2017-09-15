@@ -46,10 +46,7 @@ def combine_bracken(dir_bracken_reports):
         sample_counts = sample_abund['new_est_reads']
 
         # infer sample name from filename and remove file extension if present
-        samplename = _file
-        if '.' in samplename:
-            samplename = '.'.join(samplename.split('.')[:-1])
-        sample_counts.name = samplename
+        sample_counts.name = os.path.splitext(_file)[0]
 
         # add resulting pd.Series to our collection of samples
         samples.append(sample_counts)
