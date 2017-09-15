@@ -110,13 +110,10 @@ def workflow(input_dir, sample_sheet, params, envs, cluster_params,
     # PARAMS
     with open(params, 'r') as f:
         params_dict = yaml.load(f)
-    print(params_dict)
+
     # ENVS
-    print()
     with open(envs, 'r') as f:
         envs_dict = yaml.load(f)
-    print(envs_dict)
-
 
     # CONFIG
     # merge PARAMS, SAMPLE_DICT, ENVS
@@ -127,8 +124,6 @@ def workflow(input_dir, sample_sheet, params, envs, cluster_params,
 
     config_yaml = yaml.dump(config_dict, default_flow_style=False)
     config_fp = '%s/%s' % (local_scratch, 'config.yaml')
-    print(config_fp)
-    print(config_yaml)
     with open(config_fp, 'w') as f:
         f.write(config_yaml)
 

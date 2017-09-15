@@ -37,8 +37,6 @@ class ProcessingTests(TestCase):
         with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
             exp_config = yaml.load(f)
         self.assertDictEqual(res_config, exp_config)
-        print(res.exit_code == 0)
-        print(res.output)
 
     def test_slurm(self):
         # TODO
