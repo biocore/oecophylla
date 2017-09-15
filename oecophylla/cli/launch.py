@@ -8,6 +8,7 @@ from oecophylla.util.parse import (illumina_filenames_to_df,
                                    extract_sample_paths,
                                    read_sample_sheet,
                                    extract_samples_from_sample_sheet)
+import subprocess
 
 """
 This is the main Oecophylla script which handles launching of the entire
@@ -48,6 +49,7 @@ def _create_dir(_path):
 
 
 @run.command()
+@click.argument('targets', nargs=-1)
 #TODO add an option to process multiple directories
 @click.option('--input-dir', '-i', required=True, type=click.STRING,
               help='Input directory with all of the samples.')
@@ -67,19 +69,17 @@ def _create_dir(_path):
               type=click.Choice(['torque', 'slurm', 'local']),
               default='local',
               help='Temporary directory for storing intermediate files.')
-@click.option('--log-dir', type=click.Path(), required=False,
-              default='/dev/null',
-              help='Directory containing log files.')
 @click.option('--output-dir', '-o', type=click.Path(),
               help='Input directory of all of the samples.')
+@click.option('--snakemake-args', type=click.STRING, default='',
+              help=('arguments to pass into snakemake '
+                    '(needs to be passed in by quotes)'))
 @click.option('--force', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
-@click.option('--latency-wait', type=click.INT, default=90,
-              help='Latency wait between cluster jobs.')
-def workflow(input_dir, sample_sheet, params, envs, cluster_params,
-             local_scratch, workflow_type, log_dir, output_dir, force,
-             latency_wait):
-
+def workflow(targets, input_dir, sample_sheet, params, envs,
+             cluster_config,local_scratch, workflow_type, output_dir,
+             snakemake_args, force):
+    print('hello')
     import snakemake
     from skbio.io.registry import sniff
 
@@ -106,26 +106,28 @@ def workflow(input_dir, sample_sheet, params, envs, cluster_params,
         sample_dict = extract_samples_from_sample_sheet(_sheet, input_dir)
     else:
         sample_dict = extract_sample_paths(input_dir)
-
+    print(sample_dict)
     # PARAMS
     with open(params, 'r') as f:
         params_dict = yaml.load(f)
-
+    print(params_dict)
     # ENVS
     with open(envs, 'r') as f:
         envs_dict = yaml.load(f)
-
+    print(envs_dict)
     # CONFIG
     # merge PARAMS, SAMPLE_DICT, ENVS
     config_dict = {}
     config_dict['samples'] = sample_dict
     config_dict['params'] = params_dict
     config_dict['envs'] = envs_dict
-
+    print(config_dict)
     config_yaml = yaml.dump(config_dict, default_flow_style=False)
     config_fp = '%s/%s' % (local_scratch, 'config.yaml')
     with open(config_fp, 'w') as f:
         f.write(config_yaml)
+    print(config_fp)
+    print(config_yaml)
 
     # LOGS
     if log_dir:
@@ -134,7 +136,7 @@ def workflow(input_dir, sample_sheet, params, envs, cluster_params,
         os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
 
     # CLUSTER SETUP
-    with open(cluster_params) as _file:
+    with open(cluster_config) as _file:
         _cluster_config = yaml.load(_file)
     # for now, everything under `extra` should be explicit freetext,
     # e.g. --my-argument=value
@@ -145,31 +147,48 @@ def workflow(input_dir, sample_sheet, params, envs, cluster_params,
                          -l nodes=1:ppn={cluster.nodes} \
                          -l mem={cluster.memory} \
                          -l walltime={cluster.time} %s" % cluster_freetext
+        cmd = ' '.join(["snakemake ",
+                        "--local-cores %s " % cluster['local_cores'],
+                        "--jobs %s " % cluster['nodes'],
+                        "--cluster-config %s " % cluster_config,
+                        "--cluster %s "  % cluster_setup,
+                        "--config %s " % config_fp,
+                        "--directory %s " % output_dir,
+                        snakemake_args,
+                        ' '.join(targets)])
     elif workflow_type == 'slurm':
         cluster_setup = "srun -e {cluster.error} -o {cluster.output} \
                          -mail-user={cluster.email} \
                          -n {cluster.nodes} \
                          --mem={cluster.memory} \
                          --time={cluster.time} %s" % cluster_freetext
+        cmd = ' '.join(["snakemake ",
+                        "--local-cores %s " % cluster['local_cores'],
+                        "--jobs %s " % cluster['nodes'],
+                        "--cluster-config %s " % cluster_config,
+                        "--cluster %s " % cluster_setup,
+                        "--config % s " % config_fp,
+                        "--directory %s " % output_dir,
+                        snakemake_args,
+                        ' '.join(targets)])
+
     elif workflow_type == 'local':
-        if not cluster_params:
-            cluster['cores'] = 4
+        if not cluster_config:
             cluster['nodes'] = 1
             cluster['local_cores'] = 1
         cluster_setup = None
+        cmd = ' '.join(["snakemake ",
+                        "--local-cores %s " % cluster['local_cores'],
+                        "--jobs %s " % cluster['nodes'],
+                        "--directory %s " % output_dir,
+                        "--config %s " % config_fp,
+                        snakemake_args,
+                        ' '.join(targets)])
     else:
         raise ValueError('Incorrect run-location specified in launch script.')
 
-    snakemake.snakemake(snakefile,
-                        cores=cluster['cores'],
-                        nodes=cluster['nodes'],
-                        local_cores=cluster['local_cores'],
-                        cluster=cluster_setup,
-                        cluster_config=cluster_params,
-                        workdir="$@",
-                        forceall=force,
-                        config=config_fp,
-                        latency_wait=latency_wait)
+    proc = subprocess.Popen(cmd, shell=True)
+    proc.wait()
 
 
 @run.command()
