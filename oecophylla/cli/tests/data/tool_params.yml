@@ -7,11 +7,13 @@ assemblers:
 binning_samples:
 - sample_S22282
 - sample_S22205
+mapping_assembler:
+- metaspades
+filter_db: test_data/phix
 trimmer: atropos
-resources:
-centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
-centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
-tmp_dir_root: ./
+anvio:
+  centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
+  centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
 
 atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
   -q 15 --minimum-length 100 --pair-filter any'
