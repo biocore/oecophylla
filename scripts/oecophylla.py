@@ -72,6 +72,8 @@ def _create_dir(_path):
 @click.option('--latency-wait', type=click.INT, default=90,
               help='Latency wait between cluster jobs.')
 def workflow():
+def workflow(input_dir, sample_sheet, params, envs, cluster_params,
+             local_scratch, workflow_type, log_dir, output_dir, force):
     import snakemake
     from skbio.io.registry import sniff
 
