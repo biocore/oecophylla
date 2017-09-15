@@ -46,15 +46,14 @@ params:
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
   centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
+filter_db: ./test_data/phix
 samples:
   sample_S22205:
-    filter_db: ./test_data/phix
     forward:
     - ./test_data/test_reads/S22205_S104_L001_R1_001.fastq.gz
     reverse:
     - ./test_data/test_reads/S22205_S104_L001_R2_001.fastq.gz
   sample_S22282:
-    filter_db: ./test_data/phix
     forward:
     - ./test_data/test_reads/S22282_S102_L001_R1_001.fastq.gz
     reverse:
