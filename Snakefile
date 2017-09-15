@@ -36,6 +36,6 @@ rule all:
         # Assembly
         rules.assemble.input,
         # Distance
-        rules.mash.input
+        rules.mash.input,
         # Taxonomy
         rules.taxonomy.input
