@@ -78,16 +78,18 @@ rule metaphlan2:
 
 rule taxonomy_kraken:
     """
-    Runs Kraken using general defaults.
+    Runs Kraken with Bracken using general defaults.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
         map = taxonomy_dir + "{sample}/kraken/{sample}_map.txt",
-        report = taxonomy_dir + "{sample}/kraken/{sample}_report.txt"
+        report = taxonomy_dir + "{sample}/kraken/{sample}_report.txt",
+        abund = taxonomy_dir + "{sample}/kraken/{sample}_species_abundance.txt"
     params:
         kraken_db = config['params']['kraken']['kraken_db'],
+        bracken_db = config['params']['kraken']['bracken_db'],
         kraken_env = config['envs']['kraken']
     threads:
         12
@@ -99,6 +101,7 @@ rule taxonomy_kraken:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             map_base = os.path.basename(output['map'])
             report_base = os.path.basename(output['report'])
+            abund_base = os.path.basename(output['abund'])
 
             shell("""
                   set +u; {params.kraken_env}; set -u
@@ -118,8 +121,14 @@ rule taxonomy_kraken:
                     1> {temp_dir}/{report_base} \
                     2>> {log}
 
+                  est_abundance.py -i {temp_dir}/{report_base} \
+                    -k {params.bracken_db} \
+                    -o {temp_dir}/{abund_base} \
+                    2>> {log} 1>&2
+
                   scp {temp_dir}/{map_base} {output.map}
                   scp {temp_dir}/{report_base} {output.report}
+                  scp {temp_dir}/{abund_base} {output.abund}
                   """)
 
 
