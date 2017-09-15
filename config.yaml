@@ -13,6 +13,7 @@ envs:
   distance: source activate oecophylla-distance
 
 params:
+  filter_db: ./test_data/phix
   abundance_samples:
   - sample_S22282
   - sample_S22205
@@ -53,13 +54,11 @@ params:
 
 samples:
   sample_S22205:
-    filter_db: ./test_data/phix
     forward:
     - ./test_data/test_reads/S22205_S104_L001_R1_001.fastq.gz
     reverse:
     - ./test_data/test_reads/S22205_S104_L001_R2_001.fastq.gz
   sample_S22282:
-    filter_db: ./test_data/phix
     forward:
     - ./test_data/test_reads/S22282_S102_L001_R1_001.fastq.gz
     reverse:
