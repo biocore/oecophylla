@@ -20,6 +20,7 @@ envs:
   distance: source activate oecophylla-distance
 mapping_assembler: metaspades
 params:
+  filter_db: ./test_data/phix
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
     -q 15 --minimum-length 100 --pair-filter any'
   humann2:
@@ -48,13 +49,11 @@ resources:
   centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
 samples:
   sample_S22205:
-    filter_db: ./test_data/phix
     forward:
     - ./test_data/test_reads/S22205_S104_L001_R1_001.fastq.gz
     reverse:
     - ./test_data/test_reads/S22205_S104_L001_R2_001.fastq.gz
   sample_S22282:
-    filter_db: ./test_data/phix
     forward:
     - ./test_data/test_reads/S22282_S102_L001_R1_001.fastq.gz
     reverse:
