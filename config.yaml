@@ -1,12 +1,5 @@
-abundance_samples:
-- sample_S22282
-- sample_S22205
-assemblers:
-- megahit
-- metaspades
-binning_samples:
-- sample_S22282
-- sample_S22205
+tmp_dir_root: ./
+
 envs:
   anvi: source activate oecophylla-anvi
   humann2: source activate oecophylla-humann2
@@ -18,8 +11,19 @@ envs:
   shogun: source activate oecophylla-shogun
   assemble: source activate oecophylla-assemble
   distance: source activate oecophylla-distance
-mapping_assembler: metaspades
+
 params:
+  abundance_samples:
+  - sample_S22282
+  - sample_S22205
+  assemblers:
+  - megahit
+  - metaspades
+  binning_samples:
+  - sample_S22282
+  - sample_S22205
+  trimmer: atropos
+  mapping_assembler: metaspades
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
     -q 15 --minimum-length 100 --pair-filter any'
   humann2:
@@ -39,13 +43,14 @@ params:
   kraken:
     kraken_db: test_data/kraken_test_db
   maxbin: -plotmarker
+  anvio:
+    centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
+    centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
   metaphlan2:
     # metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2
     metaphlan2_db: test_data/mp2_test_db/mpa_v20_m200
   shogun: --utree_indx /home/qiz173/Databases/SHOGUN/annotated/utree/stdb.ctr
-resources:
-  centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
-  centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
+
 samples:
   sample_S22205:
     filter_db: ./test_data/phix
@@ -59,5 +64,4 @@ samples:
     - ./test_data/test_reads/S22282_S102_L001_R1_001.fastq.gz
     reverse:
     - ./test_data/test_reads/S22282_S102_L001_R2_001.fastq.gz
-tmp_dir_root: ./
-trimmer: atropos
+
