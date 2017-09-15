@@ -1,3 +1,5 @@
+tmp_dir_root: '/Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/test_scratch'
+
 envs:
   anvi: source activate oecophylla-anvi
   assemble: source activate oecophylla-assemble
@@ -9,6 +11,9 @@ envs:
   raw: source activate oecophylla-qc
   shogun: source activate oecophylla-shogun
 params:
+  trimmer: atropos
+  assemblers: 
+    - metaspades         
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
     -q 15 --minimum-length 100 --pair-filter any'
   humann2:

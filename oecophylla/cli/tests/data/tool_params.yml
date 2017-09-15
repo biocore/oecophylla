@@ -19,3 +19,9 @@ shogun: --utree_indx /home/qiz173/Databases/SHOGUN/annotated/utree/stdb.ctr
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
   centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
+trimmer: atropos
+mash: 
+  sketch_size: 1000
+sourmash:
+  scaled: True
+  kmer: 31

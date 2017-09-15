@@ -127,8 +127,12 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     config_dict['samples'] = sample_dict
     config_dict['params'] = params_dict
     config_dict['envs'] = envs_dict
+    config_dict['tmp_dir_root'] = local_scratch
     print(config_dict)
     config_yaml = yaml.dump(config_dict, default_flow_style=False)
+
+
+
     config_fp = '%s/%s' % (output_dir, 'config.yaml')
     with open(config_fp, 'w') as f:
         f.write(config_yaml)
@@ -160,7 +164,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         "--jobs %s " % cluster['nodes'],
                         "--cluster-config %s " % cluster_config,
                         "--cluster %s "  % cluster_setup,
-                        "--config %s " % config_fp,
+                        "--configfile %s " % config_fp,
                         "--directory %s " % output_dir,
                         snakemake_args,
                         ' '.join(targets)])
@@ -176,7 +180,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         "--jobs %s " % cluster['nodes'],
                         "--cluster-config %s " % cluster_config,
                         "--cluster %s " % cluster_setup,
-                        "--config % s " % config_fp,
+                        "--configfile % s " % config_fp,
                         "--directory %s " % output_dir,
                         snakemake_args,
                         ' '.join(targets)])
@@ -191,7 +195,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         "--local-cores %s " % cluster['local_cores'],
                         "--jobs %s " % cluster['nodes'],
                         "--directory %s " % output_dir,
-                        "--config %s " % config_fp,
+                        "--configfile %s " % config_fp,
                         snakemake_args,
                         ' '.join(targets)])
     else:

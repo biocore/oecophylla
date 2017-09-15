@@ -48,6 +48,7 @@ class ProcessingTests(TestCase):
                    '--envs', '%s/data/envs.yml' % self.curdir,
                    '--local-scratch', self.local_dir,
                    '--output-dir', self.output_dir,
+                   '--snakemake-args', '-n',
                    'all'
                    ]
 
@@ -62,6 +63,7 @@ class ProcessingTests(TestCase):
             res_config = yaml.load(f)
         with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
             exp_config = yaml.load(f)
+        self.maxDiff = None
         self.assertDictEqual(res_config, exp_config)
 
     def test_slurm(self):

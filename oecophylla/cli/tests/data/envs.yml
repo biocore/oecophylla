@@ -7,4 +7,4 @@ metaphlan2: source activate oecophylla-metaphlan2
 kraken: source activate oecophylla-kraken
 shogun: source activate oecophylla-shogun
 assemble: source activate oecophylla-assemble
-mash: source activate oecophylla-mash
+distance: source activate oecophylla-distance
