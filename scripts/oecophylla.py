@@ -69,7 +69,8 @@ def _create_dir(_path):
               help='Input directory of all of the samples.')
 @click.option('--force', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
-def workflow():
+def workflow(input_dir, sample_sheet, params, envs, clulster_params,
+             local_scratch, workflow_type, log_dir, output_dir, force):
     import snakemake
     from skbio.io.registry import sniff
 
