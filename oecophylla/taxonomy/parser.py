@@ -1,47 +1,5 @@
 import os
 import pandas as pd
-import numpy as np
-
-
-def trim_lineage(lineage, supports, min_support=0.5,
-                 ranksep=';', ranks=['k', 'p', 'c', 'o', 'f', 'g', 's', 't']):
-    """Trimms a lineage string down to 'supported' prefix.
-
-    Parameters
-    ----------
-    lineage : str
-        A GreenGenes like lineage string, e.g.
-        "k__Bac;p__Ver;c__Verru;o__Ver;f__Akk;g__Ak;s__Akl;t__"
-    supports : [str]
-        A list of support tuples of the form:
-        SUPPORTING_K-MERS;BAYESIAN_RANGE
-        Both parts needs to be parsable as int numbers.
-    min_support : float
-        User defined threshold of minimal support for a rank.
-        Default: 0.5
-    ranksep : char
-        The character that separates ranks in the lineage.
-        Default: ';'
-    ranks : [char]
-        A list of rank prefix characters.
-        Default: k, p, c, o, f, g, s, t
-
-    Returns
-    -------
-    A lineage string with 8 parts, i.e. down to strain level.
-    Non supported parts are of the form r__, where r is the rank.
-    """
-    trimmed_lineage = []
-    for (rank_taxon, rank_support) in zip(lineage.split(ranksep), supports):
-        (supporting_kmers, bayesian_range) = map(float,
-                                                 rank_support.split(';'))
-        if bayesian_range > 0:
-            if supporting_kmers / bayesian_range > min_support:
-                trimmed_lineage.append(rank_taxon)
-                continue
-        break
-    trimmed_lineage.extend(map(lambda x: x+'__', ranks[len(trimmed_lineage):]))
-    return ranksep.join(trimmed_lineage)
 
 
 def combine_bracken(dir_bracken_reports):
