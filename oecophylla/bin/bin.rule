@@ -2,8 +2,8 @@ rule bin_make_cov_files:
     input:
         bams = lambda wildcards: expand(map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.bam",
                bin_sample=wildcards.bin_sample,
-               abund_sample=config['abundance_samples']),
-        ref = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['mapping_assembler']
+               abund_sample=config['params']['abundance_samples']),
+        ref = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['params']['mapping_assembler']
     output:
         temp(bin_dir + "{bin_sample}/abundance_files/{bin_sample}_abund_list.txt")
     log:
@@ -37,7 +37,7 @@ rule bin_make_cov_files:
 rule bin_run_maxbin:
     input:
         abund = bin_dir + "{bin_sample}/abundance_files/{bin_sample}_abund_list.txt",
-        ref = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['mapping_assembler']
+        ref = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['params']['mapping_assembler']
     output: 
         bin_dir + "{bin_sample}/maxbin/{bin_sample}.summary"
     log:
@@ -113,14 +113,14 @@ rule tar_bin_cov_files:
 rule bin_maxbin:
     input:
         expand(bin_dir + "{bin_sample}/maxbin/{bin_sample}.summary",
-               bin_sample = config['binning_samples']),
+               bin_sample = config['params']['binning_samples']),
         expand(bin_dir + "{bin_sample}/abundance_files.tar.gz",
-               bin_sample = config['binning_samples'])
+               bin_sample = config['params']['binning_samples'])
 
 
 rule bin:
     input:
         expand(bin_dir + "{bin_sample}/maxbin/{bin_sample}.summary",
-               bin_sample=config['binning_samples']),
+               bin_sample=config['params']['binning_samples']),
         expand(bin_dir + "{bin_sample}/abundance_files.tar.gz",
-               bin_sample = config['binning_samples'])
+               bin_sample = config['params']['binning_samples'])
