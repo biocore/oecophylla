@@ -1,4 +1,5 @@
-<img src="https://raw.githubusercontent.com/wasade/oecophylla/assets/assets/oecophylla.png" width="48">
+<img src="https://raw.githubusercontent.com/wasade/oecophylla/assets/assets/oecophylla.png" width="96">
+
 [![Build Status](https://travis-ci.org/biocore/oecophylla.svg?branch=master)](https://travis-ci.org/biocore/oecophylla)
 
 # Oecophylla
