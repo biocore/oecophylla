@@ -63,7 +63,7 @@ def _create_dir(_path):
               help='Specify parameters for the tools in a YAML file.')
 @click.option('--envs', '-e', type=click.Path(exists=True), required=True,
               help='Specify environments for the tools in a YAML file.')
-@click.option('--cluster-params', type=click.Path(), required=False,
+@click.option('--cluster-config', type=click.Path(), required=False,
               help='File with parameters for a cluster job.')
 @click.option('--local-scratch', type=click.Path(resolve_path=True,
               writable=True),
@@ -84,7 +84,7 @@ def _create_dir(_path):
               help='Only generate the configuration file.')
 def workflow(targets, input_dir, sample_sheet, params, envs,
              cluster_config, local_scratch, workflow_type, output_dir,
-             snakemake_args, force):
+             snakemake_args, force, just_config):
     print('hello')
     import snakemake
     from skbio.io.registry import sniff
@@ -135,18 +135,19 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     print(config_fp)
     print(config_yaml)
 
-    # LOGS
-    if log_dir:
-        _create_dir(log_dir)
-    else:
-        os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
-
-    # CLUSTER SETUP
-    with open(cluster_config) as _file:
-        _cluster_config = yaml.load(_file)
-    # for now, everything under `extra` should be explicit freetext,
-    # e.g. --my-argument=value
-    cluster_freetext = _cluster_config['extra']
+    # TODO: LOGS
+    # if log_dir:
+    #     _create_dir(log_dir)
+    # else:
+    #     os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
+    cluster = {}
+    if workflow_type == 'torque' or workflow_type == 'slurm':
+        # CLUSTER SETUP
+        with open(cluster_config) as _file:
+            _cluster_config = yaml.load(_file)
+            # for now, everything under `extra` should be explicit freetext,
+            # e.g. --my-argument=value
+        cluster_freetext = _cluster_config['extra']
     if workflow_type == 'torque':
         cluster_setup = "qsub -e {cluster.error} -o {cluster.output} \
                          -m {cluster.email} \
@@ -194,7 +195,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         snakemake_args,
                         ' '.join(targets)])
     else:
-        raise ValueError('Incorrect run-location specified in launch script.')
+        raise ValueError('Incorrect workflow-type specified in launch script.')
     print(cmd)
     if just_config:
         proc = subprocess.Popen(cmd, shell=True)
@@ -217,4 +218,4 @@ def install():
 
 if __name__ == "__main__":
     run()
-                                                                                                                       
+

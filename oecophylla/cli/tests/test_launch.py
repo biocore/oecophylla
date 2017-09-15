@@ -18,8 +18,8 @@ class ProcessingTests(TestCase):
         os.mkdir(self.local_dir)
 
     def tearDown(self):
-        if os.path.exists(self.output_dir):
-            shutil.rmtree(self.output_dir)
+        #if os.path.exists(self.output_dir):
+        #    shutil.rmtree(self.output_dir)
         if os.path.exists(self.local_dir):
             shutil.rmtree(self.local_dir)
 
@@ -36,7 +36,7 @@ class ProcessingTests(TestCase):
         res = CliRunner().invoke(workflow, _params)
 
         # test the config file
-        with open('%s/config.yaml' % self.local_dir, 'r') as f:
+        with open('%s/config.yaml' % self.output_dir, 'r') as f:
             res_config = yaml.load(f)
         with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
             exp_config = yaml.load(f)
@@ -53,11 +53,12 @@ class ProcessingTests(TestCase):
 
         #res = CliRunner().invoke(workflow, _params)
         cmd = ' oecophylla workflow ' + ' '.join(_params)
+
         proc = subprocess.Popen(cmd, shell=True)
         proc.wait()
 
         # test the config file
-        with open('%s/config.yaml' % self.local_dir, 'r') as f:
+        with open('%s/config.yaml' % self.output_dir, 'r') as f:
             res_config = yaml.load(f)
         with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
             exp_config = yaml.load(f)
