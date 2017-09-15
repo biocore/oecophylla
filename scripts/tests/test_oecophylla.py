@@ -8,6 +8,7 @@ from skbio.util import get_data_path
 from skbio import Sequence
 from glob import glob
 
+
 class ProcessingTests(TestCase):
     def setUp(self):
         # temporary working directory
@@ -47,6 +48,15 @@ class ProcessingTests(TestCase):
         x.metadata['description'] = ('Chain A, Hewl At 0.65 Angstrom Resolutio'
                                      'n')
         self.seqs.append(x)
+
+    def test_local(self):
+        pass
+
+    def test_slurm(self):
+        pass
+
+    def test_qsub(self):
+        pass
 
     def test_workflow(self):
         # get representative proteins

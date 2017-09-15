@@ -2,7 +2,12 @@ import click
 import yaml
 import os
 import glob
-from oecophylla.util.parse import *
+from oecophylla.util.parse import (illumina_filenames_to_df,
+                                   extract_sample_reads,
+                                   add_filter_db,
+                                   extract_sample_paths,
+                                   read_sample_sheet,
+                                   extract_samples_from_sample_sheet)
 
 """
 This is the main Oecophylla script which handles launching of the entire
@@ -50,35 +55,36 @@ def _create_dir(_path):
 @click.option('--sample-sheet', '-s', required=False, type=click.STRING,
               default=None,
               help='Sample sheets used to demultiplex the Illumina run.')
-@click.option('--params', '-p', type=click.PATH, required=True,
+@click.option('--params', '-p', type=click.Path(exists=True), required=True,
               help='Specify parameters for the tools in a YAML file.')
-@click.option('--envs', '-e', type=click.PATH, required=True,
+@click.option('--envs', '-e', type=click.Path(exists=True), required=True,
               help='Specify environments for the tools in a YAML file.')
-@click.option('--cluster-params', type=click.PATH, required=False,
+@click.option('--cluster-params', type=click.Path(), required=False,
               help='File with parameters for a cluster job.')
-@click.option('--local-scratch', type=click.PATH, default='/tmp'
+@click.option('--local-scratch', type=click.Path(), default='/tmp',
               help='Temporary directory for storing intermediate files.')
 @click.option('--workflow-type',
               type=click.Choice(['torque', 'slurm', 'local']),
               default='local',
               help='Temporary directory for storing intermediate files.')
-@click.option('--log-dir', type=click.PATH, required=False,
+@click.option('--log-dir', type=click.Path(), required=False,
               default='/dev/null',
               help='Directory containing log files.')
-@click.option('--output-dir', '-o', type=click.PATH, required=True,
+@click.option('--output-dir', '-o', type=click.Path(exists=True),
               help='Input directory of all of the samples.')
 @click.option('--force', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
 @click.option('--latency-wait', type=click.INT, default=90,
               help='Latency wait between cluster jobs.')
-def workflow():
 def workflow(input_dir, sample_sheet, params, envs, cluster_params,
-             local_scratch, workflow_type, log_dir, output_dir, force):
+             local_scratch, workflow_type, log_dir, output_dir, force,
+             latency_wait):
     import snakemake
     from skbio.io.registry import sniff
 
+
     # SNAKEMAKE
-    snakefile = "%s/../Snakefile" % __file__
+    snakefile = "%s/../Snakefile" % os.path.abs(__file__)
 
     # INPUT DIR
     for inp_file in glob.glob('%s/*' % input_dir):
@@ -127,20 +133,19 @@ def workflow(input_dir, sample_sheet, params, envs, cluster_params,
     # for now, everything under `extra` should be explicit freetext,
     # e.g. --my-argument=value
     cluster_freetext = _cluster_config['extra']
-    if run_location == 'torque':
-        cluster_freetext = yaml.
+    if workflow_type == 'torque':
         cluster_setup = "qsub -e {cluster.error} -o {cluster.output} \
                          -m {cluster.email} \
                          -l nodes=1:ppn={cluster.nodes} \
                          -l mem={cluster.memory} \
                          -l walltime={cluster.time} %s" % cluster_freetext
-    elif run_location == 'slurm':
+    elif workflow_type == 'slurm':
         cluster_setup = "srun -e {cluster.error} -o {cluster.output} \
                          -mail-user={cluster.email} \
                          -n {cluster.nodes} \
                          --mem={cluster.memory} \
                          --time={cluster.time} %s" % cluster_freetext
-    elif run_location == 'local':
+    elif workflow_type == 'local':
         if not cluster_params:
             cluster['cores'] = 4
             cluster['nodes'] = 1
