@@ -29,17 +29,17 @@ rule mash_dist:
     input:
         expand(distance_dir + '{sample}/mash/{sample}.msh', sample=samples)
     output:
-        dm = distance_dir + 'combined_analysis/mash.dist.txt'
+        distance_dir + 'combined_analysis/mash.dist.txt'
     threads:
         1
     log:
-        distance_dir + "logs/mash_dm.log"
+        distance_dir + "logs/mash_dist.log"
     benchmark:
-        "benchmarks/distance/mash_dm.txt"
+        "benchmarks/distance/mash_dist.txt"
     run:
         from itertools import combinations
         for i, j in combinations(input, 2):
-            shell('mash dist {i} {j} >> {output.dm}')
+            shell('mash dist {i} {j} >> {output[0]}')
 
 
 rule mash_dm:
@@ -47,16 +47,16 @@ rule mash_dm:
     Make a distance matrix.
     """
     input:
-        dm = distance_dir + 'combined_analysis/mash.dist.txt'
+        distance_dir + 'combined_analysis/mash.dist.txt'
     output:
         dist_matrix = distance_dir + 'combined_analysis/mash.dist.dm',
         p_matrix = distance_dir + 'combined_analysis/mash.dist.p'
     threads:
         1
     log:
-        distance_dir + "logs/mash_dm_write.log"
+        distance_dir + "logs/mash_dm.log"
     benchmark:
-        "benchmarks/distance/mash_dm_write.txt"
+        "benchmarks/distance/mash_dm.txt"
     run:
         from skbio.stats.distance import DissimilarityMatrix
         import pandas as pd
