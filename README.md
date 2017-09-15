@@ -1,4 +1,4 @@
-![](https://raw.githubusercontent.com/biocore/oecophylla/master/assets/oecophylla.png)
+![oecophylla](https://raw.githubusercontent.com/wasade/oecophylla/master/assets/oecophylla.png)
 # oecophylla
 
 Canonically pronounced *eco-fill-uh*
