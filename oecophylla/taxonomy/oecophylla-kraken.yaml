@@ -1,5 +1,6 @@
 channels:
   - bioconda
 dependencies:
+  - python==2.7
   - kraken
   - bracken
