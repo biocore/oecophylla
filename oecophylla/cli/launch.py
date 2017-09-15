@@ -76,7 +76,7 @@ def _create_dir(_path):
                     '(needs to be passed in by quotes)'))
 @click.option('--force', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
-@click.option('--just-config', is_flag=True, default=False,
+@click.option('--just-config', is_flag=True, flag_value=False,
               help='Only generate the configuration file.')
 def workflow(targets, input_dir, sample_sheet, params, envs,
              cluster_config,local_scratch, workflow_type, output_dir,
@@ -140,7 +140,9 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
             cluster = yaml.load(_file)
         # for now, everything under `extra` should be explicit freetext,
         # e.g. --my-argument=value
-        cluster_freetext = _cluster_config['extra']
+        cluster_freetext = cluster['extra']
+    if type(targets) != list:
+        targets = [targets]
     if workflow_type == 'torque':
         cluster_setup = "qsub -e {cluster.error} -o {cluster.output} \
                          -m {cluster.email} \
@@ -148,6 +150,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                          -l mem={cluster.memory} \
                          -l walltime={cluster.time} %s" % cluster_freetext
         cmd = ' '.join(["snakemake ",
+                        "--snakefile %s " % snakefile,
                         "--local-cores %s " % cluster['local_cores'],
                         "--jobs %s " % cluster['nodes'],
                         "--cluster-config %s " % cluster_config,
@@ -163,6 +166,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                          --mem={cluster.memory} \
                          --time={cluster.time} %s" % cluster_freetext
         cmd = ' '.join(["snakemake ",
+                        "--snakefile %s " % snakefile,
                         "--local-cores %s " % cluster['local_cores'],
                         "--jobs %s " % cluster['nodes'],
                         "--cluster-config %s " % cluster_config,
@@ -178,6 +182,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
             cluster['local_cores'] = 1
         cluster_setup = None
         cmd = ' '.join(["snakemake ",
+                        "--snakefile %s " % snakefile,
                         "--local-cores %s " % cluster['local_cores'],
                         "--jobs %s " % cluster['nodes'],
                         "--directory %s " % output_dir,
@@ -186,7 +191,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         ' '.join(targets)])
     else:
         raise ValueError('Incorrect run-location specified in launch script.')
-
+    print(cmd)
     if just_config:
         proc = subprocess.Popen(cmd, shell=True)
         proc.wait()

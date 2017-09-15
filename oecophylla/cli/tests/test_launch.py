@@ -33,8 +33,26 @@ class ProcessingTests(TestCase):
                    'all'
                    ]
 
-        # res = CliRunner().invoke(workflow, _params)
-        cmd = 'oecophylla workflow %s' % ' '.join(_params)
+        res = CliRunner().invoke(workflow, _params)
+
+        # test the config file
+        with open('%s/config.yaml' % self.local_dir, 'r') as f:
+            res_config = yaml.load(f)
+        with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
+            exp_config = yaml.load(f)
+        self.assertDictEqual(res_config, exp_config)
+
+    def test_local(self):
+        _params = ['--input-dir', self.seq_dir,
+                   '--params', '%s/data/tool_params.yml' % self.curdir,
+                   '--envs', '%s/data/envs.yml' % self.curdir,
+                   '--local-scratch', self.local_dir,
+                   '--output-dir', self.output_dir,
+                   'all'
+                   ]
+
+        #res = CliRunner().invoke(workflow, _params)
+        cmd = ' oecophylla workflow ' + ' '.join(_params)
         proc = subprocess.Popen(cmd, shell=True)
         proc.wait()
 
