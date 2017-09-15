@@ -78,17 +78,17 @@ rule metaphlan2:
 
 rule taxonomy_kraken:
     """
-    Runs Kraken using general defaults.
+    Runs Kraken using general defaults and keeps mapping file.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
         map = taxonomy_dir + "{sample}/kraken/{sample}_map.txt",
-        report = taxonomy_dir + "{sample}/kraken/{sample}_report.txt"
+        report = taxonomy_dir + "{sample}/kraken/{sample}_report.txt",
     params:
-        kraken_db = config['params']['kraken']['kraken_db'],
-        kraken_env = config['envs']['kraken']
+        kraken_env = config['envs']['kraken'],
+        kraken_db = config['params']['kraken']['kraken_db']
     threads:
         12
     log:
@@ -120,6 +120,62 @@ rule taxonomy_kraken:
 
                   scp {temp_dir}/{map_base} {output.map}
                   scp {temp_dir}/{report_base} {output.report}
+                  """)
+
+
+rule taxonomy_bracken:
+    """
+    Runs Kraken plus Bracken using general defaults.
+    """
+    input:
+        forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
+        reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
+    output:
+        table = taxonomy_dir + "{sample}/bracken/{sample}_table.txt",
+        report = taxonomy_dir + "{sample}/bracken/{sample}_report.txt"
+    params:
+        kraken_env = config['envs']['kraken'],
+        kraken_db = config['params']['kraken']['kraken_db'],
+        bracken_db = config['params']['kraken']['bracken_db']
+    threads:
+        12
+    log:
+        taxonomy_dir + "logs/taxonomy_bracken.sample=[{sample}].log"
+    benchmark:
+        "benchmarks/taxonomy/taxonomy_bracken.sample=[{sample}].txt"
+    run:
+        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
+            table_base = os.path.basename(output['table'])
+            report_base = os.path.basename(output['report'])
+
+            shell("""
+                  set +u; {params.kraken_env}; set -u
+
+                  kraken {input.forward} {input.reverse} \
+                    --db {params.kraken_db} \
+                    --paired \
+                    --fastq-input \
+                    --gzip-compressed \
+                    --only-classified-output \
+                    --threads {threads} \
+                    1> {temp_dir}/map.tmp \
+                    2> {log}
+
+                  kraken-report {temp_dir}/map.tmp \
+                    --db {params.kraken_db} \
+                    1> {temp_dir}/report.tmp \
+                    2>> {log}
+
+                  est_abundance.py -i {temp_dir}/report.tmp \
+                    -k {params.bracken_db} \
+                    -o {temp_dir}/{table_base} \
+                    2>> {log} 1>&2
+
+                  rm {temp_dir}/map.tmp
+                  rm {temp_dir}/report.tmp
+
+                  scp {temp_dir}/{table_base} {output.table}
+                  scp {temp_dir}/report_bracken.tmp {output.report}
                   """)
 
 
@@ -244,7 +300,10 @@ rule shogun:
 rule taxonomy:
     input:
         taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-        taxonomy_dir + "kraken/combined_profile.tsv",
-        taxonomy_dir + "shogun/combined_profile.tsv"
-
+        # taxonomy_dir + "kraken/combined_profile.tsv",
+        # the following two lines are for Bracken
+        # once the biom function is in place, they should be edited
+        expand(taxonomy_dir + "{sample}/bracken/{sample}_table.txt", sample=samples),
+        expand(taxonomy_dir + "{sample}/bracken/{sample}_report.txt", sample=samples)
+        # taxonomy_dir + "shogun/combined_profile.tsv"
 

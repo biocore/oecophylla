@@ -38,4 +38,6 @@ rule all:
         rules.assemble.input,
         # Distance
         rules.mash.input,
-        rules.sourmash.input
+        rules.sourmash.input,
+        # Taxonomy
+        rules.taxonomy.input
