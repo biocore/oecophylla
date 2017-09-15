@@ -79,7 +79,8 @@ def extract_sample_reads(df, seq_dir,
     """
     sample_reads_dict = {}
 
-    samples = list(set(df[sample_col]))
+
+    samples = list(df[sample_col].unique())
 
     for s in samples:
         fwd = df.loc[(df[sample_col] == s) & (df[read_col] == 'R1'), file_col]
@@ -139,7 +140,8 @@ def add_filter_db(sample_fp_dict, db_fp, samples = None,
     """
 
     if samples is None:
-        samples = sample_fp_dict.keys()
+
+        samples = set(sample_fp_dict)
 
     samples_dict = copy.deepcopy(sample_fp_dict)
 
@@ -168,6 +170,7 @@ def read_sample_sheet(f, sep='\t', comment='#'):
     -------
     data_df : pd.DataFrame
        DataFrame containing the sample sheet information.
+
     """
     data = False
     data_lines = ''
@@ -194,7 +197,9 @@ def extract_samples_from_sample_sheet(sample_sheet_df, seq_dir,
                                       file_col='File',
                                       read_col='Read',
                                       prefix_col='Sample_ID'):
-    """
+
+    """ Obtains sample paths from a sample sheet.
+
     Parameters
     ----------
     sample_sheet_df : pd.DataFrame
@@ -222,18 +227,14 @@ def extract_samples_from_sample_sheet(sample_sheet_df, seq_dir,
     """
     sample_reads_dict = {}
 
-    samples = list(set(sample_sheet_df[name_col]))
-
+    samples = list(sample_sheet_df[name_col].unique())
     fps = os.listdir(seq_dir)
-
     files_df = illumina_filenames_to_df(fps)
 
-    for s in samples:
-        # get the subset of sample sheet rows for that sample
-        sample_rows = sample_sheet_df.loc[sample_sheet_df[name_col] == s,]
+    # get the subset of sample sheet rows for that sample
+    for s, sample_rows in sample_sheet_df.groupby(name_col):
 
-        f_fps = []
-        r_fps = []
+        f_fps, r_fps = [], []
 
         # iter across subset table and find file corresponding to each row
         for idx, row in sample_rows.iterrows():
