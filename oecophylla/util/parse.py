@@ -169,9 +169,6 @@ def read_sample_sheet(f, sep='\t', comment='#'):
     data_df : pd.DataFrame
        DataFrame containing the sample sheet information.
 
-    Note
-    ----
-    An example of a sample sheet would be as follows
 
     """
     data = False
