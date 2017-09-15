@@ -69,6 +69,8 @@ def _create_dir(_path):
               help='Input directory of all of the samples.')
 @click.option('--force', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
+@click.option('--latency-wait', type=click.INT, default=90,
+              help='Latency wait between cluster jobs.')
 def workflow():
     import snakemake
     from skbio.io.registry import sniff
@@ -120,7 +122,8 @@ def workflow():
     # CLUSTER SETUP
     with open(cluster_params) as _file:
         _cluster_config = yaml.load(_file)
-    # for now, everything under `extra` should be explicit freetext, e.g. --my-argument=value
+    # for now, everything under `extra` should be explicit freetext,
+    # e.g. --my-argument=value
     cluster_freetext = _cluster_config['extra']
     if run_location == 'torque':
         cluster_freetext = yaml.
@@ -153,7 +156,7 @@ def workflow():
                         workdir="$@",
                         forceall=force,
                         config=config_fp,
-                        latency_wait=90)
+                        latency_wait=latency_wait)
 
 
 @run.command()
