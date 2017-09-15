@@ -27,18 +27,18 @@ class ProcessingTests(TestCase):
                    '--params', '%s/data/tool_params.yml' % self.curdir,
                    '--envs', '%s/data/envs.yml' % self.curdir,
                    '--local-scratch', self.local_dir,
-                   '--output-dir', self.output_dir]
-
+                   '--output-dir', self.output_dir,
+                   'all']
+        print('starting')
+        print(' '.join(_params))
         res = CliRunner().invoke(workflow, _params)
-
+        print(res.exit_code)
         # test the config file
         with open('%s/config.yaml' % self.local_dir, 'r') as f:
             res_config = yaml.load(f)
         with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
             exp_config = yaml.load(f)
         self.assertDictEqual(res_config, exp_config)
-        print(res.exit_code == 0)
-        print(res.output)
 
     def test_slurm(self):
         # TODO
