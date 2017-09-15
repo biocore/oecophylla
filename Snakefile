@@ -19,6 +19,7 @@ include: "oecophylla/util/test.rule"
 include: "oecophylla/util/util.rule"
 include: "oecophylla/util/simplify_fasta.rule"
 include: "oecophylla/distance/mash.rule"
+include: "oecophylla/distance/sourmash.rule"
 include: "oecophylla/assemble/assemble.rule"
 # include: "oecophylla/map/map.rule"
 include: "oecophylla/bin/bin.rule"
@@ -37,5 +38,6 @@ rule all:
         rules.assemble.input,
         # Distance
         rules.mash.input,
+        rules.sourmash.input,
         # Taxonomy
         rules.taxonomy.input
