@@ -38,15 +38,20 @@ params:
   mash:
     sketch_size: 1000
   kraken:
-    kraken_db: test_data/kraken_test_db
-    bracken_db: test_data/kraken_test_db/75mers_distr.txt
-    # kraken_db: /home/qiz173/Works/WoL/profiling/ref107/kraken
-    # bracken_db: /home/qiz173/Works/WoL/profiling/ref107/kraken/75mers_distr.txt
+    # db: test_data/kraken_test_db
+    # kmers: test_data/kraken_test_db/75mers_distr.txt
+    db: /home/qiz173/Works/WoL/profiling/ref107/kraken
+    kmers: /home/qiz173/Works/WoL/profiling/ref107/kraken/75mers_distr.txt
+    threads: 8
+  shogun:
+    db: /projects/ag500/shogun/db/rep82
+    threads: 8
+    aligner: utree  # options: bowtie2, burst and utree
+    level: species  # options: genus, species and strain
   maxbin: -plotmarker
   metaphlan2:
     # metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2
     metaphlan2_db: test_data/mp2_test_db/mpa_v20_m200
-  shogun: --utree_indx /home/qiz173/Databases/SHOGUN/annotated/utree/stdb.ctr
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
   centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v

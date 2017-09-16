@@ -84,13 +84,12 @@ rule taxonomy_kraken:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
-        map = taxonomy_dir + "{sample}/kraken/{sample}_map.txt",
-        report = taxonomy_dir + "{sample}/kraken/{sample}_report.txt",
+        map = taxonomy_dir + "{sample}/kraken/{sample}.map.txt",
+        report = taxonomy_dir + "{sample}/kraken/{sample}.report.txt",
     params:
-        kraken_env = config['envs']['kraken'],
-        kraken_db = config['params']['kraken']['kraken_db']
-    threads:
-        12
+        env = config['envs']['kraken'],
+        db = config['params']['kraken']['db'],
+        threads = config['params']['kraken']['threads']
     log:
         taxonomy_dir + "logs/taxonomy_kraken.sample=[{sample}].log"
     benchmark:
@@ -101,20 +100,20 @@ rule taxonomy_kraken:
             report_base = os.path.basename(output['report'])
 
             shell("""
-                  set +u; {params.kraken_env}; set -u
+                  set +u; {params.env}; set -u
 
                   kraken {input.forward} {input.reverse} \
-                    --db {params.kraken_db} \
+                    --db {params.db} \
                     --paired \
                     --fastq-input \
                     --gzip-compressed \
                     --only-classified-output \
-                    --threads {threads} \
+                    --threads {params.threads} \
                     1> {temp_dir}/{map_base} \
                     2> {log}
 
                   kraken-report {temp_dir}/{map_base} \
-                    --db {params.kraken_db} \
+                    --db {params.db} \
                     1> {temp_dir}/{report_base} \
                     2>> {log}
 
@@ -131,14 +130,13 @@ rule taxonomy_bracken:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
-        table = taxonomy_dir + "{sample}/bracken/{sample}_table.txt",
-        report = taxonomy_dir + "{sample}/bracken/{sample}_report.txt"
+        table = taxonomy_dir + "{sample}/bracken/{sample}.table.txt",
+        report = taxonomy_dir + "{sample}/bracken/{sample}.report.txt"
     params:
-        kraken_env = config['envs']['kraken'],
-        kraken_db = config['params']['kraken']['kraken_db'],
-        bracken_db = config['params']['kraken']['bracken_db']
-    threads:
-        12
+        env = config['envs']['kraken'],
+        db = config['params']['kraken']['db'],
+        kmers = config['params']['kraken']['kmers'],
+        threads = config['params']['kraken']['threads']
     log:
         taxonomy_dir + "logs/taxonomy_bracken.sample=[{sample}].log"
     benchmark:
@@ -149,25 +147,25 @@ rule taxonomy_bracken:
             report_base = os.path.basename(output['report'])
 
             shell("""
-                  set +u; {params.kraken_env}; set -u
+                  set +u; {params.env}; set -u
 
                   kraken {input.forward} {input.reverse} \
-                    --db {params.kraken_db} \
+                    --db {params.db} \
                     --paired \
                     --fastq-input \
                     --gzip-compressed \
                     --only-classified-output \
-                    --threads {threads} \
+                    --threads {params.threads} \
                     1> {temp_dir}/map.tmp \
                     2> {log}
 
                   kraken-report {temp_dir}/map.tmp \
-                    --db {params.kraken_db} \
+                    --db {params.db} \
                     1> {temp_dir}/report.tmp \
                     2>> {log}
 
                   est_abundance.py -i {temp_dir}/report.tmp \
-                    -k {params.bracken_db} \
+                    -k {params.kmers} \
                     -o {temp_dir}/{table_base} \
                     2>> {log} 1>&2
 
@@ -188,18 +186,18 @@ rule taxonomy_kraken_combine_reports:
     output:
         report = taxonomy_dir + "kraken/combined_profile.tsv"
     params:
-        kraken_db = config['params']['kraken']["kraken_db"],
-        kraken_env = config['envs']['kraken']
+        db = config['params']['kraken']["db"],
+        env = config['envs']['kraken']
     log:
         taxonomy_dir + "logs/taxonomy_kraken_combine_reports.log"
     benchmark:
         "benchmarks/taxonomy/taxonomy_kraken_combine_reports.txt"
     run:
         shell("""
-              set +u; {params.kraken_env}; set -u
+              set +u; {params.env}; set -u
 
               kraken-mpa-report {input} \
-                --db {params.kraken_db} \
+                --db {params.db} \
                 --header-line \
                 | sed '1 s/.map.txt//g' 1> {output.report} \
                 2> {log}
@@ -221,34 +219,46 @@ rule taxonomy_shogun:
     output:
         taxon_counts = taxonomy_dir + "{sample}/shogun/{sample}.taxon_counts.tsv"
     params:
-        shogun = config['params']['shogun'],
-        shogun_env = config['envs']['shogun']
-    threads:
-        2
+        env = config['envs']['shogun'],
+        db = config['params']['shogun']['db'],
+        threads = config['params']['shogun']['threads'],
+        aligner = config['params']['shogun']['aligner'],
+        level = config['params']['shogun']['level']
     log:
         taxonomy_dir + "logs/taxonomy_shogun.sample=[{sample}].log"
     benchmark:
         "benchmarks/taxonomy/taxonomy_shogun.sample=[{sample}].txt"
     run:
+        aln2ext = {'utree': 'tsv', 'burst': 'b6', 'bowtie2': 'sam'}
+        ext = aln2ext[params['aligner']]
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
-                  set +u; {params.shogun_env}; set -u
+                  set +u; {params.env}; set -u
 
                   # convert and merge fastq's into fasta
                   seqtk seq -A {input.forward} > {temp_dir}/{wildcards.sample}.fna
                   seqtk seq -A {input.reverse} >> {temp_dir}/{wildcards.sample}.fna
 
-                  # run shogun
-                  shogun_utree_lca.py {params.shogun} \
-                  --threads {threads} \
-                  --input {temp_dir} \
+                  # map reads to reference database
+                  shogun align \
+                  --aligner {params.aligner} \
+                  --threads {params.threads} \
+                  --database {params.db} \
+                  --input {temp_dir}/{wildcards.sample}.fna \
                   --output {temp_dir} \
                   2> {log} 1>&2
 
-                  # parse output
-                  echo '#'SampleID$'\t'{wildcards.sample} > {output.taxon_counts}
-                  cat {temp_dir}/taxon_counts.csv | \
-                  tail -n+2 | tr "," "\\t" >> {output.taxon_counts}
+                  # build taxonomic profile based on read map
+                  shogun assign_taxonomy \
+                  --aligner {params.aligner} \
+                  --database {params.db} \
+                  --input {temp_dir}/alignment.{params.aligner}.{ext} \
+                  --output {output.taxon_counts} \
+                  2> {log} 1>&2
+
+                  # clean up
+                  rm {temp_dir}/{wildcards.sample}.fna
+                  rm {temp_dir}/alignment.{params.aligner}.{ext}
                   """)
 
 
@@ -301,9 +311,12 @@ rule taxonomy:
     input:
         taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
         # taxonomy_dir + "kraken/combined_profile.tsv",
-        # the following two lines are for Bracken
-        # once the biom function is in place, they should be edited
-        expand(taxonomy_dir + "{sample}/bracken/{sample}_table.txt", sample=samples),
-        expand(taxonomy_dir + "{sample}/bracken/{sample}_report.txt", sample=samples)
-        # taxonomy_dir + "shogun/combined_profile.tsv"
+        # taxonomy_dir + "shogun/combined_profile.tsv",
 
+        # the following two lines are for Kraken, Bracken and SHOGUN
+        # once the biom function is in place, they should be edited
+        expand(taxonomy_dir + "{sample}/kraken/{sample}.map.txt", sample=samples),
+        expand(taxonomy_dir + "{sample}/kraken/{sample}.report.txt", sample=samples),
+        expand(taxonomy_dir + "{sample}/bracken/{sample}.table.txt", sample=samples),
+        expand(taxonomy_dir + "{sample}/bracken/{sample}.report.txt", sample=samples),
+        expand(taxonomy_dir + "{sample}/shogun/{sample}.taxon_counts.tsv", sample=samples)
