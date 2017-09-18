@@ -38,14 +38,12 @@ params:
   mash:
     sketch_size: 1000
   kraken:
-    # db: test_data/kraken_test_db
-    # kmers: test_data/kraken_test_db/75mers_distr.txt
-    db: /home/qiz173/Works/WoL/profiling/ref107/kraken
-    kmers: /home/qiz173/Works/WoL/profiling/ref107/kraken/75mers_distr.txt
-    threads: 8
+    db: test_data/kraken_test_db
+    kmers: test_data/kraken_test_db/75mers_distr.txt
+    # db: /home/qiz173/Works/WoL/profiling/ref107/kraken
+    # kmers: /home/qiz173/Works/WoL/profiling/ref107/kraken/75mers_distr.txt
   shogun:
     db: /projects/ag500/shogun/db/rep82
-    threads: 8
     aligner: utree  # options: bowtie2, burst and utree
     level: species  # options: genus, species and strain
   maxbin: -plotmarker

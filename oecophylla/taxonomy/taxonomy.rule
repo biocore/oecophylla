@@ -88,8 +88,9 @@ rule taxonomy_kraken:
         report = taxonomy_dir + "{sample}/kraken/{sample}.report.txt",
     params:
         env = config['envs']['kraken'],
-        db = config['params']['kraken']['db'],
-        threads = config['params']['kraken']['threads']
+        db = config['params']['kraken']['db']
+    threads:
+        12
     log:
         taxonomy_dir + "logs/taxonomy_kraken.sample=[{sample}].log"
     benchmark:
@@ -108,7 +109,7 @@ rule taxonomy_kraken:
                     --fastq-input \
                     --gzip-compressed \
                     --only-classified-output \
-                    --threads {params.threads} \
+                    --threads {threads} \
                     1> {temp_dir}/{map_base} \
                     2> {log}
 
@@ -135,8 +136,9 @@ rule taxonomy_bracken:
     params:
         env = config['envs']['kraken'],
         db = config['params']['kraken']['db'],
-        kmers = config['params']['kraken']['kmers'],
-        threads = config['params']['kraken']['threads']
+        kmers = config['params']['kraken']['kmers']
+    threads:
+        12
     log:
         taxonomy_dir + "logs/taxonomy_bracken.sample=[{sample}].log"
     benchmark:
@@ -155,7 +157,7 @@ rule taxonomy_bracken:
                     --fastq-input \
                     --gzip-compressed \
                     --only-classified-output \
-                    --threads {params.threads} \
+                    --threads {threads} \
                     1> {temp_dir}/map.tmp \
                     2> {log}
 
@@ -221,9 +223,10 @@ rule taxonomy_shogun:
     params:
         env = config['envs']['shogun'],
         db = config['params']['shogun']['db'],
-        threads = config['params']['shogun']['threads'],
         aligner = config['params']['shogun']['aligner'],
         level = config['params']['shogun']['level']
+    threads:
+        12
     log:
         taxonomy_dir + "logs/taxonomy_shogun.sample=[{sample}].log"
     benchmark:
@@ -242,7 +245,7 @@ rule taxonomy_shogun:
                   # map reads to reference database
                   shogun align \
                   --aligner {params.aligner} \
-                  --threads {params.threads} \
+                  --threads {threads} \
                   --database {params.db} \
                   --input {temp_dir}/{wildcards.sample}.fna \
                   --output {temp_dir} \
@@ -255,10 +258,6 @@ rule taxonomy_shogun:
                   --input {temp_dir}/alignment.{params.aligner}.{ext} \
                   --output {output.taxon_counts} \
                   2> {log} 1>&2
-
-                  # clean up
-                  rm {temp_dir}/{wildcards.sample}.fna
-                  rm {temp_dir}/alignment.{params.aligner}.{ext}
                   """)
 
 
