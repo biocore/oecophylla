@@ -37,19 +37,16 @@ params:
     scaled: 10000
   mash:
     sketch_size: 1000
+  metaphlan2:
+    db: test_data/mp2_test_db/mpa_v20_m200
   kraken:
     db: test_data/kraken_test_db
     kmers: test_data/kraken_test_db/75mers_distr.txt
-    # db: /home/qiz173/Works/WoL/profiling/ref107/kraken
-    # kmers: /home/qiz173/Works/WoL/profiling/ref107/kraken/75mers_distr.txt
   shogun:
-    db: /projects/ag500/shogun/db/rep82
+    db: test_data/shogun_test_db
     aligner: utree  # options: bowtie2, burst and utree
     level: species  # options: genus, species and strain
   maxbin: -plotmarker
-  metaphlan2:
-    # metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2
-    metaphlan2_db: test_data/mp2_test_db/mpa_v20_m200
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
   centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
