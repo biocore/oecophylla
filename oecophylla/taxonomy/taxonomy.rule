@@ -15,7 +15,7 @@ rule taxonomy_metaphlan2:
         taxonomy_dir + "{sample}/metaphlan2/{sample}_metaphlan2_output.tsv"
     params:
         env = config['envs']['metaphlan2'],
-        db = config['params']['metaphlan2']["metaphlan2_db"]
+        db = config['params']['metaphlan2']['db']
     threads:
         4
     log:
