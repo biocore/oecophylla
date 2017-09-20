@@ -11,15 +11,15 @@ except KeyError:
     raise
 
 try:
-    config["binning_samples"]
+    config['params']["binning_samples"]
 except KeyError as e:
-    config["binning_samples"] = []
+    config['params']["binning_samples"] = []
     print('Error: binning_samples not found in %s' % str(e))
 
 try:
-    config["abundance_samples"]
+    config['params']["abundance_samples"]
 except KeyError as e:
-    config["abundance_samples"] = []
+    config['params']["abundance_samples"] = []
     print('Error: abundance_samples not found in %s' % str(e))
 
 
