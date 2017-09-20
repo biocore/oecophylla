@@ -78,13 +78,19 @@ def _create_dir(_path):
 @click.option('--snakemake-args', type=click.STRING, default='',
               help=('arguments to pass into snakemake '
                     '(needs to be passed in by quotes)'))
+@click.option('--local-cores', '-j', required=False, type=click.INT, default=2,
+              help='Number of local cores to run for snakemake scheduler.')
+@click.option('--jobs', '-j', required=False, type=click.INT, default=None,
+              help='Number of processes to run.  When running on the cluster, '
+              'this corresponds to the number of jobs to launch.')
 @click.option('--force', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
 @click.option('--just-config', is_flag=True, flag_value=False,
               help='Only generate the configuration file.')
 def workflow(targets, input_dir, sample_sheet, params, envs,
              cluster_config, local_scratch, workflow_type, output_dir,
-             snakemake_args, force, just_config):
+             snakemake_args, local_cores, jobs,
+             force, just_config):
     import snakemake
     from skbio.io.registry import sniff
 
@@ -148,10 +154,14 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                          -l nodes=1:ppn={cluster.nodes} \
                          -l mem={cluster.memory} \
                          -l walltime={cluster.time}\" "
+
+        if jobs == None:
+            jobs = 16
+
         cmd = ' '.join(["snakemake ",
                         "--snakefile %s " % snakefile,
-                        "--local-cores %s " % cluster['local_cores'],
-                        "--jobs %s " % cluster['nodes'],
+                        "--local-cores %s " % local_cores,
+                        "--jobs %s " % jobs,
                         "--cluster-config %s " % cluster_config,
                         "--cluster %s "  % cluster_setup,
                         "--configfile %s " % config_fp,
@@ -164,10 +174,13 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                          -n {cluster.nodes} \
                          --mem={cluster.memory} \
                          --time={cluster.time}"
+        if jobs == None:
+            jobs = 16
+
         cmd = ' '.join(["snakemake ",
                         "--snakefile %s " % snakefile,
-                        "--local-cores %s " % cluster['local_cores'],
-                        "--jobs %s " % cluster['nodes'],
+                        "--local-cores %s " % local_cores,
+                        "--jobs %s " % jobs,
                         "--cluster-config %s " % cluster_config,
                         "--cluster %s " % cluster_setup,
                         "--configfile % s " % config_fp,
@@ -176,14 +189,15 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         ' '.join(targets)])
 
     elif workflow_type == 'local':
-        if not cluster_config:
-            cluster['nodes'] = 2
-            cluster['local_cores'] = 2
+
+        if jobs == None:
+            jobs = 2
+
         cluster_setup = None
         cmd = ' '.join(["snakemake ",
                         "--snakefile %s " % snakefile,
-                        "--local-cores %s " % cluster['local_cores'],
-                        "--jobs %s " % cluster['nodes'],
+                        "--local-cores %s " % local_cores,
+                        "--jobs %s " % jobs,
                         "--directory %s " % output_dir,
                         "--configfile %s " % config_fp,
                         snakemake_args,
