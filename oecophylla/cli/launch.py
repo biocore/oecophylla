@@ -142,19 +142,12 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     # else:
     #     os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
     cluster = {}
-    if workflow_type == 'torque' or workflow_type == 'slurm':
-        # CLUSTER SETUP
-        with open(cluster_config) as _file:
-            _cluster_config = yaml.load(_file)
-            # for now, everything under `extra` should be explicit freetext,
-            # e.g. --my-argument=value
-        cluster_freetext = _cluster_config['extra']
     if workflow_type == 'torque':
-        cluster_setup = "qsub -e {cluster.error} -o {cluster.output} \
+        cluster_setup = "\"qsub -e {cluster.error} -o {cluster.output} \
                          -m {cluster.email} \
                          -l nodes=1:ppn={cluster.nodes} \
                          -l mem={cluster.memory} \
-                         -l walltime={cluster.time} %s" % cluster_freetext
+                         -l walltime={cluster.time}\" "
         cmd = ' '.join(["snakemake ",
                         "--snakefile %s " % snakefile,
                         "--local-cores %s " % cluster['local_cores'],
@@ -170,7 +163,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                          -mail-user={cluster.email} \
                          -n {cluster.nodes} \
                          --mem={cluster.memory} \
-                         --time={cluster.time} %s" % cluster_freetext
+                         --time={cluster.time}"
         cmd = ' '.join(["snakemake ",
                         "--snakefile %s " % snakefile,
                         "--local-cores %s " % cluster['local_cores'],
