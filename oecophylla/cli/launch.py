@@ -149,8 +149,8 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     #     os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
     if workflow_type == 'torque':
         cluster_setup = "\"qsub -e {cluster.error} -o {cluster.output} \
-                         -l nodes=1:ppn={cluster.nodes} \
-                         -l mem={cluster.memory} \
+                         -l nodes=1:ppn={cluster.n} \
+                         -l mem={cluster.mem} \
                          -l walltime={cluster.time}\" "
 
         if jobs == None:
@@ -168,8 +168,8 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         ' '.join(targets)])
     elif workflow_type == 'slurm':
         cluster_setup = "srun -e {cluster.error} -o {cluster.output} \
-                         -n {cluster.nodes} \
-                         --mem={cluster.memory} \
+                         -n {cluster.n} \
+                         --mem={cluster.mem} \
                          --time={cluster.time}"
         if jobs == None:
             jobs = 16
