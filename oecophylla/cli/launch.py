@@ -147,7 +147,6 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     #     _create_dir(log_dir)
     # else:
     #     os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
-    cluster = {}
     if workflow_type == 'torque':
         cluster_setup = "\"qsub -e {cluster.error} -o {cluster.output} \
                          -m {cluster.email} \
