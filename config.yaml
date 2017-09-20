@@ -14,17 +14,6 @@ envs:
 
 params:
   filter_db: ./test_data/phix
-  abundance_samples:
-  - sample_S22282
-  - sample_S22205
-  assemblers:
-  - megahit
-  - metaspades
-  binning_samples:
-  - sample_S22282
-  - sample_S22205
-  trimmer: atropos
-  mapping_assembler: metaspades
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
     -q 15 --minimum-length 100 --pair-filter any'
   humann2:
@@ -41,17 +30,19 @@ params:
     scaled: 10000
   mash:
     sketch_size: 1000
-  kraken:
-    kraken_db: test_data/kraken_test_db
-  maxbin: -plotmarker
-  anvio:
-    centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
-    centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
   metaphlan2:
-    # metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2
-    metaphlan2_db: test_data/mp2_test_db/mpa_v20_m200
-  shogun: --utree_indx /home/qiz173/Databases/SHOGUN/annotated/utree/stdb.ctr
-
+    db: test_data/mp2_test_db/mpa_v20_m200
+  kraken:
+    db: test_data/kraken_test_db
+    kmers: test_data/kraken_test_db/75mers_distr.txt
+  shogun:
+    db: test_data/shogun_test_db
+    aligner: utree  # options: bowtie2, burst and utree
+    level: species  # options: genus, species and strain
+  maxbin: -plotmarker
+resources:
+  centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
+  centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
 samples:
   sample_S22205:
     forward:

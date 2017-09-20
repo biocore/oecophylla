@@ -115,46 +115,6 @@ def extract_sample_paths(seq_dir):
     return sample_reads_dict
 
 
-def add_filter_db(sample_fp_dict, db_fp, samples = None,
-                  filter_col='filter_db'):
-    """ Add in a database for filtering out contaminant reads.
-
-    This is useful for filtering out reads from other sources
-    such as human DNA.
-
-    Parameters
-    ----------
-    sample_fp_dict : dict of list of str
-       Samples with a list of their forward and reverse files.
-    db_fp : str
-       Filepath of the database.
-    samples : list
-       List of sample names.
-    filter_col : str
-       Keyword name for the filtering database (default: 'filter_db')
-
-    Returns
-    -------
-    dict of list of str
-       Samples with a list of their forward and reverse files.
-    """
-
-    if samples is None:
-
-        samples = set(sample_fp_dict)
-
-    samples_dict = copy.deepcopy(sample_fp_dict)
-
-    for s in samples_dict:
-        if s in samples:
-            samples_dict[s][filter_col] = db_fp
-        elif filter_col in samples_dict[s]:
-            continue
-        else:
-            samples_dict[s][filter_col] = None
-
-    return(samples_dict)
-
 # Option 2: read samples from sample sheet
 def read_sample_sheet(f, sep='\t', comment='#'):
     """ Outputs a dataframe from a sample sheet

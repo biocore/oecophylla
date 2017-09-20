@@ -1,13 +1,16 @@
 channels:
-  - conda-forge
   - bioconda
+  - conda-forge
+  - defaults
 dependencies:
   - python=3
+  - bowtie2
+  - Click
+  - pyyaml
+  - pandas
+  - scipy
   - numpy
-  - seqtk
   - cytoolz
   - pip
   - pip:
-    - "git+https://github.com/knights-lab/NINJA-utils.git"
-    - "git+https://github.com/knights-lab/DOJO.git"
     - "git+https://github.com/knights-lab/SHOGUN.git"
