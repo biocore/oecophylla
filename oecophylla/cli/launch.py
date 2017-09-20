@@ -198,7 +198,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     else:
         raise ValueError('Incorrect workflow-type specified in launch script.')
 
-    if just_config:
+    if not just_config:
         proc = subprocess.Popen(cmd, shell=True)
         proc.wait()
 
