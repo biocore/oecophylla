@@ -1,52 +1,38 @@
-import os
 import pandas as pd
 
 
-def combine_bracken(dir_bracken_reports):
+def combine_bracken(bracken_outputs):
     """Combines bracken counts for several samples into one table.
 
     Parameters
     ----------
-    dir_bracken_reports : str
-        Pathname of directory that contains bracken abundance estimation files
-        per samples.
+    bracken_outputs : Iterable((str, str))
+        An iterable of tuples, where the second component is the filepath
+        pointing to a bracken output files, the first component defines a
+        sample name for the bracken output.
 
     Returns
     -------
     Pandas.DataFrame with rows for features, columns for samples.
-    Feature labels are NCBI taxonomy IDs.
+    Feature labels are NCBI taxonomy IDs. Sample labels are obtained from first
+    components of passed iterable.
 
     Notes
     -----
-    We don't know which files in the given directory are bracken abundance
-    estimation files.
-    Therefore, we iterate over all files and try to a) parse the file as a tab
-    separated table and b) check if the second column is named 'taxonomy_id'.
-    More information about the file format:
+    More information about the bracken file format:
     https://ccb.jhu.edu/software/bracken/index.shtml?t=manual
     """
     samples = []
     # walking over the given directory.
     # We don't know which files are actual bracken abundance estimation files.
-    for _file in next(os.walk(dir_bracken_reports))[2]:
-        try:
-            sample_abund = pd.read_csv(dir_bracken_reports + '/' + _file,
-                                       sep='\t', index_col=1)
-        except IndexError:
-            continue
-        # we assume the file is a bracken abundance estimation file, if
-        # a) it can be parsed by pandas
-        # b) it's index is named 'taxonomy_id'
-        if sample_abund.index.name != 'taxonomy_id':
-            # this file does not look like a bracken Abundance Estimation file,
-            # thus it will be skipped
-            continue
+    for (samplename, _file) in bracken_outputs:
+        sample_abund = pd.read_csv(_file, sep='\t', index_col=1)
 
         # we are collecting the bracken estimated kraken assigned read numbers
         sample_counts = sample_abund['new_est_reads']
 
         # infer sample name from filename and remove file extension if present
-        sample_counts.name = os.path.splitext(_file)[0]
+        sample_counts.name = samplename
 
         # add resulting pd.Series to our collection of samples
         samples.append(sample_counts)
