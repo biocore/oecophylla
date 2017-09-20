@@ -31,13 +31,13 @@ include: "oecophylla/taxonomy/taxonomy.rule"
 rule all:
     input:
         # raw
-        rules.raw.input,
+#        rules.raw.input,
         # QC
-        rules.qc.input,
+#        rules.qc.input,
         # Assembly
-        rules.assemble.input,
+#        rules.assemble.input,
         # Distance
-        rules.mash.input,
-        rules.sourmash.input,
+#        rules.mash.input,
+#        rules.sourmash.input,
         # Taxonomy
         rules.taxonomy.input

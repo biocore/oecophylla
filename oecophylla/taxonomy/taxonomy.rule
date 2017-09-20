@@ -179,6 +179,27 @@ rule taxonomy_bracken:
                   """)
 
 
+rule taxonomy_bracken_combine_tables:
+    """
+    Combines per-sample Bracken output tables into a single OTU table in BIOM format.
+    """
+    input:
+        expand(taxonomy_dir + "{sample}/bracken/{sample}_table.txt", sample=samples)
+    output:
+        taxonomy_dir + "bracken/combined_table.tsv"
+    log:
+        taxonomy_dir + "logs/taxonomy_bracken_combine_tables.log"
+    benchmark:
+        "benchmarks/taxonomy/taxonomy_bracken_combine_tables.txt"
+    run:
+        with open(output[0], 'w') as f:
+            for sample, filepath in zip(samples, input):
+                f.write('%s\t%s\n' % (sample, filepath))
+        with open(log[0], 'w') as f:
+            f.write('Successfully merged %d Bracken output tables.\n'
+                    % len(samples))
+
+
 rule taxonomy_kraken_combine_reports:
     """
     Combines the per-sample taxonomic profiles into a single run-wide table.
@@ -316,6 +337,8 @@ rule taxonomy:
         # once the biom function is in place, they should be edited
         expand(taxonomy_dir + "{sample}/kraken/{sample}.map.txt", sample=samples),
         expand(taxonomy_dir + "{sample}/kraken/{sample}.report.txt", sample=samples),
-        expand(taxonomy_dir + "{sample}/bracken/{sample}.table.txt", sample=samples),
-        expand(taxonomy_dir + "{sample}/bracken/{sample}.report.txt", sample=samples),
+#        expand(taxonomy_dir + "{sample}/bracken/{sample}.table.txt", sample=samples),
+#        expand(taxonomy_dir + "{sample}/bracken/{sample}.report.txt", sample=samples),
+        taxonomy_dir + "bracken/combined_table.tsv",
+
         expand(taxonomy_dir + "{sample}/shogun/{sample}.taxon_counts.tsv", sample=samples)
