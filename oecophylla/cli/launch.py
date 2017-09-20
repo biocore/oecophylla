@@ -184,7 +184,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
 
     elif workflow_type == 'local':
         if not cluster_config:
-            cluster['nodes'] = 1
+            cluster['nodes'] = 2
             cluster['local_cores'] = 2
         cluster_setup = None
         cmd = ' '.join(["snakemake ",
