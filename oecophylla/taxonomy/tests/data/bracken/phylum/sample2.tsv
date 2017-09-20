@@ -1,0 +1,4 @@
+name	taxonomy_id	taxonomy_lvl	kraken_assigned_reads	added_reads	new_est_reads	fraction_total_reads
+Euryarchaeota	28890	P	277	0	277	0.55847
+Bacteroidetes	976	P	15	0	15	0.03034
+Proteobacteria	1224	P	161	42	203	0.41119
