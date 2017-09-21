@@ -32,7 +32,7 @@ class ParserTest(TestCase):
     def test_pandas2biom(self):
         fh, filename = mkstemp()
         p = pd.read_csv(get_data_path('float.tsv'), sep='\t', index_col=0)
-        with self.assertRaisesRegex(IOError, 'Cannot write to file'):
+        with self.assertRaisesRegex(IOError, 'Unable to create file'):
             pandas2biom('/dev/', p)
         pandas2biom(filename, p)
         b = biom.load_table(filename)
