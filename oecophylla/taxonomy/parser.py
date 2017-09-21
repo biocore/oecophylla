@@ -44,7 +44,7 @@ def combine_bracken(bracken_outputs):
     return pd.concat(samples, axis=1).fillna(0).astype(int)
 
 
-def pandas2biom(file_biom, table, err=sys.stderr):
+def pandas2biom(file_biom, table):
     """ Writes a Pandas.DataFrame into a biom file.
 
     Parameters
@@ -53,25 +53,14 @@ def pandas2biom(file_biom, table, err=sys.stderr):
         The filename of the BIOM file to be created.
     table: a Pandas.DataFrame
         The table that should be written as BIOM.
-    err : StringIO
-        Stream onto which errors / warnings should be printed.
-        Default is sys.stderr
-
-    Raises
-    ------
-    IOError
-        If file_biom cannot be written.
 
     Returns
     -------
     Nothing
     """
-    try:
-        bt = biom.Table(table.values,
-                        observation_ids=table.index,
-                        sample_ids=table.columns)
+    bt = biom.Table(table.values,
+                    observation_ids=table.index,
+                    sample_ids=table.columns)
 
-        with biom_open(file_biom, 'w') as f:
-            bt.to_hdf5(f, "example")
-    except IOError:
-        raise IOError('Cannot write to file "%s"' % file_biom)
+    with biom_open(file_biom, 'w') as f:
+        bt.to_hdf5(f, "example")
