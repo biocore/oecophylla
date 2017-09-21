@@ -2,7 +2,7 @@ ANVIO_ENV = config['anvi_env']
 
 rule anvi_gen_contigs_database:
     input:
-        assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['mapping_assembler']
+        assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['params']['mapping_assembler']
     output:
         db = anvio_dir + "{bin_sample}/{bin_sample}.db",
         h5 =  anvio_dir + "{bin_sample}/{bin_sample}.h5",
@@ -80,8 +80,8 @@ rule anvi_run_centrifuge:
     benchmark:
         "benchmarks/anvio/anvi_run_centrifuge.sample=[{bin_sample}].txt"
     params:
-        centrifuge_base=config['resources']['centrifuge_base'],
-        centrifuge_models=config['resources']['centrifuge_models']
+        centrifuge_base=config['params']['anvio']['centrifuge_base'],
+        centrifuge_models=config['params']['anvio']['centrifuge_models']
     threads: 12
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
@@ -150,7 +150,7 @@ rule anvi_merge:
     input:
         profiles=lambda wildcards: expand(anvio_dir + "{bin_sample}/{bin_sample}.{abund_sample}.bam-ANVIO_PROFILE/PROFILE.db",
                         bin_sample=wildcards.bin_sample,
-                        abund_sample=config['abundance_samples']),
+                        abund_sample=config['params']['abundance_samples']),
         db_done = anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done",
         centrifuge_done=anvio_dir + "{bin_sample}/{bin_sample}.db.added_centrifuge.done",
         hmms_done=anvio_dir + "{bin_sample}/{bin_sample}.db.run-hmms.done"
@@ -237,6 +237,6 @@ rule anvi_summarize:
 rule anvio:
     input:
         expand(anvio_dir + "{bin_sample}/{bin_sample}_samples-summary_CONCOCT.tar.gz",
-               bin_sample=config['binning_samples']),
+               bin_sample=config['params']['binning_samples']),
         expand(anvio_dir + "{bin_sample}/{bin_sample}.db.anvi_add_maxbin.done",
-               bin_sample=config['binning_samples'])
+               bin_sample=config['params']['binning_samples'])
