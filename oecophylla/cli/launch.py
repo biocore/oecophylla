@@ -4,14 +4,13 @@ import os
 import glob
 from oecophylla.util.parse import (illumina_filenames_to_df,
                                    extract_sample_reads,
-                                   add_filter_db,
                                    extract_sample_paths,
                                    read_sample_sheet,
                                    extract_samples_from_sample_sheet)
 import subprocess
 
 """
-This is the main Oecophylla script which handles launching of the entire
+mThis is the main Oecophylla script which handles launching of the entire
 pipeline and installation of all necessary modules/environments.
 Using a set of FASTA/FASTQ input files,
 sample sheet (Illumina-specific) and tool parameters file,
