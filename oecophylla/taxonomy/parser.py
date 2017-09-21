@@ -1,4 +1,3 @@
-import sys
 import pandas as pd
 import biom
 from biom.util import biom_open
