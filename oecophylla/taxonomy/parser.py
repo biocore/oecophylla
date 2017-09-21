@@ -1,7 +1,26 @@
+import sys
 import pandas as pd
 import biom
 from biom.util import biom_open
-import sys
+
+
+def combine_profiles(profiles):
+    """Combines profiles for several samples into one table.
+
+    Parameters
+    ----------
+    profiles : iterable((str, str))
+        An iterable of tuples, where the second component is the filepath
+        pointing to a profile (format: feature<tab>count), while the first
+        component defines a sample name for the profile.
+
+    Returns
+    -------
+    Pandas.DataFrame with rows for features, columns for samples.
+    """
+    samples = [pd.read_table(file, index_col=0, names=[name])
+               for name, file in profiles]
+    return pd.concat(samples, axis=1).fillna(0).astype(int)
 
 
 def combine_bracken(bracken_outputs):
@@ -59,7 +78,7 @@ def pandas2biom(file_biom, table):
     Nothing
     """
     bt = biom.Table(table.values,
-                    observation_ids=table.index,
+                    observation_ids=list(map(str, table.index)),
                     sample_ids=table.columns)
 
     with biom_open(file_biom, 'w') as f:
