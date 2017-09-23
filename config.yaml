@@ -49,8 +49,12 @@ params:
     map: no
   shogun:
     db: test_data/shogun_test_db
-    aligner: utree  # options: bowtie2, burst and utree
-    level: species  # options: genus, species and strain
+    # alignment algorithm: bowtie2, burst and utree
+    aligner: utree
+    # taxonomic ranks (kingdom to strain) to redistribute reads
+    levels: phylum,genus,species
+    # whether to keep original mapping file
+    map: yes
   maxbin: -plotmarker
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge

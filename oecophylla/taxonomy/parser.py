@@ -17,7 +17,7 @@ def combine_profiles(profiles):
     -------
     Pandas.DataFrame with rows for features, columns for samples.
     """
-    samples = [pd.read_table(file, index_col=0, names=[name])
+    samples = [pd.read_table(file, index_col=0, names=[name], comment='#')
                for name, file in profiles]
     return pd.concat(samples, axis=1).fillna(0).astype(int)
 

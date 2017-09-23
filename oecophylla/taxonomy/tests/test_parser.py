@@ -6,10 +6,21 @@ from pandas.util.testing import assert_frame_equal
 from skbio.util import get_data_path
 import biom
 
-from oecophylla.taxonomy.parser import (combine_bracken, pandas2biom)
+from oecophylla.taxonomy.parser import (combine_profiles,
+                                        combine_bracken,
+                                        pandas2biom)
 
 
 class ParserTest(TestCase):
+    def test_combine_profiles(self):
+        exp = pd.read_table(get_data_path('shogun/combined.phylum.tsv'),
+                            index_col=0)
+        obs = combine_profiles(
+            [('sampleA', get_data_path('shogun/phylum/sampleA.txt')),
+             ('sampleB', get_data_path('shogun/phylum/sampleB.txt'))])
+        assert_frame_equal(obs[sorted(obs.columns)].sort_index().astype(int),
+                           exp[sorted(exp.columns)].sort_index().astype(int))
+
     def test_combine_bracken(self):
         exp = pd.read_csv(get_data_path('bracken/combined.phylum.tsv'),
                           sep='\t', index_col=0, dtype=int)

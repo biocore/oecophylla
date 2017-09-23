@@ -147,17 +147,17 @@ rule taxonomy_kraken:
                   # run Bracken to re-estimate abundance at given rank
                   if [[ ! -z {params.levels} ]]
                   then
-                      IFS=',' read -r -a levels <<< "{params.levels}"
-                      for level in "${{levels[@]}}"
-                      do
-                        est_abundance.py -i {output.report} \
-                          -k {params.kmers} \
-                          -t 10 \
-                          -l $(echo $level | head -c 1 | tr a-z A-Z) \
-                          -o $stem.redist.$level.txt \
-                          2>> {log} 1>&2
-                        rm $stem.report_bracken.txt
-                      done
+                    IFS=',' read -r -a levels <<< "{params.levels}"
+                    for level in "${{levels[@]}}"
+                    do
+                      est_abundance.py -i {output.report} \
+                        -k {params.kmers} \
+                        -t 10 \
+                        -l $(echo $level | head -c 1 | tr a-z A-Z) \
+                        -o $stem.redist.$level.txt \
+                        2>> {log} 1>&2
+                      rm $stem.report_bracken.txt
+                    done
                   fi
                   """)
 
@@ -169,12 +169,12 @@ rule taxonomy_kraken_combine_profiles:
     input:
         expand(taxonomy_dir + "{sample}/kraken/{sample}.profile.txt",
                sample=samples)
-    params:
-        levels = config['params']['kraken']['levels']
     output:
         taxonomy_dir + "kraken/combined_profile.biom"
         # extra output files:
         # combined_redist.{level}.biom foreach {levels}
+    params:
+        levels = config['params']['kraken']['levels']
     log:
         taxonomy_dir + "logs/taxonomy_kraken_combine_profiles.log"
     benchmark:
@@ -196,19 +196,22 @@ rule kraken:
 
 rule taxonomy_shogun:
     """
-    Runs SHOGUN to infer taxonomic composition of sample.
+    Runs SHOGUN with choice of aligner to construct taxonomic profiles.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
         profile = taxonomy_dir + "{sample}/shogun/{sample}.profile.txt",
-        redist = taxonomy_dir + "{sample}/shogun/{sample}.profile.redist.txt"
+        # extra output files:
+        # {sample}.{aligner}.{ext}.gz if {map} is ON
+        # {sample}.redist.{level}.txt foreach {levels}
     params:
         env = config['envs']['shogun'],
         db = config['params']['shogun']['db'],
         aligner = config['params']['shogun']['aligner'],
-        level = config['params']['shogun']['level']
+        levels = config['params']['shogun']['levels'],
+        map = config['params']['shogun']['map']
     threads:
         12
     log:
@@ -221,6 +224,10 @@ rule taxonomy_shogun:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
                   set +u; {params.env}; set -u
+
+                  # get stem file path
+                  stem={output.profile}
+                  stem=${{stem%.profile.txt}}
 
                   # convert and merge fastq's into fasta
                   seqtk seq -A {input.forward} > {temp_dir}/{wildcards.sample}.fna
@@ -243,63 +250,63 @@ rule taxonomy_shogun:
                   --output {output.profile} \
                   2> {log} 1>&2
 
-                  # redistribute counts to certain taxonomic rank
-                  shogun redistribute \
-                  --database {params.db} \
-                  --level {params.level} \
-                  --input {output.profile} \
-                  --output {output.redist} \
-                  2> {log} 1>&2
+                  # keep mapping file
+                  if [[ "{params.map}" == "True" ]]
+                  then
+                    gzip -c {temp_dir}/alignment.{params.aligner}.{ext} > $stem.{params.aligner}.{ext}.gz
+                  fi
+
+                  # redistribute reads to given taxonomic ranks
+                  if [[ ! -z {params.levels} ]]
+                  then
+                    IFS=',' read -r -a levels <<< "{params.levels}"
+                    for level in "${{levels[@]}}"
+                    do
+                      shogun redistribute \
+                      --database {params.db} \
+                      --level $level \
+                      --input {output.profile} \
+                      --output $stem.redist.$level.txt \
+                      2> {log} 1>&2
+                    done
+                  fi
                   """)
 
 
-rule taxonomy_shogun_combine_tables:
+rule taxonomy_shogun_combine_profiles:
     """
-    Combines the per-sample normalized tables into a single run-wide table.
+    Combines per-sample SHOGUN output tables into single OTU tables.
     """
     input:
-        expand(taxonomy_dir + "{sample}/shogun/{sample}.taxon_counts.tsv",
+        expand(taxonomy_dir + "{sample}/shogun/{sample}.profile.txt",
                sample=samples)
     output:
-        report = taxonomy_dir + "shogun/combined_profile.tsv"
+        taxonomy_dir + "shogun/combined_profile.biom"
+        # extra output files:
+        # combined_redist.{level}.biom foreach {levels}
+    params:
+        levels = config['params']['shogun']['levels']
     log:
-        taxonomy_dir + "logs/taxonomy_shogun_combine_tables.log"
+        taxonomy_dir + "logs/taxonomy_shogun_combine_profiles.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_shogun_combine_tables.txt"
+        "benchmarks/taxonomy/taxonomy_shogun_combine_profiles.txt"
     run:
-        taxa, samples = {}, []
-        for file in input:
-            with open(file, 'r') as f:
-                sample = f.readline().strip().split('\t')[1]
-                samples.append(sample)
-                for line in f:
-                    taxon, count = line.strip().split('\t')
-                    if taxon in taxa:
-                        taxa[taxon][sample] = count
-                    else:
-                        taxa[taxon] = {sample: count}
-        with open(output[0], 'w') as f:
-            f.write('#SampleID\t%s\n' % '\t'.join(samples))
-            for taxon in sorted(taxa):
-                row = [taxon]
-                for sample in samples:
-                    if sample in taxa[taxon]:
-                        row.append(taxa[taxon][sample])
-                    else:
-                        row.append('0.0')
-                f.write('%s\n' % '\t'.join(row))
-        with open(log[0], 'w') as f:
-            f.write('Successfully merged counts of %d taxa from %d samples.\n'
-                    % (len(taxa), len(samples)))
+        pandas2biom(output[0], combine_profiles(zip(samples, input)))
+        if params['levels']:
+            for level in params['levels'].split(','):
+                redists = ['%s.redist.%s.txt' % (x[:-12], level)
+                           for x in input]
+                pandas2biom('%s_redist.%s.biom' % (output[0][:-13], level),
+                            combine_profiles(zip(samples, redists)))
 
 
 rule shogun:
     input:
-        taxonomy_dir + "shogun/combined_profile.tsv"
+        taxonomy_dir + "shogun/combined_profile.biom"
 
 
 rule taxonomy:
     input:
         taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-        taxonomy_dir + "kraken/combined_profile.biom"
-        # taxonomy_dir + "shogun/combined_profile.tsv"
+        taxonomy_dir + "kraken/combined_profile.biom",
+        taxonomy_dir + "shogun/combined_profile.biom"
