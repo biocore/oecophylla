@@ -1,4 +1,25 @@
 import pandas as pd
+import biom
+from biom.util import biom_open
+
+
+def combine_profiles(profiles):
+    """Combines profiles for several samples into one table.
+
+    Parameters
+    ----------
+    profiles : iterable((str, str))
+        An iterable of tuples, where the second component is the filepath
+        pointing to a profile (format: feature<tab>count), while the first
+        component defines a sample name for the profile.
+
+    Returns
+    -------
+    Pandas.DataFrame with rows for features, columns for samples.
+    """
+    samples = [pd.read_table(file, index_col=0, names=[name], comment='#')
+               for name, file in profiles]
+    return pd.concat(samples, axis=1).fillna(0).astype(int)
 
 
 def combine_bracken(bracken_outputs):
@@ -39,3 +60,25 @@ def combine_bracken(bracken_outputs):
 
     # return a merged pd.DataFrame of all absolute estimated assigned reads
     return pd.concat(samples, axis=1).fillna(0).astype(int)
+
+
+def pandas2biom(file_biom, table):
+    """ Writes a Pandas.DataFrame into a biom file.
+
+    Parameters
+    ----------
+    file_biom: str
+        The filename of the BIOM file to be created.
+    table: a Pandas.DataFrame
+        The table that should be written as BIOM.
+
+    Returns
+    -------
+    Nothing
+    """
+    bt = biom.Table(table.values,
+                    observation_ids=list(map(str, table.index)),
+                    sample_ids=table.columns)
+
+    with biom_open(file_biom, 'w') as f:
+        bt.to_hdf5(f, "example")

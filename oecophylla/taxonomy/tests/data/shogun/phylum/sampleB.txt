@@ -1,0 +1,18 @@
+#OTU ID	Unnamed: 1
+k__Archaea;p__Euryarchaeota	1
+k__Bacteria;p__Actinobacteria	246
+k__Bacteria;p__Bacteroidetes	48002
+k__Bacteria;p__Cyanobacteria	2
+k__Bacteria;p__Firmicutes	7666
+k__Bacteria;p__Fusobacteria	1
+k__Bacteria;p__Planctomycetes	1
+k__Bacteria;p__Proteobacteria	65067
+k__Bacteria;p__Spirochaetes	1
+k__Bacteria;p__Synergistetes	3
+k__Bacteria;p__Tenericutes	2
+k__Bacteria;p__Verrucomicrobia	5451
+k__BacteriaPlasmid;p__Bacteroidetes	3
+k__BacteriaPlasmid;p__Firmicutes	14
+k__BacteriaPlasmid;p__Proteobacteria	1669
+k__Viruses;p__dsDNA_viruses,_no_RNA_stage	1236
+k__Viruses;p__unclassified_bacterial_viruses	1

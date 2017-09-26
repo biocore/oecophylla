@@ -34,11 +34,20 @@ params:
     db: test_data/mp2_test_db/mpa_v20_m200
   kraken:
     db: test_data/kraken_test_db
+    # Bracken kmer distribution file
     kmers: test_data/kraken_test_db/75mers_distr.txt
+    # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
+    levels: phylum,genus,species
+    # whether to keep original mapping file
+    map: no
   shogun:
     db: test_data/shogun_test_db
-    aligner: utree  # options: bowtie2, burst and utree
-    level: species  # options: genus, species and strain
+    # alignment algorithm: bowtie2, burst and utree
+    aligner: utree
+    # taxonomic ranks (kingdom to strain) to redistribute reads
+    levels: phylum,genus,species
+    # whether to keep original mapping file
+    map: yes
   maxbin: -plotmarker
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
