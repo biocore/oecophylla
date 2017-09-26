@@ -24,6 +24,7 @@ class ProcessingTests(TestCase):
             shutil.rmtree(self.local_dir)
 
     def test_config(self):
+        self.maxDiff = None
         _params = ['--input-dir', self.seq_dir,
                    '--params', '%s/data/tool_params.yml' % self.curdir,
                    '--envs', '%s/data/envs.yml' % self.curdir,
@@ -44,6 +45,7 @@ class ProcessingTests(TestCase):
         self.assertDictEqual(res_config, exp_config)
 
     def test_local(self):
+        self.maxDiff = None
         _params = ['--input-dir', self.seq_dir,
                    '--params', '%s/data/tool_params.yml' % self.curdir,
                    '--envs', '%s/data/envs.yml' % self.curdir,
@@ -64,7 +66,6 @@ class ProcessingTests(TestCase):
             res_config = yaml.load(f)
         with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
             exp_config = yaml.load(f)
-        self.maxDiff = None
         self.assertDictEqual(res_config, exp_config)
 
     def test_slurm(self):
