@@ -23,27 +23,6 @@ class ProcessingTests(TestCase):
         if os.path.exists(self.local_dir):
             shutil.rmtree(self.local_dir)
 
-    def test_config(self):
-        self.maxDiff = None
-        _params = ['--input-dir', self.seq_dir,
-                   '--params', '%s/data/tool_params.yml' % self.curdir,
-                   '--envs', '%s/data/envs.yml' % self.curdir,
-                   '--local-scratch', self.local_dir,
-                   '--output-dir', self.output_dir,
-                   '--just-config',
-                   '--snakemake-args', '-n',
-                   'all'
-                   ]
-
-        res = CliRunner().invoke(workflow, _params)
-
-        # test the config file
-        with open('%s/config.yaml' % self.output_dir, 'r') as f:
-            res_config = yaml.load(f)
-        with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
-            exp_config = yaml.load(f)
-        self.assertDictEqual(res_config, exp_config)
-
     def test_local(self):
         self.maxDiff = None
         _params = ['--input-dir', self.seq_dir,
@@ -61,12 +40,8 @@ class ProcessingTests(TestCase):
         proc = subprocess.Popen(cmd, shell=True)
         proc.wait()
 
-        # test the config file
-        with open('%s/config.yaml' % self.output_dir, 'r') as f:
-            res_config = yaml.load(f)
-        with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
-            exp_config = yaml.load(f)
-        self.assertDictEqual(res_config, exp_config)
+        # make sure that the tests complete
+        self.assertEqual(proc.returncode, 0)
 
     def test_slurm(self):
         # TODO
