@@ -30,6 +30,7 @@ class ProcessingTests(TestCase):
                    '--local-scratch', self.local_dir,
                    '--output-dir', self.output_dir,
                    '--just-config',
+                   '--snakemake-args', '-n',
                    'all'
                    ]
 

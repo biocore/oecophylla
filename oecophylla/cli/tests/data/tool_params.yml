@@ -27,12 +27,37 @@ humann2:
   other: ''
 kraken:
   # kraken_db: /home/qiz173/Databases/Kraken/stdb
-  kraken_db: test_data/kraken_test_db
+  db: test_data/kraken_test_db
+  kmers: 15
 maxbin: -plotmarker
 metaphlan2:
   # metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2
-  metaphlan2_db: test_data/mp2_test_db/mpa_v20_m200
-shogun: --utree_indx /home/qiz173/Databases/SHOGUN/annotated/utree/stdb.ctr
+  db: test_data/mp2_test_db/mpa_v20_m200
+
+shogun:
+  db: test_data/shogun_test_db
+  # alignment algorithm: bowtie2, burst and utree
+  aligner: utree
+  # taxonomic ranks (kingdom to strain) to redistribute reads
+  levels: phylum,genus,species
+  # whether to keep original mapping file
+  map: yes
+kraken:
+  db: test_data/kraken_test_db
+  # Bracken kmer distribution file
+  kmers: test_data/kraken_test_db/75mers_distr.txt
+  # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
+  levels: phylum,genus,species
+  # whether to keep original mapping file
+  map: no
+shogun:
+  db: test_data/shogun_test_db
+  # alignment algorithm: bowtie2, burst and utree
+  aligner: utree
+  # taxonomic ranks (kingdom to strain) to redistribute reads
+  levels: phylum,genus,species
+  # whether to keep original mapping file
+  map: yes
 mash:
   sketch_size: 1000
 sourmash:
