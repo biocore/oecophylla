@@ -4,7 +4,7 @@ rule test_temp_expand:
     output:
         temp(
             expand("out_{sample}.temp",
-                   sample=config['binning_samples'])
+                   sample=config['params']['binning_samples'])
             )
     run:
         for f in output:
@@ -15,7 +15,7 @@ rule test_temp_expand:
 rule test_merge:
     input:
         expand("out_{sample}.temp",
-                   sample=config['binning_samples'])
+                   sample=config['params']['binning_samples'])
     output:
         "testout.fa"
     run:

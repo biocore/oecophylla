@@ -1,16 +1,29 @@
 envs:
   anvi: source activate oecophylla-anvi
   assemble: source activate oecophylla-assemble
+  distance: source activate oecophylla-distance
   humann2: source activate oecophylla-humann2
   kraken: source activate oecophylla-kraken
-  mash: source activate oecophylla-mash
   metaphlan2: source activate oecophylla-metaphlan2
   qc: source activate oecophylla-qc
   raw: source activate oecophylla-qc
   shogun: source activate oecophylla-shogun
 params:
+  abundance_samples:
+  - sample_S22282
+  - sample_S22205
+  anvio:
+    centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
+    centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
+  assemblers:
+  - megahit
+  - metaspades
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
     -q 15 --minimum-length 100 --pair-filter any'
+  binning_samples:
+  - sample_S22282
+  - sample_S22205
+  filter_db: test_data/phix
   humann2:
     humann2_aa_db: 'humann2_aa_db: /home/jgsanders/ref_data/humann2/uniref'
     humann2_nt_db: /home/jgsanders/ref_data/humann2/chocophlan
@@ -20,14 +33,33 @@ params:
     - relab
     other: ''
   kraken:
-    kraken_db: test_data/kraken_test_db
+    db: test_data/kraken_test_db
+    # Bracken kmer distribution file
+    kmers: test_data/kraken_test_db/75mers_distr.txt
+    # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
+    levels: phylum,genus,species
+    # whether to keep original mapping file
+    map: no
+  shogun:
+    db: test_data/shogun_test_db
+    # alignment algorithm: bowtie2, burst and utree
+    aligner: utree
+    # taxonomic ranks (kingdom to strain) to redistribute reads
+    levels: phylum,genus,species
+    # whether to keep original mapping file
+    map: yes
+  mapping_assembler:
+  - metaspades
+  mash:
+    sketch_size: 1000
   maxbin: -plotmarker
   metaphlan2:
-    metaphlan2_db: test_data/mp2_test_db/mpa_v20_m200
-  resources:
-    centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
-    centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
-  shogun: --utree_indx /home/qiz173/Databases/SHOGUN/annotated/utree/stdb.ctr
+    db: test_data/mp2_test_db/mpa_v20_m200
+
+  sourmash:
+    kmer: 31
+    scaled: true
+  trimmer: atropos
 samples:
   S22205:
     forward:
@@ -59,3 +91,4 @@ samples:
     - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22402_S105_L001_R1_001.fastq.gz
     reverse:
     - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22402_S105_L001_R2_001.fastq.gz
+tmp_dir_root: /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/test_scratch

@@ -4,6 +4,7 @@ from click.testing import CliRunner
 import shutil
 from oecophylla.cli.launch import workflow
 import yaml
+import subprocess
 
 
 class ProcessingTests(TestCase):
@@ -23,22 +24,24 @@ class ProcessingTests(TestCase):
             shutil.rmtree(self.local_dir)
 
     def test_local(self):
+        self.maxDiff = None
         _params = ['--input-dir', self.seq_dir,
                    '--params', '%s/data/tool_params.yml' % self.curdir,
                    '--envs', '%s/data/envs.yml' % self.curdir,
                    '--local-scratch', self.local_dir,
-                   '--output-dir', self.output_dir]
+                   '--output-dir', self.output_dir,
+                   '--snakemake-args', '-n',
+                   'all'
+                   ]
 
-        res = CliRunner().invoke(workflow, _params)
+        #res = CliRunner().invoke(workflow, _params)
+        cmd = ' oecophylla workflow ' + ' '.join(_params)
 
-        # test the config file
-        with open('%s/config.yaml' % self.local_dir, 'r') as f:
-            res_config = yaml.load(f)
-        with open('%s/data/exp_config.yaml' % self.curdir, 'r') as f:
-            exp_config = yaml.load(f)
-        self.assertDictEqual(res_config, exp_config)
-        print(res.exit_code == 0)
-        print(res.output)
+        proc = subprocess.Popen(cmd, shell=True)
+        proc.wait()
+
+        # make sure that the tests complete
+        self.assertEqual(proc.returncode, 0)
 
     def test_slurm(self):
         # TODO

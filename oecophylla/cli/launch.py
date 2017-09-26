@@ -4,13 +4,13 @@ import os
 import glob
 from oecophylla.util.parse import (illumina_filenames_to_df,
                                    extract_sample_reads,
-                                   add_filter_db,
                                    extract_sample_paths,
                                    read_sample_sheet,
                                    extract_samples_from_sample_sheet)
+import subprocess
 
 """
-This is the main Oecophylla script which handles launching of the entire
+mThis is the main Oecophylla script which handles launching of the entire
 pipeline and installation of all necessary modules/environments.
 Using a set of FASTA/FASTQ input files,
 sample sheet (Illumina-specific) and tool parameters file,
@@ -20,6 +20,7 @@ cluster system (Torque, Slurm).
 Example usage:
 ==============
 
+*NOT FUNCTIONAL AS OF NOW*
 Installation:
 -------------
 oecophylla install
@@ -36,6 +37,7 @@ def run():
     pass
 
 
+#TODO will be used, once we add multiple directory support
 def _arg_split(ctx, param, value):
     # split columns by ',' and remove whitespace
     _files = [c.strip() for c in value.split(',')]
@@ -48,6 +50,7 @@ def _create_dir(_path):
 
 
 @run.command()
+@click.argument('targets', nargs=-1)
 #TODO add an option to process multiple directories
 @click.option('--input-dir', '-i', required=True, type=click.STRING,
               help='Input directory with all of the samples.')
@@ -59,32 +62,39 @@ def _create_dir(_path):
               help='Specify parameters for the tools in a YAML file.')
 @click.option('--envs', '-e', type=click.Path(exists=True), required=True,
               help='Specify environments for the tools in a YAML file.')
-@click.option('--cluster-params', type=click.Path(), required=False,
+@click.option('--cluster-config', type=click.Path(), required=False,
               help='File with parameters for a cluster job.')
-@click.option('--local-scratch', type=click.Path(), default='/tmp',
+@click.option('--local-scratch', type=click.Path(resolve_path=True,
+              writable=True),
+              default='/tmp',
               help='Temporary directory for storing intermediate files.')
 @click.option('--workflow-type',
               type=click.Choice(['torque', 'slurm', 'local']),
               default='local',
-              help='Temporary directory for storing intermediate files.')
-@click.option('--log-dir', type=click.Path(), required=False,
-              default='/dev/null',
-              help='Directory containing log files.')
+              help='Select where to run the pipeline (cluster or locally).')
 @click.option('--output-dir', '-o', type=click.Path(),
               help='Input directory of all of the samples.')
+@click.option('--snakemake-args', type=click.STRING, default='',
+              help=('arguments to pass into snakemake '
+                    '(needs to be passed in by quotes)'))
+@click.option('--local-cores', '-j', required=False, type=click.INT, default=2,
+              help='Number of local cores to run for snakemake scheduler.')
+@click.option('--jobs', '-j', required=False, type=click.INT, default=None,
+              help='Number of processes to run.  When running on the cluster, '
+              'this corresponds to the number of jobs to launch.')
 @click.option('--force', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
-@click.option('--latency-wait', type=click.INT, default=90,
-              help='Latency wait between cluster jobs.')
-def workflow(input_dir, sample_sheet, params, envs, cluster_params,
-             local_scratch, workflow_type, log_dir, output_dir, force,
-             latency_wait):
-
+@click.option('--just-config', is_flag=True, flag_value=False,
+              help='Only generate the configuration file.')
+def workflow(targets, input_dir, sample_sheet, params, envs,
+             cluster_config, local_scratch, workflow_type, output_dir,
+             snakemake_args, local_cores, jobs,
+             force, just_config):
     import snakemake
     from skbio.io.registry import sniff
 
     # SNAKEMAKE
-    snakefile = "%s/../Snakefile" % os.path.abspath(__file__)
+    snakefile = "%s/../../Snakefile" % os.path.abspath(os.path.dirname(__file__))
 
     # INPUT DIR
     for inp_file in glob.glob('%s/*' % input_dir):
@@ -110,13 +120,10 @@ def workflow(input_dir, sample_sheet, params, envs, cluster_params,
     # PARAMS
     with open(params, 'r') as f:
         params_dict = yaml.load(f)
-    print(params_dict)
+
     # ENVS
-    print()
     with open(envs, 'r') as f:
         envs_dict = yaml.load(f)
-    print(envs_dict)
-
 
     # CONFIG
     # merge PARAMS, SAMPLE_DICT, ENVS
@@ -124,57 +131,79 @@ def workflow(input_dir, sample_sheet, params, envs, cluster_params,
     config_dict['samples'] = sample_dict
     config_dict['params'] = params_dict
     config_dict['envs'] = envs_dict
+    config_dict['tmp_dir_root'] = local_scratch
 
     config_yaml = yaml.dump(config_dict, default_flow_style=False)
-    config_fp = '%s/%s' % (local_scratch, 'config.yaml')
-    print(config_fp)
-    print(config_yaml)
+
+
+
+    config_fp = '%s/%s' % (output_dir, 'config.yaml')
     with open(config_fp, 'w') as f:
         f.write(config_yaml)
 
-    # LOGS
-    if log_dir:
-        _create_dir(log_dir)
-    else:
-        os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
-
-    # CLUSTER SETUP
-    with open(cluster_params) as _file:
-        _cluster_config = yaml.load(_file)
-    # for now, everything under `extra` should be explicit freetext,
-    # e.g. --my-argument=value
-    cluster_freetext = _cluster_config['extra']
+    # TODO: LOGS
+    # if log_dir:
+    #     _create_dir(log_dir)
+    # else:
+    #     os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
     if workflow_type == 'torque':
-        cluster_setup = "qsub -e {cluster.error} -o {cluster.output} \
-                         -m {cluster.email} \
-                         -l nodes=1:ppn={cluster.nodes} \
-                         -l mem={cluster.memory} \
-                         -l walltime={cluster.time} %s" % cluster_freetext
+        cluster_setup = "\"qsub -e {cluster.error} -o {cluster.output} \
+                         -l nodes=1:ppn={cluster.n} \
+                         -l mem={cluster.mem} \
+                         -l walltime={cluster.time}\" "
+
+        if jobs == None:
+            jobs = 16
+
+        cmd = ' '.join(["snakemake ",
+                        "--snakefile %s " % snakefile,
+                        "--local-cores %s " % local_cores,
+                        "--jobs %s " % jobs,
+                        "--cluster-config %s " % cluster_config,
+                        "--cluster %s "  % cluster_setup,
+                        "--configfile %s " % config_fp,
+                        "--directory %s " % output_dir,
+                        snakemake_args,
+                        ' '.join(targets)])
     elif workflow_type == 'slurm':
         cluster_setup = "srun -e {cluster.error} -o {cluster.output} \
-                         -mail-user={cluster.email} \
-                         -n {cluster.nodes} \
-                         --mem={cluster.memory} \
-                         --time={cluster.time} %s" % cluster_freetext
-    elif workflow_type == 'local':
-        if not cluster_params:
-            cluster['cores'] = 4
-            cluster['nodes'] = 1
-            cluster['local_cores'] = 1
-        cluster_setup = None
-    else:
-        raise ValueError('Incorrect run-location specified in launch script.')
+                         -n {cluster.n} \
+                         --mem={cluster.mem} \
+                         --time={cluster.time}"
+        if jobs == None:
+            jobs = 16
 
-    snakemake.snakemake(snakefile,
-                        cores=cluster['cores'],
-                        nodes=cluster['nodes'],
-                        local_cores=cluster['local_cores'],
-                        cluster=cluster_setup,
-                        cluster_config=cluster_params,
-                        workdir="$@",
-                        forceall=force,
-                        config=config_fp,
-                        latency_wait=latency_wait)
+        cmd = ' '.join(["snakemake ",
+                        "--snakefile %s " % snakefile,
+                        "--local-cores %s " % local_cores,
+                        "--jobs %s " % jobs,
+                        "--cluster-config %s " % cluster_config,
+                        "--cluster %s " % cluster_setup,
+                        "--configfile % s " % config_fp,
+                        "--directory %s " % output_dir,
+                        snakemake_args,
+                        ' '.join(targets)])
+
+    elif workflow_type == 'local':
+
+        if jobs == None:
+            jobs = 2
+
+        cluster_setup = None
+        cmd = ' '.join(["snakemake ",
+                        "--snakefile %s " % snakefile,
+                        "--local-cores %s " % local_cores,
+                        "--jobs %s " % jobs,
+                        "--directory %s " % output_dir,
+                        "--configfile %s " % config_fp,
+                        snakemake_args,
+                        ' '.join(targets)])
+    else:
+        raise ValueError('Incorrect workflow-type specified in launch script.')
+
+    if not just_config:
+        proc = subprocess.Popen(cmd, shell=True)
+        proc.wait()
 
 
 @run.command()
@@ -193,3 +222,4 @@ def install():
 
 if __name__ == "__main__":
     run()
+

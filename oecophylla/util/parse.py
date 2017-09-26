@@ -79,6 +79,7 @@ def extract_sample_reads(df, seq_dir,
     """
     sample_reads_dict = {}
 
+
     samples = list(df[sample_col].unique())
 
     for s in samples:
@@ -130,7 +131,6 @@ def read_sample_sheet(f, sep='\t', comment='#'):
     data_df : pd.DataFrame
        DataFrame containing the sample sheet information.
 
-
     """
     data = False
     data_lines = ''
@@ -157,6 +157,7 @@ def extract_samples_from_sample_sheet(sample_sheet_df, seq_dir,
                                       file_col='File',
                                       read_col='Read',
                                       prefix_col='Sample_ID'):
+
     """ Obtains sample paths from a sample sheet.
 
     Parameters
@@ -185,6 +186,7 @@ def extract_samples_from_sample_sheet(sample_sheet_df, seq_dir,
 
     """
     sample_reads_dict = {}
+
     samples = list(sample_sheet_df[name_col].unique())
     fps = os.listdir(seq_dir)
     files_df = illumina_filenames_to_df(fps)
