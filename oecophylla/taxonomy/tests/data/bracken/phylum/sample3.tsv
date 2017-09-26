@@ -1,0 +1,4 @@
+name	taxonomy_id	taxonomy_lvl	kraken_assigned_reads	added_reads	new_est_reads	fraction_total_reads
+Euryarchaeota	28890	P	29	1	30	0.19231
+Proteobacteria	1224	P	103	4	107	0.69222
+Actinobacteria	201174	P	18	0	18	0.11547

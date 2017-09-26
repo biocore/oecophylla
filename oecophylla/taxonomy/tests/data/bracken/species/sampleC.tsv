@@ -1,0 +1,18 @@
+name	taxonomy_id	taxonomy_lvl	kraken_assigned_reads	added_reads	new_est_reads	fraction_total_reads
+Oscillatoria nigro-viridis	482564	S	20	0	20	0.03562
+Celeribacter indicus	1208324	S	11	2	13	0.02394
+Defluviimonas alba	1335048	S	26	12	38	0.06922
+Rhodobacter capsulatus	1061	S	15	2	17	0.03145
+Paracoccus aminophilus	34003	S	20	1	21	0.03817
+Rhodobacter sphaeroides	1063	S	46	4	50	0.09056
+Ruegeria pomeroyi	89184	S	10	0	10	0.01899
+Alteromonas mediterranea	314275	S	39	22	61	0.11007
+Methanobacterium formicicum	2162	S	43	0	43	0.07651
+Cellulomonas fimi	1708	S	25	10	35	0.06232
+Klebsiella quasipneumoniae	1463165	S	11	26	37	0.06661
+Paracoccus denitrificans	266	S	101	8	109	0.19472
+Pannonibacter phragmitetus	121719	S	11	18	29	0.05305
+Marinovum algicola	42444	S	12	1	13	0.02434
+Confluentimicrobium sp. EMB200-NS6	1609966	S	15	6	21	0.03769
+Dinoroseobacter shibae	215813	S	13	5	18	0.03224
+Rhodovulum sulfidophilum	35806	S	18	1	19	0.03449
