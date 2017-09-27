@@ -47,6 +47,12 @@ params:
     levels: phylum,genus,species
     # whether to keep original mapping file
     map: no
+  centrifuge:
+    db: test_data/centrifuge_test_db
+    # taxonomic ranks (kingdom to species) to extract as individual reports
+    levels: phylum,genus,species
+    # whether to keep original mapping file
+    map: yes
   shogun:
     db: test_data/shogun_test_db
     # alignment algorithm: bowtie2, burst and utree
@@ -54,7 +60,7 @@ params:
     # taxonomic ranks (kingdom to strain) to redistribute reads
     levels: phylum,genus,species
     # whether to keep original mapping file
-    map: yes
+    map: no
   maxbin: -plotmarker
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge

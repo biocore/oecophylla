@@ -194,6 +194,92 @@ rule kraken:
         taxonomy_dir + "kraken/combined_profile.biom"
 
 
+rule taxonomy_centrifuge:
+    """
+    Runs Centrifuge to construct taxonomic profiles.
+    """
+    input:
+        forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
+        reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
+    output:
+        report = taxonomy_dir + "{sample}/centrifuge/{sample}.report.txt",
+        profile = taxonomy_dir + "{sample}/centrifuge/{sample}.profile.txt"
+        # extra output files:
+        # {sample}.map.txt.gz if {map} is ON
+    params:
+        env = config['envs']['centrifuge'],
+        db = config['params']['centrifuge']['db'],
+        map = config['params']['centrifuge']['map']
+    threads:
+        12
+    log:
+        taxonomy_dir + "logs/taxonomy_centrifuge.sample=[{sample}].log"
+    benchmark:
+        "benchmarks/taxonomy/taxonomy_centrifuge.sample=[{sample}].txt"
+    run:
+        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
+            shell("""
+                  set +u; {params.env}; set -u
+
+                  # get stem file path
+                  stem={output.report}
+                  stem=${{stem%.report.txt}}
+
+                  # run Centrifuge to align reads against reference genomes
+                  centrifuge \
+                    -1 {input.forward} \
+                    -2 {input.reverse} \
+                    -x {params.db} \
+                    -p {threads} \
+                    -S {temp_dir}/map.tmp \
+                    --report-file {output.profile} \
+                    2>> {log} 1>&2
+
+                  # generate Kraken-style hierarchical report
+                  centrifuge-kreport {temp_dir}/map.tmp \
+                    -x {params.db} \
+                    1> {output.report} \
+                    2>> {log}
+
+                  # keep mapping file
+                  if [[ "{params.map}" == "True" ]]
+                  then
+                    gzip -c {temp_dir}/map.tmp > $stem.map.txt.gz
+                  fi
+                  """)
+
+
+rule taxonomy_centrifuge_combine_profiles:
+    """
+    Combines per-sample Centrifuge output tables into single OTU tables.
+    """
+    input:
+        expand(taxonomy_dir + "{sample}/centrifuge/{sample}.report.txt",
+               sample=samples)
+    output:
+        taxonomy_dir + "centrifuge/combined_profile.biom"
+        # extra output files:
+        # combined_profile.{level}.biom foreach {levels}
+    params:
+        levels = config['params']['centrifuge']['levels']
+    log:
+        taxonomy_dir + "logs/taxonomy_centrifuge_combine_profiles.log"
+    benchmark:
+        "benchmarks/taxonomy/taxonomy_centrifuge_combine_profiles.txt"
+    run:
+        df = combine_centrifuge(zip(samples, input))
+        pandas2biom(output[0], df)
+        if params['levels']:
+            for level in params['levels'].split(','):
+                pandas2biom('%s.%s.biom' % (output[0][:-5], level),
+                            extract_rank_centrifuge(zip(samples, input)))
+
+
+rule centrifuge:
+    input:
+        taxonomy_dir + "centrifuge/combined_profile.biom"
+
+
 rule taxonomy_shogun:
     """
     Runs SHOGUN with choice of aligner to construct taxonomic profiles.
@@ -309,4 +395,5 @@ rule taxonomy:
     input:
         taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
         taxonomy_dir + "kraken/combined_profile.biom",
+        taxonomy_dir + "centrifuge/combined_profile.biom",
         taxonomy_dir + "shogun/combined_profile.biom"
