@@ -7,6 +7,7 @@ from skbio.util import get_data_path
 import biom
 
 from oecophylla.taxonomy.parser import (combine_profiles,
+                                        extract_level,
                                         combine_bracken,
                                         pandas2biom)
 
@@ -20,6 +21,31 @@ class ParserTest(TestCase):
              ('sampleB', get_data_path('shogun/phylum/sampleB.txt'))])
         assert_frame_equal(obs[sorted(obs.columns)].sort_index().astype(int),
                            exp[sorted(exp.columns)].sort_index().astype(int))
+
+    def test_extract_level(self):
+        # test extracting phyla and families from MetaPhlAn output
+        table = pd.read_table(get_data_path('metaphlan2/combined.tsv'),
+                              index_col=0)
+        for level in ('phylum', 'family'):
+            obs = extract_level(table, level[0], delim='|')
+            exp = pd.read_table(get_data_path('metaphlan2/combined.%s.tsv'
+                                              % level), index_col=0)
+            assert_frame_equal(obs[sorted(obs.columns)].sort_index(),
+                               exp[sorted(exp.columns)].sort_index())
+        # test extracting genera and translating into TaxIDs
+        with open(get_data_path('metaphlan2/dic.genus.txt'), 'r') as f:
+            dic = dict(x.split('\t') for x in f.read().splitlines())
+        obs = extract_level(table, 'g', delim='|', dic=dic)
+        exp = pd.read_table(get_data_path('metaphlan2/combined.genus.taxid'
+                                          '.tsv'), index_col=0)
+        exp.index = exp.index.map(str)
+        assert_frame_equal(obs[sorted(obs.columns)].sort_index(),
+                           exp[sorted(exp.columns)].sort_index())
+        # test if there are duplicated taxon names
+        table = pd.read_table(get_data_path('metaphlan2/combined_w_dup.tsv'),
+                              index_col=0)
+        with self.assertRaisesRegex(ValueError, 'Duplicated taxa detected'):
+            extract_level(table, 'p', delim='|')
 
     def test_combine_bracken(self):
         exp = pd.read_csv(get_data_path('bracken/combined.phylum.tsv'),
