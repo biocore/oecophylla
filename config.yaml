@@ -1,12 +1,5 @@
-abundance_samples:
-- sample_S22282
-- sample_S22205
-assemblers:
-- megahit
-- metaspades
-binning_samples:
-- sample_S22282
-- sample_S22205
+tmp_dir_root: ./
+
 envs:
   anvi: source activate oecophylla-anvi
   humann2: source activate oecophylla-humann2
@@ -19,7 +12,7 @@ envs:
   shogun: source activate oecophylla-shogun
   assemble: source activate oecophylla-assemble
   distance: source activate oecophylla-distance
-mapping_assembler: metaspades
+
 params:
   filter_db: ./test_data/phix
   atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
@@ -40,6 +33,10 @@ params:
     sketch_size: 1000
   metaphlan2:
     db: test_data/mp2_test_db/mpa_v20_m200
+    # taxon name to TaxID dictionary
+    name2tid: test_data/mp2_test_db/mpa_v20_m200.name2taxid
+    levels: phylum,genus,species
+    map: no
   kraken:
     db: test_data/kraken_test_db
     # Bracken kmer distribution file
@@ -78,5 +75,4 @@ samples:
     - ./test_data/test_reads/S22282_S102_L001_R1_001.fastq.gz
     reverse:
     - ./test_data/test_reads/S22282_S102_L001_R2_001.fastq.gz
-tmp_dir_root: ./
-trimmer: atropos
+

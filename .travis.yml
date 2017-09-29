@@ -22,7 +22,9 @@ script:
   # run workflow
   - export PATH=$PATH:$PWD/utree
   - source activate oecophylla
-  - snakemake all --cores 2 --configfile config.yaml --dryrun
+  - pip install -e .
+  - pip install nose
+  - nosetests .
   - source deactivate
   - bash uninstall-conda-envs.sh
 after_success:

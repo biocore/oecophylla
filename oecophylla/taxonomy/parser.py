@@ -19,7 +19,58 @@ def combine_profiles(profiles):
     """
     samples = [pd.read_table(file, index_col=0, names=[name], comment='#')
                for name, file in profiles]
-    return pd.concat(samples, axis=1).fillna(0).astype(int)
+    return pd.concat(samples, axis=1).fillna(0).astype(float)
+
+
+def extract_level(table, code, delim=';', dic=None):
+    """Extract features at certain level from a table.
+
+    Parameters
+    ----------
+    table : Pandas.DataFrame
+        with rows for features, columns for samples
+        fearures are Greengenes-style lineage strings
+    code : str
+        single-letter abbreviation of level
+    delim : str (optional)
+        delimiter for levels in lineage string (default: ";")
+    dic : dict (optional)
+        translate rank names into TaxIDs using this dictionary
+
+    Returns
+    -------
+    Pandas.DataFrame
+        with features replaced by individual ranks
+
+    Raises
+    ------
+    ValueError
+        if there are duplicated rank names at current level
+
+    Notes
+    -----
+    Rank names not found in the dictionary will be dropped.
+    Duplicated TaxIDs are allowed. They will be merged and their cell values
+    will be summed.
+    """
+    df = table.copy()
+    # get last (right-most) rank of lineage get index of new column
+    i = len(df.columns)
+    df[i] = df.index.str.split(delim).str.get(-1)
+    # only keep given level with explicit name
+    df = df[(df[i].str.len() > 3)
+            & df[i].str.startswith('%s__' % code)
+            & ~df[i].str.endswith('_noname')]
+    # check for duplicated rank names
+    if df[i].duplicated().any():
+        raise ValueError('Duplicated taxa detected')
+    df.set_index(i, inplace=True)
+    # translate rank names into TaxIDs
+    if dic is not None:
+        df[i] = df.index.to_series().map(dic)
+        df = df.groupby(2).sum()
+    df.index.name = None
+    return df
 
 
 def combine_bracken(bracken_outputs):

@@ -5,14 +5,26 @@ import tempfile
 try:
     TMP_DIR_ROOT = config['tmp_dir_root']
     samples = config["samples"]
-    trimmer = config["trimmer"]
+    trimmer = config['params']["trimmer"]
 except KeyError:
     print('Error: you must pass a config file using --configfile')
     raise
 
+try:
+    config['params']["binning_samples"]
+except KeyError as e:
+    config['params']["binning_samples"] = []
+    print('Error: binning_samples not found in %s' % str(e))
+
+try:
+    config['params']["abundance_samples"]
+except KeyError as e:
+    config['params']["abundance_samples"] = []
+    print('Error: abundance_samples not found in %s' % str(e))
+
+
 include: "oecophylla/util/folders.rule"
 
-include: "oecophylla/raw/raw.rule"
 include: "oecophylla/qc/qc.rule"
 include: "oecophylla/util/clean.rule"
 include: "oecophylla/util/test.rule"
