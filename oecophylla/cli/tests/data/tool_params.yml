@@ -9,12 +9,11 @@ binning_samples:
 - sample_S22205
 mapping_assembler:
 - metaspades
-filter_db: test_data/phix
+filter_db: test_data/test_dbs/bowtie2/phix
 trimmer: atropos
 anvio:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
   centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
-
 atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
   -q 15 --minimum-length 100 --pair-filter any'
 humann2:
@@ -25,39 +24,29 @@ humann2:
   - cpm
   - relab
   other: ''
-kraken:
-  # kraken_db: /home/qiz173/Databases/Kraken/stdb
-  db: test_data/kraken_test_db
-  kmers: 15
 maxbin: -plotmarker
 metaphlan2:
-  # metaphlan2_dir: /home/jgsanders/git_sw/metaphlan2
-  db: test_data/mp2_test_db/mpa_v20_m200
-
-shogun:
-  db: test_data/shogun_test_db
-  # alignment algorithm: bowtie2, burst and utree
-  aligner: utree
-  # taxonomic ranks (kingdom to strain) to redistribute reads
+  db: test_data/test_dbs/mp2_test_db/mpa_v20_m200
+  # taxon name to TaxID dictionary
+  name2tid: test_data/test_dbs/mp2_test_db/mpa_v20_m200.name2taxid
   levels: phylum,genus,species
-  # whether to keep original mapping file
-  map: yes
+  map: no
 kraken:
-  db: test_data/kraken_test_db
+  db: test_data/test_dbs/kraken_test_db
   # Bracken kmer distribution file
-  kmers: test_data/kraken_test_db/75mers_distr.txt
+  kmers: test_data/test_dbs/kraken_test_db/75mers_distr.txt
   # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
   levels: phylum,genus,species
   # whether to keep original mapping file
   map: no
 shogun:
-  db: test_data/shogun_test_db
+  db: test_data/test_dbs/shogun_test_db
   # alignment algorithm: bowtie2, burst and utree
   aligner: utree
   # taxonomic ranks (kingdom to strain) to redistribute reads
   levels: phylum,genus,species
   # whether to keep original mapping file
-  map: yes
+  map: no
 mash:
   sketch_size: 1000
 sourmash:

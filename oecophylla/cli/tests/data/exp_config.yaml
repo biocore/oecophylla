@@ -12,18 +12,21 @@ params:
   abundance_samples:
   - sample_S22282
   - sample_S22205
-  anvio:
-    centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
-    centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
   assemblers:
   - megahit
   - metaspades
-  atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
-    -q 15 --minimum-length 100 --pair-filter any'
   binning_samples:
   - sample_S22282
   - sample_S22205
-  filter_db: test_data/phix
+  mapping_assembler:
+  - metaspades
+  filter_db: test_data/test_dbs/bowtie2/phix
+  trimmer: atropos
+  anvio:
+    centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
+    centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
+  atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
+    -q 15 --minimum-length 100 --pair-filter any'
   humann2:
     humann2_aa_db: 'humann2_aa_db: /home/jgsanders/ref_data/humann2/uniref'
     humann2_nt_db: /home/jgsanders/ref_data/humann2/chocophlan
@@ -32,34 +35,34 @@ params:
     - cpm
     - relab
     other: ''
+  maxbin: -plotmarker
+  metaphlan2:
+    db: test_data/test_dbs/mp2_test_db/mpa_v20_m200
+    # taxon name to TaxID dictionary
+    name2tid: test_data/test_dbs/mp2_test_db/mpa_v20_m200.name2taxid
+    levels: phylum,genus,species
+    map: no
   kraken:
-    db: test_data/kraken_test_db
+    db: test_data/test_dbs/kraken_test_db
     # Bracken kmer distribution file
-    kmers: test_data/kraken_test_db/75mers_distr.txt
+    kmers: test_data/test_dbs/kraken_test_db/75mers_distr.txt
     # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
     levels: phylum,genus,species
     # whether to keep original mapping file
     map: no
   shogun:
-    db: test_data/shogun_test_db
+    db: test_data/test_dbs/shogun_test_db
     # alignment algorithm: bowtie2, burst and utree
     aligner: utree
     # taxonomic ranks (kingdom to strain) to redistribute reads
     levels: phylum,genus,species
     # whether to keep original mapping file
-    map: yes
-  mapping_assembler:
-  - metaspades
+    map: no
   mash:
     sketch_size: 1000
-  maxbin: -plotmarker
-  metaphlan2:
-    db: test_data/mp2_test_db/mpa_v20_m200
-
   sourmash:
+    scaled: True
     kmer: 31
-    scaled: true
-  trimmer: atropos
 samples:
   S22205:
     forward:
