@@ -25,7 +25,6 @@ except KeyError as e:
 
 include: "oecophylla/util/folders.rule"
 
-include: "oecophylla/raw/raw.rule"
 include: "oecophylla/qc/qc.rule"
 include: "oecophylla/util/clean.rule"
 include: "oecophylla/util/test.rule"
