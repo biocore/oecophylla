@@ -1,5 +1,6 @@
 from parser import (combine_profiles,
                     combine_bracken,
+                    combine_centrifuge,
                     pandas2biom)
 
 
@@ -269,10 +270,10 @@ rule taxonomy_centrifuge_combine_profiles:
     run:
         df = combine_centrifuge(zip(samples, input))
         pandas2biom(output[0], df)
-        if params['levels']:
-            for level in params['levels'].split(','):
-                pandas2biom('%s.%s.biom' % (output[0][:-5], level),
-                            extract_rank_centrifuge(zip(samples, input)))
+#        if params['levels']:
+#            for level in params['levels'].split(','):
+#                pandas2biom('%s.%s.biom' % (output[0][:-5], level),
+#                            extract_rank_centrifuge(zip(samples, input)))
 
 
 rule centrifuge:
@@ -393,7 +394,7 @@ rule shogun:
 
 rule taxonomy:
     input:
-        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
+#        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
         taxonomy_dir + "kraken/combined_profile.biom",
         taxonomy_dir + "centrifuge/combined_profile.biom",
         taxonomy_dir + "shogun/combined_profile.biom"

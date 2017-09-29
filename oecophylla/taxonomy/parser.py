@@ -62,6 +62,34 @@ def combine_bracken(bracken_outputs):
     return pd.concat(samples, axis=1).fillna(0).astype(int)
 
 
+def combine_centrifuge(profiles):
+    """Combines Kraken-style reports for several samples into one table.
+
+    Parameters
+    ----------
+    profiles : iterable((str, str))
+        An iterable of tuples, where the second component is the filepath
+        pointing to a Kraken-style report, while the first
+        component defines a sample name for the profile.
+
+    Returns
+    -------
+    Pandas.DataFrame with rows for TaxIDs, columns for samples.
+
+    Notes
+    -----
+    A Kraken-style report contains the following columns:
+    name, taxID, taxRank, genomeSize, numReads, numUniqueReads, abundance
+
+    Kraken-style reports are automatically produced by Kraken and Centrifuge.
+    Since Kraken results are parsed by Bracken, currently, only Centrifuge
+    results require this function.
+    """
+    samples = [pd.read_table(file, index_col=0, names=[name], comment='#')
+               for name, file in profiles]
+    return pd.concat(samples, axis=1).fillna(0).astype(int)
+
+
 def pandas2biom(file_biom, table):
     """ Writes a Pandas.DataFrame into a biom file.
 

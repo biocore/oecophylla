@@ -15,6 +15,7 @@ envs:
   raw: source activate oecophylla-qc
   metaphlan2: source activate oecophylla-metaphlan2
   kraken: source activate oecophylla-kraken
+  centrifuge: source activate oecophylla-centrifuge
   shogun: source activate oecophylla-shogun
   assemble: source activate oecophylla-assemble
   distance: source activate oecophylla-distance
@@ -48,7 +49,8 @@ params:
     # whether to keep original mapping file
     map: no
   centrifuge:
-    db: test_data/centrifuge_test_db
+    # db: test_data/centrifuge_test_db
+    db: /home/qiz173/Works/WoL/profiling/ref107/centrifuge/ref107
     # taxonomic ranks (kingdom to species) to extract as individual reports
     levels: phylum,genus,species
     # whether to keep original mapping file
