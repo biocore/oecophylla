@@ -1,4 +1,5 @@
 from parser import (combine_profiles,
+                    extract_level,
                     combine_bracken,
                     pandas2biom)
 
@@ -17,68 +18,86 @@ rule taxonomy_metaphlan2:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
-        taxonomy_dir + "{sample}/metaphlan2/{sample}_metaphlan2_output.tsv"
+        profile = taxonomy_dir + "{sample}/metaphlan2/{sample}.profile.txt"
+        # extra output file:
+        # {sample}.map.txt.gz if {map} is ON
     params:
         env = config['envs']['metaphlan2'],
-        db = config['params']['metaphlan2']['db']
+        db = config['params']['metaphlan2']['db'],
+        map = config['params']['metaphlan2']['map']
     threads:
         4
     log:
         taxonomy_dir + "logs/taxonomy_metaphlan2.{sample}.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_metaphlan2.{sample}.json"
+        "benchmarks/taxonomy/taxonomy_metaphlan2.{sample}.txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
                   set +u; {params.env}; set -u
 
+                  # get stem file path
+                  stem={output.profile}
+                  stem=${{stem%.profile.txt}}
+
+                  # merge input files
                   zcat {input.forward} {input.reverse} > {temp_dir}/input.fastq
 
+                  # run MetaPhlAn2 to generate taxonomic profile
                   metaphlan2.py {temp_dir}/input.fastq \
                     --input_type fastq \
                     --mpa_pkl {params.db}.pkl \
                     --bowtie2db {params.db} \
                     --nproc {threads} \
                     --tmp_dir {temp_dir} \
-                    --no_map \
-                    --input_type fastq > {output}  2> {log}
+                    --bowtie2out {temp_dir}/map.tmp \
+                    -o {output.profile} \
+                    2> {log} 1>&2
+
+                  # keep mapping file
+                  if [[ "{params.map}" == "True" ]]
+                  then
+                    gzip -c {temp_dir}/map.tmp > $stem.map.txt.gz
+                  fi
                   """)
 
 
 rule taxonomy_combine_metaphlan2:
     """
-    Combines MetaPhlan2 output for unified taxonomic profile for HUMAnN2.
+    Combines per-sample MetaPhlAn2 output profiles into single OTU tables.
     """
     input:
-        expand(taxonomy_dir + "{sample}/metaphlan2/{sample}_metaphlan2_output.tsv",
+        expand(taxonomy_dir + "{sample}/metaphlan2/{sample}.profile.txt",
                sample=samples)
     output:
-        joint_prof = taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-        max_prof = taxonomy_dir + "metaphlan2/joined_taxonomic_profile_max.tsv"
+        taxonomy_dir + "metaphlan2/combined_profile.biom"
+        # extra output files:
+        # combined_profile.{level}.biom foreach {levels}
     threads:
         1
     params:
-        humann2_env = config['envs']['humann2']
+        name2tid = config['params']['metaphlan2']['name2tid'],
+        levels = config['params']['metaphlan2']['levels']
     log:
         taxonomy_dir + "logs/taxonomy_combine_metaphlan2.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_combine_metaphlan2.json"
+        "benchmarks/taxonomy/taxonomy_combine_metaphlan2.txt"
     run:
-        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
-            for file in input:
-                shell("cp {0} {1}/.".format(file, temp_dir))
-            shell("""
-                  set +u; {params.humann2_env}; set -u
-
-                  humann2_join_tables --input {temp_dir} --output {output.joint_prof} 2> {log} 1>&2
-                  humann2_reduce_table --input {output.joint_prof} \
-                  --output {output.max_prof} --function max --sort-by level 2>> {log} 1>&2
-                  """)
+        table = combine_profiles(zip(samples, input))
+        pandas2biom(output[0], table)
+        name2tid = None
+        if params['name2tid']:
+            with open(params['name2tid'], 'r') as f:
+                name2tid = dict(x.split('\t') for x in f.read().splitlines())
+        for level in params['levels'].split(','):
+            pandas2biom('%s.%s.biom' % (output[0][:-5], level),
+                        extract_level(table, level[0].lower(), delim='|',
+                                      dic=name2tid))
 
 
 rule metaphlan2:
     input:
-        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv"
+        taxonomy_dir + "metaphlan2/combined_profile.biom"
 
 
 rule taxonomy_kraken:
@@ -307,6 +326,6 @@ rule shogun:
 
 rule taxonomy:
     input:
-        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
+        taxonomy_dir + "metaphlan2/combined_profile.biom",
         taxonomy_dir + "kraken/combined_profile.biom",
         taxonomy_dir + "shogun/combined_profile.biom"
