@@ -73,7 +73,7 @@ def _create_dir(_path):
               default='local',
               help='Select where to run the pipeline (cluster or locally).')
 @click.option('--output-dir', '-o', type=click.Path(),
-              help='Input directory of all of the samples.')
+              help='Output directory in which to run analysis.')
 @click.option('--snakemake-args', type=click.STRING, default='',
               help=('arguments to pass into snakemake '
                     '(needs to be passed in by quotes)'))
