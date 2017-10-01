@@ -49,6 +49,17 @@ def _create_dir(_path):
         os.makedirs(_path)
 
 
+def _oeco_dir():
+    d = "%s/../../" % os.path.abspath(os.path.dirname(__file__))
+
+    if not os.path.isdir(d):
+        raise OSError('Cannot find Oecophylla install directory'
+                      '(tried %s)' % d)
+    else:
+        oeco_dir = os.path.abspath(d)
+        return oeco_dir
+
+
 @run.command()
 @click.argument('targets', nargs=-1)
 #TODO add an option to process multiple directories
@@ -72,7 +83,7 @@ def _create_dir(_path):
               type=click.Choice(['torque', 'slurm', 'local']),
               default='local',
               help='Select where to run the pipeline (cluster or locally).')
-@click.option('--output-dir', '-o', type=click.Path(), required=True,
+@click.option('--output-dir', '-o', type=click.Path(), required=False,
               help='Output directory in which to run analysis.')
 @click.option('--snakemake-args', type=click.STRING, default='',
               help=('arguments to pass into snakemake '
@@ -86,15 +97,45 @@ def _create_dir(_path):
               help='Restarts the run and overwrites previous input.')
 @click.option('--just-config', is_flag=True, flag_value=False,
               help='Only generate the configuration file.')
+@click.option('--test', is_flag=True, default=False,
+              help='Executes a run with the included test data.')
 def workflow(targets, input_dir, sample_sheet, params, envs,
              cluster_config, local_scratch, workflow_type, output_dir,
              snakemake_args, local_cores, jobs,
-             force, just_config):
+             force, just_config, test):
     import snakemake
     from skbio.io.registry import sniff
 
     # SNAKEMAKE
     snakefile = "%s/../../Snakefile" % os.path.abspath(os.path.dirname(__file__))
+
+    # Check to see if running with test data. If so, fill in defaults
+    # for relevant empty parameters.
+    if test:
+        d = _oeco_dir()
+
+        # set inputs
+        input_dir = os.path.join(d, 'test_data/test_reads')
+        sample_sheet = os.path.join(d,
+                            'test_data/test_config/example_sample_sheet.txt')
+        # set params
+        params = os.path.join(d,
+                              'test_data/test_config/test_params.yml')
+        envs = os.path.join(d,
+                            'test_data/test_config/test_envs.yml')
+
+        # set output
+        output_dir = os.path.join(d, 'test_out')
+
+        # prep workflow directory
+        _create_dir(output_dir)
+
+        # need to link dbs for test yamls to work
+        if not os.path.islink(os.path.join(output_dir,'test_data')):
+            os.symlink(os.path.join(_oeco_dir(),'test_data'),
+                       os.path.join(output_dir,'test_data'))
+    elif not output_dir:
+        raise IOError("Must provide output directory to run.")
 
     # Check to see if config.yaml exists in output dir. If it does, warn
     # and continue with execution
