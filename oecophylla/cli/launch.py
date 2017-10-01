@@ -59,6 +59,31 @@ def _oeco_dir():
         oeco_dir = os.path.abspath(d)
         return oeco_dir
 
+def _setup_test():
+    d = _oeco_dir()
+
+    # set inputs
+    input_dir = os.path.join(d, 'test_data/test_reads')
+    sample_sheet = os.path.join(d,
+                        'test_data/test_config/example_sample_sheet.txt')
+    # set params
+    params = os.path.join(d,
+                          'test_data/test_config/test_params.yml')
+    envs = os.path.join(d,
+                        'test_data/test_config/test_envs.yml')
+
+    # set output
+    output_dir = os.path.join(d, 'test_out')
+
+    # prep workflow directory
+    _create_dir(output_dir)
+
+    # need to link dbs for test yamls to work
+    if not os.path.islink(os.path.join(output_dir,'test_data')):
+        os.symlink(os.path.join(_oeco_dir(),'test_data'),
+                   os.path.join(output_dir,'test_data'))
+
+    return(input_dir, sample_sheet, params, envs, output_dir)
 
 @run.command()
 @click.argument('targets', nargs=-1)
@@ -112,28 +137,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     # Check to see if running with test data. If so, fill in defaults
     # for relevant empty parameters.
     if test:
-        d = _oeco_dir()
-
-        # set inputs
-        input_dir = os.path.join(d, 'test_data/test_reads')
-        sample_sheet = os.path.join(d,
-                            'test_data/test_config/example_sample_sheet.txt')
-        # set params
-        params = os.path.join(d,
-                              'test_data/test_config/test_params.yml')
-        envs = os.path.join(d,
-                            'test_data/test_config/test_envs.yml')
-
-        # set output
-        output_dir = os.path.join(d, 'test_out')
-
-        # prep workflow directory
-        _create_dir(output_dir)
-
-        # need to link dbs for test yamls to work
-        if not os.path.islink(os.path.join(output_dir,'test_data')):
-            os.symlink(os.path.join(_oeco_dir(),'test_data'),
-                       os.path.join(output_dir,'test_data'))
+        input_dir, sample_sheet, params, envs, output_dir = _setup_test()
     elif not output_dir:
         raise IOError("Must provide output directory to run.")
 
