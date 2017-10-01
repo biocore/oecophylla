@@ -1,0 +1,13 @@
+	sampleA	sampleB
+k__Bacteria	100.0	100.0
+k__Bacteria|p__Bacteroidetes	1.23456	9.87654
+k__Bacteria|p__Bacteroidetes	2.09053	25.73887
+k__Bacteria|p__Bacteroidetes|c__Bacteroidia	2.09053	25.73887
+k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales	2.09053	25.73887
+k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Bacteroidaceae	0.1888	20.03776
+k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Rikenellaceae	0.0	3.32453
+k__Bacteria|p__Firmicutes	97.90947	3.09528
+k__Bacteria|p__Firmicutes|c__Clostridia	96.94486	3.09528
+k__Bacteria|p__Firmicutes|c__Erysipelotrichia	0.96461	0.0
+k__Bacteria|p__Firmicutes|c__Erysipelotrichia|o__Erysipelotrichales	0.96461	0.0
+k__Bacteria|p__Firmicutes|c__Erysipelotrichia|o__Erysipelotrichales|f__Erysipelotrichaceae	0.96461	0.0

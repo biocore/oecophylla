@@ -32,6 +32,10 @@ params:
     sketch_size: 1000
   metaphlan2:
     db: test_data/mp2_test_db/mpa_v20_m200
+    # taxon name to TaxID dictionary
+    name2tid: test_data/mp2_test_db/mpa_v20_m200.name2taxid
+    levels: phylum,genus,species
+    map: no
   kraken:
     db: test_data/kraken_test_db
     # Bracken kmer distribution file
@@ -47,7 +51,7 @@ params:
     # taxonomic ranks (kingdom to strain) to redistribute reads
     levels: phylum,genus,species
     # whether to keep original mapping file
-    map: yes
+    map: no
   maxbin: -plotmarker
 resources:
   centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
