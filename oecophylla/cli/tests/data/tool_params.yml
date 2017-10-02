@@ -17,8 +17,8 @@ anvio:
 atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
   -q 15 --minimum-length 100 --pair-filter any'
 humann2:
-  aa_db: test_data/uniref50_mini
-  nt_db: test_data/chocophlan_test
+  aa_db: test_data/test_dbs/uniref50_mini
+  nt_db: test_data/test_dbs/chocophlan_test
   other: ''
 maxbin: -plotmarker
 metaphlan2:
