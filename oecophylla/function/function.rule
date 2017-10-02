@@ -146,32 +146,32 @@ rule function_humann2_combine_tables:
 
                   # normalize
                   humann2_renorm_table \
-                  --input test_out/humann2/genefamilies.tsv \
+                  --input {temp_dir}/genefamilies.tsv \
                   --output {temp_dir}/genefamilies_cpm.tsv \
                   --units cpm -s n 2>> {log} 1>&2
 
                   humann2_renorm_table \
-                  --input test_out/humann2/pathcoverage.tsv \
+                  --input {temp_dir}/pathcoverage.tsv \
                   --output {temp_dir}/pathcoverage_relab.tsv \
                   --units relab -s n 2>> {log} 1>&2
 
                   humann2_renorm_table \
-                  --input test_out/humann2/pathabundance.tsv \
+                  --input {temp_dir}/pathabundance.tsv \
                   --output {temp_dir}/pathabundance_relab.tsv \
                   --units relab -s n 2>> {log} 1>&2
 
 
                   # stratify
                   humann2_split_stratified_table \
-                  --input test_out/humann2/genefamilies_cpm.tsv \
+                  --input {temp_dir}/genefamilies_cpm.tsv \
                   --output {temp_dir} 2>> {log} 1>&2
 
                   humann2_split_stratified_table \
-                  --input test_out/humann2/pathcoverage_relab.tsv \
+                  --input {temp_dir}/pathcoverage_relab.tsv \
                   --output {temp_dir} 2>> {log} 1>&2
 
                   humann2_split_stratified_table \
-                  --input test_out/humann2/pathabundance_relab.tsv \
+                  --input {temp_dir}/pathabundance_relab.tsv \
                   --output {temp_dir} 2>> {log} 1>&2
 
                   # convert to biom
