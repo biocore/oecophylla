@@ -89,11 +89,11 @@ rule function_humann2_combine_tables:
     tables generated in this run to a temp directory and runs on that.
     """
     input:
-        lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_genefamilies.tsv",
+        genef = lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_genefamilies.tsv",
                sample=samples),
-        lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_pathcoverage.tsv",
+        pathc = lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_pathcoverage.tsv",
                sample=samples),
-        lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_pathabundance.tsv",
+        patha = lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_pathabundance.tsv",
                sample=samples)
     output:
         genefamilies = func_dir + "humann2/genefamilies.biom",
@@ -122,18 +122,24 @@ rule function_humann2_combine_tables:
             shell("""
                   set +u; {params.env}; set -u
 
-                  humann2_join_tables --input test_out/humann2/ \
-                  --search-subdirectories \
+                  mkdir {temp_dir}/genef
+                  cp {input.genef} {temp_dir}/genef/.
+
+                  mkdir {temp_dir}/pathc
+                  cp {input.pathc} {temp_dir}/pathc/.
+
+                  mkdir {temp_dir}/patha
+                  cp {input.patha} {temp_dir}/patha/.
+
+                  humann2_join_tables --input {temp_dir}/genef \
                   --output {temp_dir}/genefamilies.tsv \
                   --file_name genefamilies 2> {log} 1>&2
 
-                  humann2_join_tables --input test_out/humann2/ \
-                  --search-subdirectories \
+                  humann2_join_tables --input {temp_dir}/pathc \
                   --output {temp_dir}/pathcoverage.tsv \
                   --file_name pathcoverage 2>> {log} 1>&2
 
-                  humann2_join_tables --input test_out/humann2/ \
-                  --search-subdirectories \
+                  humann2_join_tables --input {temp_dir}/patha \
                   --output {temp_dir}/pathabundance.tsv \
                   --file_name pathabundance 2>> {log} 1>&2
 
