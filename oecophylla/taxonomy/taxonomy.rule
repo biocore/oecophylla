@@ -91,7 +91,8 @@ rule taxonomy_combine_metaphlan2:
             with open(params['name2tid'], 'r') as f:
                 name2tid = dict(x.split('\t') for x in f.read().splitlines())
         for level in params['levels'].split(','):
-            pandas2biom('%s.%s.biom' % (output[0][:-5], level),
+            pandas2biom('%s/metaphlan2/combined_profile.%s.biom'
+                        % (taxonomy_dir, level),
                         extract_level(table, level[0].lower(), delim='|',
                                       dic=name2tid))
 
@@ -202,9 +203,11 @@ rule taxonomy_kraken_combine_profiles:
     run:
         pandas2biom(output[0], combine_profiles(zip(samples, input)))
         for level in params['levels'].split(','):
-            redists = ['%s.redist.%s.txt' % (x[:-12], level)
-                       for x in input]
-            pandas2biom('%s_redist.%s.biom' % (output[0][:-13], level),
+            redists = ['%s/%s/kraken/%s.redist.%s.txt'
+                       % (taxonomy_dir, sample, sample, level)
+                       for sample in samples]
+            pandas2biom('%s/kraken/combined_redist.%s.biom'
+                        % (taxonomy_dir, level),
                         combine_bracken(zip(samples, redists)))
 
 
@@ -420,9 +423,11 @@ rule taxonomy_shogun_combine_profiles:
     run:
         pandas2biom(output[0], combine_profiles(zip(samples, input)))
         for level in params['levels'].split(','):
-            redists = ['%s.redist.%s.txt' % (x[:-12], level)
-                       for x in input]
-            pandas2biom('%s_redist.%s.biom' % (output[0][:-13], level),
+            redists = ['%s/%s/shogun/%s.redist.%s.txt'
+                       % (taxonomy_dir, sample, sample, level)
+                       for sample in samples]
+            pandas2biom('%s/shogun/combined_redist.%s.biom'
+                        % (taxonomy_dir, level),
                         combine_profiles(zip(samples, redists)))
 
 
