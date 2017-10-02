@@ -17,12 +17,8 @@ anvio:
 atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
   -q 15 --minimum-length 100 --pair-filter any'
 humann2:
-  humann2_aa_db: 'humann2_aa_db: /home/jgsanders/ref_data/humann2/uniref'
-  humann2_nt_db: /home/jgsanders/ref_data/humann2/chocophlan
-  metaphlan_dir: /home/jgsanders/share/metaphlan2
-  norms:
-  - cpm
-  - relab
+  humann2_aa_db: test_data/uniref50_mini
+  humann2_nt_db: test_data/chocophlan_test
   other: ''
 maxbin: -plotmarker
 metaphlan2:
