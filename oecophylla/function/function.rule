@@ -120,6 +120,8 @@ rule function_humann2_combine_tables:
         out_dir = os.path.join(func_dir, "humann2")
         with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
             shell("""
+                  set +u; {params.env}; set -u
+
                   humann2_join_tables --input test_out/humann2/ \
                   --search-subdirectories \
                   --output {temp_dir}/genefamilies.tsv \
