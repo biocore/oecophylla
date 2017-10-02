@@ -308,9 +308,11 @@ rule taxonomy_centrifuge_combine_profiles:
     run:
         pandas2biom(output[0], combine_centrifuge(zip(samples, input)))
         for level in params['levels'].split(','):
-            redists = ['%s.redist.%s.txt' % (x[:-12], level)
-                       for x in input]
-            pandas2biom('%s_redist.%s.biom' % (output[0][:-13], level),
+            redists = ['%s/%s/centrifuge/%s.redist.%s.txt'
+                       % (taxonomy_dir, sample, sample, level)
+                       for sample in samples]
+            pandas2biom('%s/centrifuge/combined_redist.%s.biom'
+                        % (taxonomy_dir, level),
                         combine_bracken(zip(samples, redists)))
 
 
