@@ -49,18 +49,54 @@ def _create_dir(_path):
         os.makedirs(_path)
 
 
+def _oeco_dir():
+    d = "%s/../../" % os.path.abspath(os.path.dirname(__file__))
+
+    if not os.path.isdir(d):
+        raise OSError('Cannot find Oecophylla install directory'
+                      '(tried %s)' % d)
+    else:
+        oeco_dir = os.path.abspath(d)
+        return oeco_dir
+
+def _setup_test():
+    d = _oeco_dir()
+
+    # set inputs
+    input_dir = os.path.join(d, 'test_data/test_reads')
+    sample_sheet = os.path.join(d,
+                        'test_data/test_config/example_sample_sheet.txt')
+    # set params
+    params = os.path.join(d,
+                          'test_data/test_config/test_params.yml')
+    envs = os.path.join(d,
+                        'test_data/test_config/test_envs.yml')
+
+    # set output
+    output_dir = os.path.join(d, 'test_out')
+
+    # prep workflow directory
+    _create_dir(output_dir)
+
+    # need to link dbs for test yamls to work
+    if not os.path.islink(os.path.join(output_dir,'test_data')):
+        os.symlink(os.path.join(_oeco_dir(),'test_data'),
+                   os.path.join(output_dir,'test_data'))
+
+    return(input_dir, sample_sheet, params, envs, output_dir)
+
 @run.command()
 @click.argument('targets', nargs=-1)
 #TODO add an option to process multiple directories
-@click.option('--input-dir', '-i', required=True, type=click.STRING,
+@click.option('--input-dir', '-i', required=False, type=click.STRING,
               help='Input directory with all of the samples.')
 #TODO add an option to process multiple directories
 @click.option('--sample-sheet', '-s', required=False, type=click.STRING,
               default=None,
               help='Sample sheets used to demultiplex the Illumina run.')
-@click.option('--params', '-p', type=click.Path(exists=True), required=True,
+@click.option('--params', '-p', type=click.Path(exists=True), required=False,
               help='Specify parameters for the tools in a YAML file.')
-@click.option('--envs', '-e', type=click.Path(exists=True), required=True,
+@click.option('--envs', '-e', type=click.Path(exists=True), required=False,
               help='Specify environments for the tools in a YAML file.')
 @click.option('--cluster-config', type=click.Path(), required=False,
               help='File with parameters for a cluster job.')
@@ -72,8 +108,8 @@ def _create_dir(_path):
               type=click.Choice(['torque', 'slurm', 'local']),
               default='local',
               help='Select where to run the pipeline (cluster or locally).')
-@click.option('--output-dir', '-o', type=click.Path(),
-              help='Input directory of all of the samples.')
+@click.option('--output-dir', '-o', type=click.Path(), required=False,
+              help='Output directory in which to run analysis.')
 @click.option('--snakemake-args', type=click.STRING, default='',
               help=('arguments to pass into snakemake '
                     '(needs to be passed in by quotes)'))
@@ -86,60 +122,85 @@ def _create_dir(_path):
               help='Restarts the run and overwrites previous input.')
 @click.option('--just-config', is_flag=True, flag_value=False,
               help='Only generate the configuration file.')
+@click.option('--test', is_flag=True, default=False,
+              help='Executes a run with the included test data.')
 def workflow(targets, input_dir, sample_sheet, params, envs,
              cluster_config, local_scratch, workflow_type, output_dir,
              snakemake_args, local_cores, jobs,
-             force, just_config):
+             force, just_config, test):
     import snakemake
     from skbio.io.registry import sniff
 
     # SNAKEMAKE
     snakefile = "%s/../../Snakefile" % os.path.abspath(os.path.dirname(__file__))
 
-    # INPUT DIR
-    for inp_file in glob.glob('%s/*' % input_dir):
+    # Check to see if running with test data. If so, fill in defaults
+    # for relevant empty parameters.
+    if test:
+        input_dir, sample_sheet, params, envs, output_dir = _setup_test()
+    elif not output_dir:
+        raise IOError("Must provide output directory to run.")
 
-        file_format = sniff(inp_file)[0]
+    # Check to see if config.yaml exists in output dir. If it does, warn
+    # and continue with execution
+    if os.path.exists(os.path.join(output_dir,'config.yaml')):
+        config_fp = '%s/%s' % (output_dir, 'config.yaml')
+    # Otherwise, make a config file and continue with execution
+    elif (os.path.exists(params) and
+          os.path.exists(envs) and
+          os.path.exists(input_dir)):
+        # INPUT DIR
+        for inp_file in glob.glob('%s/*' % input_dir):
 
-        if (file_format != 'fasta') and (file_format != 'fastq'):
-            raise TypeError('Input files need to be in FASTA or FASTQ format.')
+            file_format = sniff(inp_file)[0]
 
-    # OUTPUT
-    # create output directory, if does not exist
-    _create_dir(output_dir)
+            if (file_format != 'fasta') and (file_format != 'fastq'):
+                raise TypeError('Input files need to be in FASTA'
+                                ' or FASTQ format.')
 
-    # SAMPLE SHEET
-    # If a manifest is not specified, the files containing forward and reverse reads
-    # will be automatically identified using regex.
-    if sample_sheet:
-        _sheet = read_sample_sheet(sample_sheet)
-        sample_dict = extract_samples_from_sample_sheet(_sheet, input_dir)
+        # OUTPUT
+        # create output directory, if does not exist
+        _create_dir(output_dir)
+
+        # SAMPLE SHEET
+        # If a manifest is not specified, the files containing forward and
+        # reverse reads will be automatically identified using regex.
+        # Input dir will be converted to abspath.
+
+        input_dir = os.path.abspath(input_dir)
+
+        if sample_sheet:
+            _sheet = read_sample_sheet(sample_sheet)
+            sample_dict = extract_samples_from_sample_sheet(_sheet, input_dir)
+        else:
+            sample_dict = extract_sample_paths(input_dir)
+
+        # PARAMS
+        with open(params, 'r') as f:
+            params_dict = yaml.load(f)
+
+        # ENVS
+        with open(envs, 'r') as f:
+            envs_dict = yaml.load(f)
+
+        # CONFIG
+        # merge PARAMS, SAMPLE_DICT, ENVS
+        config_dict = {}
+        config_dict['samples'] = sample_dict
+        config_dict['params'] = params_dict
+        config_dict['envs'] = envs_dict
+        config_dict['tmp_dir_root'] = local_scratch
+
+        config_yaml = yaml.dump(config_dict, default_flow_style=False)
+
+
+        config_fp = '%s/%s' % (output_dir, 'config.yaml')
+        with open(config_fp, 'w') as f:
+            f.write(config_yaml)
     else:
-        sample_dict = extract_sample_paths(input_dir)
-
-    # PARAMS
-    with open(params, 'r') as f:
-        params_dict = yaml.load(f)
-
-    # ENVS
-    with open(envs, 'r') as f:
-        envs_dict = yaml.load(f)
-
-    # CONFIG
-    # merge PARAMS, SAMPLE_DICT, ENVS
-    config_dict = {}
-    config_dict['samples'] = sample_dict
-    config_dict['params'] = params_dict
-    config_dict['envs'] = envs_dict
-    config_dict['tmp_dir_root'] = local_scratch
-
-    config_yaml = yaml.dump(config_dict, default_flow_style=False)
-
-
-
-    config_fp = '%s/%s' % (output_dir, 'config.yaml')
-    with open(config_fp, 'w') as f:
-        f.write(config_yaml)
+        raise ValueError('Must provide either an output directory with an '
+                         'existing config.yaml file, or an input directory, '
+                         'environments file, and parameters file.')
 
     # TODO: LOGS
     # if log_dir:
@@ -147,6 +208,11 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     # else:
     #     os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
     if workflow_type == 'torque':
+
+        if not os.path.exists(cluster_config):
+            raise IOError('If submitting to cluster, must provide a cluster '
+                          'configuration file.')
+
         cluster_setup = "\"qsub -e {cluster.error} -o {cluster.output} \
                          -l nodes=1:ppn={cluster.n} \
                          -l mem={cluster.mem} \
@@ -166,6 +232,11 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         snakemake_args,
                         ' '.join(targets)])
     elif workflow_type == 'slurm':
+
+        if not os.path.exists(cluster_config):
+            raise IOError('If submitting to cluster, must provide a cluster '
+                          'configuration file.')
+
         cluster_setup = "srun -e {cluster.error} -o {cluster.output} \
                          -n {cluster.n} \
                          --mem={cluster.mem} \
