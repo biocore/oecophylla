@@ -48,8 +48,8 @@ rule function_humann2:
         pathcoverage = func_dir + "{sample}/humann2/{sample}_pathcoverage.tsv",
         pathabundance = func_dir + "{sample}/humann2/{sample}_pathabundance.tsv"
     params:
-        nt_db = config['params']['humann2']["humann2_nt_db"],
-        aa_db = config['params']['humann2']["humann2_aa_db"],
+        nt_db = config['params']['humann2']["nt_db"],
+        aa_db = config['params']['humann2']["aa_db"],
         env = config['envs']['humann2'],
         other = config['params']['humann2']['other']
     threads:
