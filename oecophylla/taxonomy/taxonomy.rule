@@ -117,7 +117,7 @@ rule taxonomy_kraken:
     params:
         env = config['envs']['kraken'],
         db = config['params']['kraken']['db'],
-        kmers = config['params']['kraken']['kmers'],
+        kmers = config['params']['bracken']['kmers'],
         levels = config['params']['kraken']['levels'],
         map = config['params']['kraken']['map']
     threads:
@@ -201,12 +201,11 @@ rule taxonomy_kraken_combine_profiles:
         "benchmarks/taxonomy/taxonomy_kraken_combine_profiles.txt"
     run:
         pandas2biom(output[0], combine_profiles(zip(samples, input)))
-        if params['levels']:
-            for level in params['levels'].split(','):
-                redists = ['%s.redist.%s.txt' % (x[:-12], level)
-                           for x in input]
-                pandas2biom('%s_redist.%s.biom' % (output[0][:-13], level),
-                            combine_bracken(zip(samples, redists)))
+        for level in params['levels'].split(','):
+            redists = ['%s.redist.%s.txt' % (x[:-12], level)
+                       for x in input]
+            pandas2biom('%s_redist.%s.biom' % (output[0][:-13], level),
+                        combine_bracken(zip(samples, redists)))
 
 
 rule kraken:
@@ -216,7 +215,7 @@ rule kraken:
 
 rule taxonomy_centrifuge:
     """
-    Runs Centrifuge to construct taxonomic profiles.
+    Runs Centrifuge with Bracken to construct taxonomic profiles.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
@@ -226,9 +225,12 @@ rule taxonomy_centrifuge:
         profile = taxonomy_dir + "{sample}/centrifuge/{sample}.profile.txt"
         # extra output files:
         # {sample}.map.txt.gz if {map} is ON
+        # {sample}.redist.{level}.txt foreach {levels}
     params:
         env = config['envs']['centrifuge'],
         db = config['params']['centrifuge']['db'],
+        kmers = config['params']['bracken']['kmers'],
+        levels = config['params']['centrifuge']['levels'],
         map = config['params']['centrifuge']['map']
     threads:
         12
@@ -266,20 +268,37 @@ rule taxonomy_centrifuge:
                   then
                     gzip -c {temp_dir}/map.tmp > $stem.map.txt.gz
                   fi
+
+                  # run Bracken to re-estimate abundance at given rank
+                  if [[ ! -z {params.levels} ]]
+                  then
+                    IFS=',' read -r -a levels <<< "{params.levels}"
+                    for level in "${{levels[@]}}"
+                    do
+                      est_abundance.py -i {output.report} \
+                        -k {params.kmers} \
+                        -t 10 \
+                        -l $(echo $level | head -c 1 | tr a-z A-Z) \
+                        -o $stem.redist.$level.txt \
+                        2>> {log} 1>&2
+                      rm $stem.report_bracken.txt
+                    done
+                  fi
                   """)
 
 
 rule taxonomy_centrifuge_combine_profiles:
     """
-    Combines per-sample Centrifuge output tables into single OTU tables.
+    Combines per-sample Centrifuge/Bracken output tables into single OTU
+    tables.
     """
     input:
-        expand(taxonomy_dir + "{sample}/centrifuge/{sample}.report.txt",
+        expand(taxonomy_dir + "{sample}/centrifuge/{sample}.profile.txt",
                sample=samples)
     output:
         taxonomy_dir + "centrifuge/combined_profile.biom"
         # extra output files:
-        # combined_profile.{level}.biom foreach {levels}
+        # combined_redist.{level}.biom foreach {levels}
     params:
         levels = config['params']['centrifuge']['levels']
     log:
@@ -287,12 +306,12 @@ rule taxonomy_centrifuge_combine_profiles:
     benchmark:
         "benchmarks/taxonomy/taxonomy_centrifuge_combine_profiles.txt"
     run:
-        df = combine_centrifuge(zip(samples, input))
-        pandas2biom(output[0], df)
-#        if params['levels']:
-#            for level in params['levels'].split(','):
-#                pandas2biom('%s.%s.biom' % (output[0][:-5], level),
-#                            extract_rank_centrifuge(zip(samples, input)))
+        pandas2biom(output[0], combine_centrifuge(zip(samples, input)))
+        for level in params['levels'].split(','):
+            redists = ['%s.redist.%s.txt' % (x[:-12], level)
+                       for x in input]
+            pandas2biom('%s_redist.%s.biom' % (output[0][:-13], level),
+                        combine_bracken(zip(samples, redists)))
 
 
 rule centrifuge:
@@ -398,12 +417,11 @@ rule taxonomy_shogun_combine_profiles:
         "benchmarks/taxonomy/taxonomy_shogun_combine_profiles.txt"
     run:
         pandas2biom(output[0], combine_profiles(zip(samples, input)))
-        if params['levels']:
-            for level in params['levels'].split(','):
-                redists = ['%s.redist.%s.txt' % (x[:-12], level)
-                           for x in input]
-                pandas2biom('%s_redist.%s.biom' % (output[0][:-13], level),
-                            combine_profiles(zip(samples, redists)))
+        for level in params['levels'].split(','):
+            redists = ['%s.redist.%s.txt' % (x[:-12], level)
+                       for x in input]
+            pandas2biom('%s_redist.%s.biom' % (output[0][:-13], level),
+                        combine_profiles(zip(samples, redists)))
 
 
 rule shogun:

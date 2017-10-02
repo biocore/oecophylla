@@ -39,19 +39,18 @@ params:
     map: no
   kraken:
     db: test_data/kraken_test_db
-    # Bracken kmer distribution file
-    kmers: test_data/kraken_test_db/75mers_distr.txt
     # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
     levels: phylum,genus,species
     # whether to keep original mapping file
     map: no
   centrifuge:
-    # db: test_data/centrifuge_test_db
-    db: /home/qiz173/Works/WoL/profiling/ref107/centrifuge/ref107
-    # taxonomic ranks (kingdom to species) to extract as individual reports
+    db: test_data/centrifuge_test_db
+    # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
     levels: phylum,genus,species
     # whether to keep original mapping file
     map: yes
+  bracken:
+    kmers: test_data/kraken_test_db/75mers_distr.txt
   shogun:
     db: test_data/shogun_test_db
     # alignment algorithm: bowtie2, burst and utree

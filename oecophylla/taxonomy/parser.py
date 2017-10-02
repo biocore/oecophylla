@@ -73,6 +73,36 @@ def extract_level(table, code, delim=';', dic=None):
     return df
 
 
+def combine_centrifuge(centrifuge_outputs):
+    """Combines Centrifuge counts for several samples into one table.
+
+    Parameters
+    ----------
+    centrifuge_outputs : Iterable((str, str))
+        An iterable of tuples, where the second component is the filepath
+        pointing to a Centrifuge output file, the first component defines a
+        sample name for the Centrifuge output.
+
+    Returns
+    -------
+    Pandas.DataFrame with rows for features, columns for samples.
+    Feature labels are NCBI taxonomy IDs. Sample labels are obtained from first
+    components of passed iterable.
+
+    Returns
+    -------
+    Pandas.DataFrame with rows for features, columns for samples.
+
+    Notes
+    -----
+    A Centrifuge output file is a table of 7 columns, the 2nd and 5th of which
+    are TaxID and number of reads assigned to it.
+    """
+    samples = [pd.read_table(file, index_col=0, header=0, usecols=[1, 4],
+               names=[None, name]) for name, file in centrifuge_outputs]
+    return pd.concat(samples, axis=1).fillna(0).astype(float)
+
+
 def combine_bracken(bracken_outputs):
     """Combines bracken counts for several samples into one table.
 
@@ -80,8 +110,8 @@ def combine_bracken(bracken_outputs):
     ----------
     bracken_outputs : Iterable((str, str))
         An iterable of tuples, where the second component is the filepath
-        pointing to a bracken output files, the first component defines a
-        sample name for the bracken output.
+        pointing to a Bracken output file, the first component defines a
+        sample name for the Bracken output.
 
     Returns
     -------
@@ -110,34 +140,6 @@ def combine_bracken(bracken_outputs):
         samples.append(sample_counts)
 
     # return a merged pd.DataFrame of all absolute estimated assigned reads
-    return pd.concat(samples, axis=1).fillna(0).astype(int)
-
-
-def combine_centrifuge(profiles):
-    """Combines Kraken-style reports for several samples into one table.
-
-    Parameters
-    ----------
-    profiles : iterable((str, str))
-        An iterable of tuples, where the second component is the filepath
-        pointing to a Kraken-style report, while the first
-        component defines a sample name for the profile.
-
-    Returns
-    -------
-    Pandas.DataFrame with rows for TaxIDs, columns for samples.
-
-    Notes
-    -----
-    A Kraken-style report contains the following columns:
-    name, taxID, taxRank, genomeSize, numReads, numUniqueReads, abundance
-
-    Kraken-style reports are automatically produced by Kraken and Centrifuge.
-    Since Kraken results are parsed by Bracken, currently, only Centrifuge
-    results require this function.
-    """
-    samples = [pd.read_table(file, index_col=0, names=[name], comment='#')
-               for name, file in profiles]
     return pd.concat(samples, axis=1).fillna(0).astype(int)
 
 
