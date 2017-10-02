@@ -68,8 +68,8 @@ rule function_humann2:
                   humann2 --input {temp_dir}/input.fastq \
                   --output {temp_dir}/{wildcards.sample} \
                   --output-basename {wildcards.sample} \
-                  --nucleotide-database {params.humann2_nt_db} \
-                  --protein-database {params.humann2_aa_db} \
+                  --nucleotide-database {params.nt_db} \
+                  --protein-database {params.aa_db} \
                   --taxonomic-profile {input.metaphlan_in} \
                   --o-log {log} \
                   --threads {threads} \
