@@ -155,7 +155,8 @@ rule sourmash_dm:
         shell("""set +u; {params.env}; set -u
                  sourmash compare {i} --csv {output.sim_list}""")
 
-        sim = pd.read_csv(output[0])
+        sim = pd.read_csv(output['sim_list'])
+
         ids = [os.path.basename(x) for x in sim.columns]
 
         dist = (1 - sim).values
