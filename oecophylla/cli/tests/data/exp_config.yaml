@@ -1,13 +1,14 @@
 envs:
   anvi: source activate oecophylla-anvi
-  assemble: source activate oecophylla-assemble
-  distance: source activate oecophylla-distance
   humann2: source activate oecophylla-humann2
-  kraken: source activate oecophylla-kraken
-  metaphlan2: source activate oecophylla-metaphlan2
   qc: source activate oecophylla-qc
   raw: source activate oecophylla-qc
+  metaphlan2: source activate oecophylla-metaphlan2
+  kraken: source activate oecophylla-kraken
+  centrifuge: source activate oecophylla-centrifuge
   shogun: source activate oecophylla-shogun
+  assemble: source activate oecophylla-assemble
+  distance: source activate oecophylla-distance
 params:
   abundance_samples:
   - sample_S22282
