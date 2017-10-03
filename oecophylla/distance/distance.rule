@@ -128,7 +128,7 @@ rule sourmash_sig:
                   
                   sourmash compute --scaled {params.scaled} \
                   -k {params.kmer} -o {output.sketch} \
-                  {temp_dir}/{wildcards.sample}
+                  {temp_dir}/{wildcards.sample} >
                   """)
 
 rule sourmash_dm:
@@ -154,8 +154,10 @@ rule sourmash_dm:
 
         shell("""set +u; {params.env}; set -u
                  sourmash compare {i} --csv {output.sim_list}""")
+
         sim = pd.read_csv(output[0])
-        ids = sim.columns
+        ids = [os.path.basename(x) for x in sim.columns]
+
         dist = (1 - sim).values
         # because numerical overflow, set diagonal to zero explicitly
         np.fill_diagonal(dist, 0)
