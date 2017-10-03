@@ -149,9 +149,11 @@ rule sourmash_dm:
         from skbio.io import write
         import pandas as pd
         import numpy as np
-        shell("""
-              set +u; {params.env}; set -u
-              sourmash compare {i} --csv {output.sim_list}""".format(i=' '.join(input)))
+
+        i = ' '.join(input)
+
+        shell("""set +u; {params.env}; set -u
+                 sourmash compare {i} --csv {output.sim_list}""")
         sim = pd.read_csv(output[0])
         ids = sim.columns
         dist = (1 - sim).values
