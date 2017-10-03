@@ -158,5 +158,5 @@ rule sourmash:
 
 rule distance:
     input:
-        rules.sourmash.input
+        rules.sourmash.input,
         rules.mash.input
