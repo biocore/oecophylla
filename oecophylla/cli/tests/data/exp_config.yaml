@@ -72,7 +72,7 @@ params:
     kmer: 21
     min_obs: 2
   sourmash:
-    scaled: True
+    scaled: 10000
     kmer: 31
 samples:
   S22205:

@@ -125,7 +125,7 @@ rule sourmash_sig:
             shell("""
                   set +u; {params.env}; set -u
                   zcat {input.forward} {input.reverse} > {temp_dir}/{wildcards.sample}
-                  sourmash compute --scaled {params.scaled} -k {params.kmer} -o {output[0]}
+                  sourmash compute --scaled {params.scaled} -k {params.kmer} -o {output.sketch}
                   """)
 
 rule sourmash_dm:
