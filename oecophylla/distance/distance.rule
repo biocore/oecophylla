@@ -125,9 +125,10 @@ rule sourmash_sig:
             shell("""
                   set +u; {params.env}; set -u
                   zcat {input.forward} {input.reverse} > {temp_dir}/{wildcards.sample}
+                  
                   sourmash compute --scaled {params.scaled} \
                   -k {params.kmer} -o {output.sketch} \
-                  {input.forward} {input.reverse}
+                  {temp_dir}/{wildcards.sample}
                   """)
 
 rule sourmash_dm:
@@ -135,8 +136,10 @@ rule sourmash_dm:
     input:
         expand(distance_dir + '{sample}/sourmash/{sample}.sig', sample=samples)
     output:
-        distance_dir + 'combined_analysis/sourmash.similarity.csv',
-        distance_dir + 'combined_analysis/sourmash.dist.dm'
+        sim_list = distance_dir + 'combined_analysis/sourmash.similarity.csv',
+        dist_matrix = distance_dir + 'combined_analysis/sourmash.dist.dm'
+    params:
+        env = config['envs']['distance']
     log:
         distance_dir + "logs/sourmash_dm.log"
     benchmark:
@@ -147,15 +150,16 @@ rule sourmash_dm:
         import pandas as pd
         import numpy as np
         shell('''
-            set +u; {params.env}; set -u
-            sourmash compare {i} --csv {output[0]}'''.format(i=' '.join(input)))
+              set +u; {params.env}; set -u
+              sourmash compare {i} --csv {output.sim_list}
+              '''.format(i=' '.join(input)))
         sim = pd.read_csv(output[0])
         ids = sim.columns
         dist = (1 - sim).values
         # because numerical overflow, set diagonal to zero explicitly
         np.fill_diagonal(dist, 0)
         dm = DistanceMatrix(dist, ids=ids)
-        dm.write(output[1])
+        dm.write(output.dist_matrix)
 
 
 rule sourmash:
