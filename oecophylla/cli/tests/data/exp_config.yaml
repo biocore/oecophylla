@@ -69,6 +69,8 @@ params:
     map: no
   mash:
     sketch_size: 1000
+    kmer: 21
+    min_obs: 2
   sourmash:
     scaled: True
     kmer: 31

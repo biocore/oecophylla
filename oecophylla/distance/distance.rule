@@ -8,26 +8,32 @@ rule mash_sketch:
         distance_dir + '{sample}/mash/{sample}.msh'
     params:
         env = config['envs']['distance'],
-        size = config['params']['mash']['sketch_size']
+        size = config['params']['mash']['sketch_size'],
+        m = config['params']['mash']['min_obs'],
+        kmer = config['params']['mash']['kmer']
     threads:
         1
     log:
         distance_dir + "logs/mash_sketch.sample=[{sample}].log"
     benchmark:
         "benchmarks/distance/mash_sketch.sample=[{sample}].txt"
-    shell:
-        # -r is for reads instead of genomes for mash sketch;
-        # remove suffix because mash will automatically add .msh
-        '''set +u; {params.env}; set -u
-        output_basename=`basename {output[0]} .msh`
-        mash sketch -r -i {params.size} -o $output_basename {input.forward}'''
+    run:
+        output_base = os.path.splitext(output['sketch'])[0]
+
+        shell("""
+              set +u; {params.env}; set -u
+
+              mash sketch -r -k {params.kmer} \
+              -m {params.m} -s {params.size} \
+              -o {output_base} {input.forward}
+              """)
 
 rule mash_dist:
     """
     compute mash distance between every pair of samples.
     """
     input:
-        expand(distance_dir + '{sample}/mash/{sample}.msh', sample=samples)
+        expand(rule.mash_sketch.output, sample=samples)
     output:
         distance_dir + 'combined_analysis/mash.dist.txt'
     threads:
