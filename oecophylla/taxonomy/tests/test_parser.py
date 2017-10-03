@@ -8,6 +8,7 @@ import biom
 
 from oecophylla.taxonomy.parser import (combine_profiles,
                                         extract_level,
+                                        combine_centrifuge,
                                         combine_bracken,
                                         pandas2biom)
 
@@ -46,6 +47,15 @@ class ParserTest(TestCase):
                               index_col=0)
         with self.assertRaisesRegex(ValueError, 'Duplicated taxa detected'):
             extract_level(table, 'p', delim='|')
+
+    def test_combine_centrifuge(self):
+        exp = pd.read_table(get_data_path('centrifuge/combined.tsv'),
+                            index_col=0)
+        obs = combine_centrifuge(
+            [('sampleA', get_data_path('centrifuge/sampleA.txt')),
+             ('sampleB', get_data_path('centrifuge/sampleB.txt'))])
+        assert_frame_equal(obs[sorted(obs.columns)].sort_index().astype(int),
+                           exp[sorted(exp.columns)].sort_index().astype(int))
 
     def test_combine_bracken(self):
         exp = pd.read_csv(get_data_path('bracken/combined.phylum.tsv'),

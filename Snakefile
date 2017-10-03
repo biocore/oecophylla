@@ -1,7 +1,6 @@
 import os
 import tempfile
 
-
 try:
     TMP_DIR_ROOT = config['tmp_dir_root']
     samples = config["samples"]

@@ -23,7 +23,15 @@ To run actual tools on a simple set of test data, run:
 ```bash
 source activate oecophylla
 
-snakemake all --cores 2 --configfile config.yaml
+oecophylla workflow --test
+```
+
+To run a particular module on test data, run:
+
+```bash
+source activate oecophylla
+
+oecophylla workflow --test MODULE
 ```
 
 ## Philosophy
