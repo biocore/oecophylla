@@ -18,7 +18,7 @@ rule mash_sketch:
     benchmark:
         "benchmarks/distance/mash_sketch.sample=[{sample}].txt"
     run:
-        output_base = os.path.splitext(output['sketch'])[0]
+        output_base = os.path.splitext(output[0])[0]
 
         shell("""
               set +u; {params.env}; set -u
