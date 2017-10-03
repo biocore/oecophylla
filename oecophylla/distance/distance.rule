@@ -33,7 +33,7 @@ rule mash_dist:
     compute mash distance between every pair of samples.
     """
     input:
-        expand(rule.mash_sketch.output, sample=samples)
+        expand(rules.mash_sketch.output, sample=samples)
     output:
         distance_dir + 'combined_analysis/mash.dist.txt'
     threads:
@@ -53,7 +53,7 @@ rule mash_dm:
     Make a distance matrix.
     """
     input:
-        distance_dir + 'combined_analysis/mash.dist.txt'
+        rules.mash_dist.output
     output:
         dist_matrix = distance_dir + 'combined_analysis/mash.dist.dm',
         p_matrix = distance_dir + 'combined_analysis/mash.dist.p'
