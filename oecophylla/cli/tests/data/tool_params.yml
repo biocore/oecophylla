@@ -35,6 +35,14 @@ kraken:
   levels: phylum,genus,species
   # whether to keep original mapping file
   map: no
+centrifuge:
+  db: test_data/centrifuge_test_db
+  # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
+  levels: phylum,genus,species
+  # whether to keep original mapping file
+  map: yes
+bracken:
+  kmers: test_data/kraken_test_db/75mers_distr.txt
 shogun:
   db: test_data/test_dbs/shogun_test_db
   # alignment algorithm: bowtie2, burst and utree
@@ -45,6 +53,8 @@ shogun:
   map: no
 mash:
   sketch_size: 1000
+  kmer: 21
+  min_obs: 2
 sourmash:
-  scaled: True
+  scaled: 10000
   kmer: 31

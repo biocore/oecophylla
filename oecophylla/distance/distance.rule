@@ -1,0 +1,178 @@
+rule mash_sketch:
+    """
+    Sketches a quality-controlled fastq file with mash.
+    """
+    input:
+        forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz"
+    output:
+        distance_dir + '{sample}/mash/{sample}.msh'
+    params:
+        env = config['envs']['distance'],
+        size = config['params']['mash']['sketch_size'],
+        m = config['params']['mash']['min_obs'],
+        kmer = config['params']['mash']['kmer']
+    threads:
+        1
+    log:
+        distance_dir + "logs/mash_sketch.sample=[{sample}].log"
+    benchmark:
+        "benchmarks/distance/mash_sketch.sample=[{sample}].txt"
+    run:
+        output_base = os.path.splitext(output[0])[0]
+
+        shell("""
+              set +u; {params.env}; set -u
+
+              mash sketch -r -k {params.kmer} \
+              -m {params.m} -s {params.size} \
+              -o {output_base} {input.forward}
+              """)
+
+rule mash_dist:
+    """
+    compute mash distance between every pair of samples.
+    """
+    input:
+        expand(rules.mash_sketch.output, sample=samples)
+    output:
+        distance_dir + 'combined_analysis/mash.dist.txt'
+    threads:
+        1
+    log:
+        distance_dir + "logs/mash_dist.log"
+    benchmark:
+        "benchmarks/distance/mash_dist.txt"
+    run:
+        from itertools import combinations
+        for i, j in combinations(input, 2):
+            shell('mash dist {i} {j} >> {output[0]}')
+
+
+rule mash_dm:
+    """
+    Make a distance matrix.
+    """
+    input:
+        rules.mash_dist.output
+    output:
+        dist_matrix = distance_dir + 'combined_analysis/mash.dist.dm',
+        p_matrix = distance_dir + 'combined_analysis/mash.dist.p'
+    threads:
+        1
+    log:
+        distance_dir + "logs/mash_dm.log"
+    benchmark:
+        "benchmarks/distance/mash_dm.txt"
+    run:
+        from skbio.stats.distance import DissimilarityMatrix
+        import pandas as pd
+        import numpy as np
+
+        mash_vec = pd.read_csv(input[0], sep = '\t', header=None)
+
+        # get sorted list of samples
+        samples = sorted(set(mash_vec[0]) | set(mash_vec[1]))
+
+        dm = np.zeros([len(samples),len(samples)])
+        pm = np.zeros([len(samples),len(samples)])
+
+        # fill matrices with values
+        for s1, s2, d, p in zip(mash_vec[0],mash_vec[1],mash_vec[2],mash_vec[3]):
+            i1 = samples.index(s1)
+            i2 = samples.index(s2)
+            print('s1: %s, s2: %s, i1: %s, i2: %s, d: %s, p: %s' % (s1, s2, i1, i2, d, p))
+            dm[i1,i2] = d
+            dm[i2,i1] = d
+            pm[i1,i2] = p
+            pm[i2,i1] = p
+
+        ids = [os.path.basename(x) for x in samples]
+        sk_dm = DissimilarityMatrix(dm, ids=ids)
+        sk_pm = DissimilarityMatrix(pm, ids=ids)
+
+        sk_dm.write(output['dist_matrix'])
+        sk_pm.write(output['p_matrix'])
+
+
+rule mash:
+    input:
+        expand(rules.mash_sketch.output, sample=samples),
+        rules.mash_dist.output,
+        rules.mash_dm.output
+
+
+rule sourmash_sig:
+    """
+    Create a minhash signature for the input forward and reverse fastq read files of every sample.
+    """
+    input:
+        forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
+        reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
+    output:
+        sketch = distance_dir + '{sample}/sourmash/{sample}.sig'
+    params:
+        env = config['envs']['distance'],
+        scaled = config['params']['sourmash']['scaled'],
+        kmer = config['params']['sourmash']['kmer']
+    threads:
+        1
+    log:
+        distance_dir + "logs/sourmash_sig.sample=[{sample}].log"
+    benchmark:
+        "benchmarks/distance/sourmash_sig.sample=[{sample}].txt"
+    run:
+        with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
+            shell("""
+                  set +u; {params.env}; set -u
+                  zcat {input.forward} {input.reverse} > {temp_dir}/{wildcards.sample}
+                  
+                  sourmash compute --scaled {params.scaled} \
+                  -k {params.kmer} -o {output.sketch} \
+                  {temp_dir}/{wildcards.sample} >
+                  """)
+
+rule sourmash_dm:
+    '''Compare and create a distance matrix between samples. '''
+    input:
+        expand(distance_dir + '{sample}/sourmash/{sample}.sig', sample=samples)
+    output:
+        sim_list = distance_dir + 'combined_analysis/sourmash.similarity.csv',
+        dist_matrix = distance_dir + 'combined_analysis/sourmash.dist.dm'
+    params:
+        env = config['envs']['distance']
+    log:
+        distance_dir + "logs/sourmash_dm.log"
+    benchmark:
+        "benchmarks/distance/sourmash_dm.txt"
+    run:
+        from skbio.stats.distance import DistanceMatrix
+        from skbio.io import write
+        import pandas as pd
+        import numpy as np
+
+        i = ' '.join(input)
+
+        shell("""set +u; {params.env}; set -u
+                 sourmash compare {i} --csv {output.sim_list}""")
+
+        sim = pd.read_csv(output['sim_list'])
+
+        ids = [os.path.basename(x) for x in sim.columns]
+
+        dist = (1 - sim).values
+        # because numerical overflow, set diagonal to zero explicitly
+        np.fill_diagonal(dist, 0)
+        dm = DistanceMatrix(dist, ids=ids)
+        dm.write(output.dist_matrix)
+
+
+rule sourmash:
+    input:
+        expand(rules.sourmash_sig.output, sample=samples),
+        rules.sourmash_dm.output
+
+
+rule distance:
+    input:
+        rules.sourmash.input,
+        rules.mash.input
