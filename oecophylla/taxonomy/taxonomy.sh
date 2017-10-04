@@ -7,6 +7,8 @@ set -e
 
 conda env create --name oecophylla-kraken -f oecophylla-kraken.yaml --quiet > /dev/null
 
+conda env create --name oecophylla-centrifuge -f oecophylla-centrifuge.yaml --quiet > /dev/null
+
 # currently shogun is a hack, running the install script until we
 # have stable conda install
 conda env create --name oecophylla-shogun -f oecophylla-shogun.yaml --quiet > /dev/null
