@@ -278,18 +278,35 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
 
 
 @run.command()
-@click.option('--config-file', default=None,
-              help='Configuration file defining specific installations of all'
-                   ' modules.')
-def install():
-    """ This replaces the install.sh
+@click.argument('modules', nargs=-1, default=['all'],
+                help='List of modules that will need to be installed.')
+@click.option('--avail', is_flag=True, default=False,
+              help='Retrieves the list of all of the modules.')
+def install(modules, avail):
+    """ This will perform an installation of the modules. """
+    if avail:
+        print('stuff')
+        return
 
-    This will spit out a config file with environment parameters.
-    This configuration file will be implicitly passed to the other
-    commands.
-    """
-    if not config_file:
-        import install
+    # TODO: this path will need to be fixed.
+    environment_yml = '%s/../%s.yml' % (os.__file__, 'environment')
+    os.call('conda env create --name oecophylla -f %s' % environment_yml)
+
+    #TODO change this to os.walk
+    # os.call('find oecophylla -name "*.sh" -execdir bash {} \;')
+    # TODO: Will need to route `rootdir` to the main oecophylla directory
+    # (i.e. where the modules are directly visible)
+
+    for root, dirs, files in os.walk('rootdir'):
+        # map this to a list of files.
+        # save to some variable called all_files
+
+    # get all .sh files
+    install_scripts = list(filter(lambda x: '.sh' in x, all_files))
+    if not modules != ['all']:
+        # get only modules
+        install_scripts = list(filter(lambda x: '.sh' in modules, all_files))
+
 
 if __name__ == '__main__':
     run()
