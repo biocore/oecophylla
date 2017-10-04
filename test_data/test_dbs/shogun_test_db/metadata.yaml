@@ -1,0 +1,8 @@
+general:
+  taxonomy: phiX.tax
+  fasta: phiX.fna
+  shear: sheared_bayes.txt
+function: function/ko
+burst: burst/phiX
+bowtie2: bt2/phiX
+utree: utree/phiX.gg
