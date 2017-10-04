@@ -36,7 +36,7 @@ include: "oecophylla/assemble/assemble.rule"
 include: "oecophylla/bin/bin.rule"
 # include: "oecophylla/anvio/anvio.rule"
 include: "oecophylla/taxonomy/taxonomy.rule"
-# include: "oecophylla/function/function.rule"
+include: "oecophylla/function/function.rule"
 # include: "oecophylla/report/report.rule"
 
 rule all:
@@ -51,4 +51,6 @@ rule all:
         rules.mash.input,
         rules.sourmash.input,
         # Taxonomy
-        rules.taxonomy.input
+        rules.taxonomy.input,
+        # Function
+        rules.function.input

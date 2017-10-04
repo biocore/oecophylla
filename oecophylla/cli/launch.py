@@ -2,6 +2,7 @@ import click
 import yaml
 import os
 import glob
+from os.path import join
 from oecophylla.util.parse import (illumina_filenames_to_df,
                                    extract_sample_reads,
                                    extract_sample_paths,
@@ -63,25 +64,24 @@ def _setup_test():
     d = _oeco_dir()
 
     # set inputs
-    input_dir = os.path.join(d, 'test_data/test_reads')
-    sample_sheet = os.path.join(d,
-                        'test_data/test_config/example_sample_sheet.txt')
+    input_dir = join(d, 'test_data/test_reads')
+    sample_sheet = join(d, 'test_data/test_config/example_sample_sheet.txt')
     # set params
-    params = os.path.join(d,
+    params = join(d,
                           'test_data/test_config/test_params.yml')
-    envs = os.path.join(d,
+    envs = join(d,
                         'test_data/test_config/test_envs.yml')
 
     # set output
-    output_dir = os.path.join(d, 'test_out')
+    output_dir = join(d, 'test_out')
 
     # prep workflow directory
     _create_dir(output_dir)
 
     # need to link dbs for test yamls to work
-    if not os.path.islink(os.path.join(output_dir,'test_data')):
-        os.symlink(os.path.join(_oeco_dir(),'test_data'),
-                   os.path.join(output_dir,'test_data'))
+    if not os.path.islink(join(output_dir,'test_data')):
+        os.symlink(join(_oeco_dir(),'test_data'),
+                   join(output_dir,'test_data'))
 
     return(input_dir, sample_sheet, params, envs, output_dir)
 
@@ -132,18 +132,18 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     from skbio.io.registry import sniff
 
     # SNAKEMAKE
-    snakefile = "%s/../../Snakefile" % os.path.abspath(os.path.dirname(__file__))
+    snakefile = '%s/../../Snakefile' % os.path.abspath(os.path.dirname(__file__))
 
     # Check to see if running with test data. If so, fill in defaults
     # for relevant empty parameters.
     if test:
         input_dir, sample_sheet, params, envs, output_dir = _setup_test()
     elif not output_dir:
-        raise IOError("Must provide output directory to run.")
+        raise IOError('Must provide output directory to run.')
 
     # Check to see if config.yaml exists in output dir. If it does, warn
     # and continue with execution
-    if os.path.exists(os.path.join(output_dir,'config.yaml')):
+    if os.path.exists(join(output_dir, 'config.yaml')):
         config_fp = '%s/%s' % (output_dir, 'config.yaml')
     # Otherwise, make a config file and continue with execution
     elif (os.path.exists(params) and
@@ -194,7 +194,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
         config_yaml = yaml.dump(config_dict, default_flow_style=False)
 
 
-        config_fp = '%s/%s' % (output_dir, 'config.yaml')
+        config_fp = join(output_dir, 'config.yaml')
         with open(config_fp, 'w') as f:
             f.write(config_yaml)
     else:
@@ -213,22 +213,22 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
             raise IOError('If submitting to cluster, must provide a cluster '
                           'configuration file.')
 
-        cluster_setup = "\"qsub -e {cluster.error} -o {cluster.output} \
+        cluster_setup = '\"qsub -e {cluster.error} -o {cluster.output} \
                          -l nodes=1:ppn={cluster.n} \
                          -l mem={cluster.mem} \
-                         -l walltime={cluster.time}\" "
+                         -l walltime={cluster.time}\" '
 
         if jobs == None:
             jobs = 16
 
-        cmd = ' '.join(["snakemake ",
-                        "--snakefile %s " % snakefile,
-                        "--local-cores %s " % local_cores,
-                        "--jobs %s " % jobs,
-                        "--cluster-config %s " % cluster_config,
-                        "--cluster %s "  % cluster_setup,
-                        "--configfile %s " % config_fp,
-                        "--directory %s " % output_dir,
+        cmd = ' '.join(['snakemake ',
+                        '--snakefile %s ' % snakefile,
+                        '--local-cores %s ' % local_cores,
+                        '--jobs %s ' % jobs,
+                        '--cluster-config %s ' % cluster_config,
+                        '--cluster %s '  % cluster_setup,
+                        '--configfile %s ' % config_fp,
+                        '--directory %s ' % output_dir,
                         snakemake_args,
                         ' '.join(targets)])
     elif workflow_type == 'slurm':
@@ -237,21 +237,21 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
             raise IOError('If submitting to cluster, must provide a cluster '
                           'configuration file.')
 
-        cluster_setup = "srun -e {cluster.error} -o {cluster.output} \
+        cluster_setup = 'srun -e {cluster.error} -o {cluster.output} \
                          -n {cluster.n} \
                          --mem={cluster.mem} \
-                         --time={cluster.time}"
+                         --time={cluster.time}'
         if jobs == None:
             jobs = 16
 
-        cmd = ' '.join(["snakemake ",
-                        "--snakefile %s " % snakefile,
-                        "--local-cores %s " % local_cores,
-                        "--jobs %s " % jobs,
-                        "--cluster-config %s " % cluster_config,
-                        "--cluster %s " % cluster_setup,
-                        "--configfile % s " % config_fp,
-                        "--directory %s " % output_dir,
+        cmd = ' '.join(['snakemake ',
+                        '--snakefile %s ' % snakefile,
+                        '--local-cores %s ' % local_cores,
+                        '--jobs %s ' % jobs,
+                        '--cluster-config %s ' % cluster_config,
+                        '--cluster %s ' % cluster_setup,
+                        '--configfile % s ' % config_fp,
+                        '--directory %s ' % output_dir,
                         snakemake_args,
                         ' '.join(targets)])
 
@@ -261,12 +261,12 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
             jobs = 2
 
         cluster_setup = None
-        cmd = ' '.join(["snakemake ",
-                        "--snakefile %s " % snakefile,
-                        "--local-cores %s " % local_cores,
-                        "--jobs %s " % jobs,
-                        "--directory %s " % output_dir,
-                        "--configfile %s " % config_fp,
+        cmd = ' '.join(['snakemake ',
+                        '--snakefile %s ' % snakefile,
+                        '--local-cores %s ' % local_cores,
+                        '--jobs %s ' % jobs,
+                        '--directory %s ' % output_dir,
+                        '--configfile %s ' % config_fp,
                         snakemake_args,
                         ' '.join(targets)])
     else:
@@ -291,6 +291,6 @@ def install():
     if not config_file:
         import install
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run()
 
