@@ -12,4 +12,4 @@ trap cleanup EXIT
 # runs setup of base environment
 
 # create core conda env
-conda env create --name oecophylla -f environment.yml --quiet > /dev/null
+conda env create --name oecophylla -f environment.yml --yes
