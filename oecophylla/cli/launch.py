@@ -114,6 +114,20 @@ def _uninstall_module(env):
     return
 
 def _install_test_dbs():
+    script = os.path.join(_oeco_dir, 'test_data',
+                          'test_dbs', 'install_test_dbs.sh')
+
+    proc = subprocess.Popen(['bash',os.path.basename(script)],
+                            shell=False,
+                            cwd=os.path.dirname(script),
+                            stderr=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
+
+    output = proc.communicate()
+
+    if proc.returncode != 0:
+        raise OSError('Installation of test DBs failed with '
+                      'following message:\n%s' % output[1])
 
     return
 
