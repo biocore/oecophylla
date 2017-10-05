@@ -60,6 +60,63 @@ def _oeco_dir():
         oeco_dir = os.path.abspath(d)
         return oeco_dir
 
+def _find_modules():
+    oeco_dir = os.path.join(_oeco_dir(), 'oecophylla')
+
+    install_scripts = {}
+    for path, dirs, files in os.walk(oeco_dir):
+        d = os.path.split(path)[1]
+        if ('%s.sh' % d) in files:
+            install_scripts[d] = os.path.join(path, ('%s.sh' % d))
+
+    return(install_scripts)
+
+def _find_oeco_conda():
+    # shell command to get conda envs
+    cmd = "conda-env list | awk '{print $1}' | grep oecophylla"
+    p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    output = p1.communicate()[0]
+
+    # find oecophylla modules
+    envs = output.decode().split('\n')
+    modules = [x for x in envs if x.startswith('oecophylla-')]
+    conda_envs = {x.split('-')[1]: x for x in modules}
+
+    return(conda_envs)
+
+def _install_module(script):
+    proc = subprocess.Popen(['bash',os.path.basename(script)],
+                            shell=False,
+                            cwd=os.path.dirname(script),
+                            stderr=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
+
+    output = proc.communicate()
+
+    if proc.returncode != 0:
+        raise OSError('Module install failed with '
+                      'following message:\n%s' % output[1])
+
+        return
+
+def _uninstall_module(env):
+    proc = subprocess.Popen(['conda-env','remove','--yes','--name',env],
+                            shell=False,
+                            stderr=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
+
+    output = proc.communicate()
+
+    if proc.returncode != 0:
+        raise OSError('Module uninstall failed with '
+                      'following message:\n%s' % output[1])
+
+    return
+
+def _install_test_dbs():
+
+    return
+
 def _setup_test():
     d = _oeco_dir()
 
@@ -67,10 +124,8 @@ def _setup_test():
     input_dir = join(d, 'test_data/test_reads')
     sample_sheet = join(d, 'test_data/test_config/example_sample_sheet.txt')
     # set params
-    params = join(d,
-                          'test_data/test_config/test_params.yml')
-    envs = join(d,
-                        'test_data/test_config/test_envs.yml')
+    params = join(d, 'test_data/test_config/test_params.yml')
+    envs = join(d, 'test_data/test_config/test_envs.yml')
 
     # set output
     output_dir = join(d, 'test_out')
@@ -278,35 +333,61 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
 
 
 @run.command()
-@click.argument('modules', nargs=-1, default=['all'],
-                help='List of modules that will need to be installed.')
 @click.option('--avail', is_flag=True, default=False,
               help='Retrieves the list of all of the modules.')
-def install(modules, avail):
-    """ This will perform an installation of the modules. """
+@click.option('--all', is_flag=True, default=False,
+              help='Installs all available modules')
+@click.option('--tests', is_flag=True, default=False,
+              help='Installs test databases')
+@click.argument('modules', nargs=-1)
+def install(avail, all, tests, modules):
+    """ Installs Oecophylla module Conda environments. """
+
+    install_scripts = _find_modules()
+
     if avail:
-        print('stuff')
+        print('Available modules:\n==================')
+        for module in install_scripts:
+            print('  - %s' % module)
         return
 
-    # TODO: this path will need to be fixed.
-    environment_yml = '%s/../%s.yml' % (os.__file__, 'environment')
-    os.call('conda env create --name oecophylla -f %s' % environment_yml)
+    if tests:
+        _install_test_dbs()
 
-    #TODO change this to os.walk
-    # os.call('find oecophylla -name "*.sh" -execdir bash {} \;')
-    # TODO: Will need to route `rootdir` to the main oecophylla directory
-    # (i.e. where the modules are directly visible)
+    if all:
+        modules = install_scripts.keys()
 
-    for root, dirs, files in os.walk('rootdir'):
-        # map this to a list of files.
-        # save to some variable called all_files
+    if modules:
+        for module in modules:
+            print('Installing module %s...' % module)
+            _install_module(install_scripts[module])
 
-    # get all .sh files
-    install_scripts = list(filter(lambda x: '.sh' in x, all_files))
-    if not modules != ['all']:
-        # get only modules
-        install_scripts = list(filter(lambda x: '.sh' in modules, all_files))
 
+@run.command()
+@click.option('--avail', is_flag=True, default=False,
+              help='Retrieves the list of all of the modules.')
+@click.option('--all', is_flag=True, default=False,
+              help='Installs all available modules')
+@click.argument('modules', nargs=-1)
+def uninstall(avail, all, modules):
+    """ Uninstalls Oecophylla module Conda environments. """
+    
+    conda_envs = _find_oeco_conda()
+
+    if avail:
+        print('Installed Oecophylla Conda modules:\n'
+              '===================================')
+        for module in conda_envs:
+            print('  - %s' % module)
+        return
+
+    if all:
+        modules = conda_envs.keys()
+
+    if modules:
+        for module in modules:
+            print('Uninstalling module %s...' % module)
+            _uninstall_module(conda_envs[module])
 
 if __name__ == '__main__':
     run()
