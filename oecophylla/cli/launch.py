@@ -114,7 +114,7 @@ def _uninstall_module(env):
     return
 
 def _install_test_dbs():
-    script = os.path.join(_oeco_dir, 'test_data',
+    script = os.path.join(_oeco_dir(), 'test_data',
                           'test_dbs', 'install_test_dbs.sh')
 
     proc = subprocess.Popen(['bash',os.path.basename(script)],
