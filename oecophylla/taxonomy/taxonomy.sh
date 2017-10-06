@@ -24,12 +24,12 @@ touch $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
 touch $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
 
 # path to the pre-compiled binaries on Barnacle
-bindir=/projects/ag500/shogun/bin
+bindir=/projects/genome_annotation/shogun/bin
 
 echo '#!/bin/sh' >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
-echo "export OLD_PATH=$PATH" >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
-echo "export PATH=$PATH:$bindir" >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
+echo "export OLD_PATH=\$PATH" >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
+echo "export PATH=\$PATH:${bindir}" >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
 
 echo '#!/bin/sh' >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
-echo "export PATH=$OLD_PATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
+echo "export PATH=\$OLD_PATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
 echo "unset OLDPATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
