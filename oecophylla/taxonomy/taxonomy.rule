@@ -258,7 +258,7 @@ rule taxonomy_centrifuge:
                     -p {threads} \
                     -S {temp_dir}/map.tmp \
                     --report-file {output.profile} \
-                    2>> {log} 1>&2
+                    2> {log} 1>&2
 
                   # generate Kraken-style hierarchical report
                   centrifuge-kreport {temp_dir}/map.tmp \
