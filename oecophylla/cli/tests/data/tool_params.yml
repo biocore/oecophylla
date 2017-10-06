@@ -24,7 +24,7 @@ maxbin: -plotmarker
 metaphlan2:
   db: test_data/test_dbs/mp2_mini/mp2_mini
   # taxon name to TaxID dictionary
-  name2tid: test_data/test_dbs/mp2_mini/mp2_mini.name2taxid
+  name2tid: 
   levels: phylum,genus,species
   map: no
 kraken:
@@ -36,7 +36,7 @@ kraken:
   # whether to keep original mapping file
   map: no
 centrifuge:
-  db: test_data/test_dbs/centrifuge
+  db: test_data/test_dbs/centrifuge/5min
   # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
   levels: phylum,genus,species
   # whether to keep original mapping file
