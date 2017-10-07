@@ -34,29 +34,29 @@ params:
     other: ''
   maxbin: -plotmarker
   metaphlan2:
-    db: test_data/test_dbs/mp2_test_db/mpa_v20_m200
+    db: test_data/test_dbs/mp2_mini/mp2_mini
     # taxon name to TaxID dictionary
-    name2tid: test_data/test_dbs/mp2_test_db/mpa_v20_m200.name2taxid
+    name2tid: 
     levels: phylum,genus,species
     map: no
   kraken:
-    db: test_data/test_dbs/kraken_test_db
+    db: test_data/test_dbs/kraken
     # Bracken kmer distribution file
-    kmers: test_data/test_dbs/kraken_test_db/75mers_distr.txt
+    kmers: test_data/test_dbs/bracken/75mers_distr.txt
     # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
     levels: phylum,genus,species
     # whether to keep original mapping file
     map: no
   centrifuge:
-    db: test_data/test_dbs/centrifuge_test_db
+    db: test_data/test_dbs/centrifuge/5min
     # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
     levels: phylum,genus,species
     # whether to keep original mapping file
     map: yes
   bracken:
-    kmers: test_data/test_dbs/kraken_test_db/75mers_distr.txt
+    kmers: test_data/test_dbs/bracken/75mers_distr.txt
   shogun:
-    db: test_data/test_dbs/shogun_test_db
+    db: test_data/test_dbs/shogun
     # alignment algorithm: bowtie2, burst and utree
     aligner: utree
     # taxonomic ranks (kingdom to strain) to redistribute reads
