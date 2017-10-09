@@ -13,3 +13,7 @@ trap cleanup EXIT
 
 # create core conda env
 conda env create --name oecophylla -f environment.yml
+
+source activate oecophylla
+
+pip install -e .

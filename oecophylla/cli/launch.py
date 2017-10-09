@@ -169,6 +169,9 @@ def _setup_test():
               help='Specify environments for the tools in a YAML file.')
 @click.option('--cluster-config', type=click.Path(), required=False,
               help='File with parameters for a cluster job.')
+@click.option('--cluster-logs', is_flag=True, flag_value=False,
+              help='Saves cluster log output, may be useful for debugging. ' +
+                   'WARNING: only enable if absolutely necessary!')
 @click.option('--local-scratch', type=click.Path(resolve_path=True,
               writable=True),
               default='/tmp',
@@ -194,8 +197,8 @@ def _setup_test():
 @click.option('--test', is_flag=True, default=False,
               help='Executes a run with the included test data.')
 def workflow(targets, input_dir, sample_sheet, params, envs,
-             cluster_config, local_scratch, workflow_type, output_dir,
-             snakemake_args, local_cores, jobs,
+             cluster_config, cluster_logs, local_scratch, workflow_type,
+             output_dir, snakemake_args, local_cores, jobs,
              force, just_config, test):
     import snakemake
     from skbio.io.registry import sniff
@@ -282,10 +285,16 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
             raise IOError('If submitting to cluster, must provide a cluster '
                           'configuration file.')
 
-        cluster_setup = '\"qsub -e {cluster.error} -o {cluster.output} \
+        # save cluster logs if desired
+        if cluster_logs:
+            eo = '-e {cluster.error} -o {cluster.output} '
+        else:
+            eo = ''
+
+        cluster_setup = '\"qsub %s\
                          -l nodes=1:ppn={cluster.n} \
                          -l mem={cluster.mem} \
-                         -l walltime={cluster.time}\" '
+                         -l walltime={cluster.time}\" ' % eo
 
         if jobs == None:
             jobs = 16
@@ -306,10 +315,16 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
             raise IOError('If submitting to cluster, must provide a cluster '
                           'configuration file.')
 
-        cluster_setup = 'srun -e {cluster.error} -o {cluster.output} \
+        # save cluster logs if desired
+        if cluster_logs:
+            eo = '-e {cluster.error} -o {cluster.output} '
+        else:
+            eo = ''
+
+        cluster_setup = 'srun -e %s\
                          -n {cluster.n} \
                          --mem={cluster.mem} \
-                         --time={cluster.time}'
+                         --time={cluster.time}' % eo
         if jobs == None:
             jobs = 16
 
