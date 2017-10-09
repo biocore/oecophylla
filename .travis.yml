@@ -16,6 +16,7 @@ before_script:
   - echo 'oecophylla FTW!'
 script:
   # run workflow
+  - source activate oecophylla
   - pip install nose
   - nosetests .
   - oecophylla install --avail
