@@ -75,7 +75,7 @@ You can then run the test data on any module that you have installed, specifying
 oecophylla workflow --test -o test_out qc taxonomy
 ```
 
-## Basic tutorial
+# Basic tutorial
 
 For this tutorial, we'll analyze a pair of shallowly sequenced  microbiome samples distributed with the repository. They are located in `oecophylla/test_data/test_reads`.
 
@@ -85,9 +85,9 @@ This tutorial essentially duplicates the automatic execution of test data above,
 
 We need three inputs to execute:
 
-1. **Input reads directory**: `oecophylla/test_data/test_reads`
-2. **Parameters file**: `oecophylla/test_data/params.yaml`
-3. **Environment file**: `oecophylla/test_data/envs.yaml`
+1. **Input reads directory**: `test_data/test_reads`
+2. **Parameters file**: `test_data/params.yaml`
+3. **Environment file**: `test_data/envs.yaml`
 
 The *input reads* should be the gzipped raw demultiplexed Illumina reads, with filenames conforming to the Illumina bcl2fastq standard (e.g. sample_S102_L001_R1_001.fastq.gz). 
 
@@ -103,10 +103,10 @@ To run a simple workflow, executing read trimming and QC summaries, run the foll
 
 ```
 oecophylla workflow \
---input_dir test_data/test_reads \
+--input-dir test_data/test_reads \
 --params test_data/params.yaml \
 --envs test_data/envs.yaml \
---output_dir test_output qc
+--output-dir test_output qc
 ```
 Then go get a cup of coffee. 
 
@@ -139,3 +139,44 @@ The `results` directory will contain a separate folder for each module in the an
 These modules each will list per-sample outputs---for example, trimmed reads or assembled contigs---in per-sample directories within the module directory. 
 
 Combined outputs---for example, the MultiQC summaries or combined biom table taxonomic summaries---will be found in their own dictories within the primary module directory.
+
+
+## Running on a cluster
+
+The above commands will run Oecophylla locally, on the machine that is executing the Oecophylla script. However, because shotgun datasets tend to be huge, you will most likely want to run your analysis on a cluster. 
+
+Snakemake (and thus Oecophylla) are built to run in a cluster environment. 
+
+### Gather inputs
+
+As for local execution, you will need input data, a parameters file, and an environment file. (Note that the environment file may be modified to specify global environment configuration commands [i.e. using GNU Modules] rather than the Oecophylla-installed Conda environments.)
+
+In addition, you will need a `cluster.json` file, which specifies the resources to request from the cluster job scheduler for each rule.
+
+These may need to be modified for the specific cluster you are using. We've provided some example files suitable for running full-sized datasets on the Knight Lab's *Barnacle* compute cluster:
+
+1. **Input reads directory**: `test_data/test_reads`
+2. **Parameters file**: `cluster_configs/barnacle/tool_params.yml`
+3. **Environment file**: `cluster_configs/barnacle/envs.yml`
+4. **Cluster file**: `cluster_configs/barnacle/cluster.json`
+
+We have also provided a minimal `cluster.json` file suitable for the reduced resources required by the test data, located in `cluster_configs/cluster_test.json`. 
+
+### Run the Oecophylla launch script
+
+Running Oecophylla from the cluster is otherwise identical to running locally, with the exception that you must specify a cluster workflow type with the `--workflow-type` parameter and provide a path to a `cluster.json` file with the `--cluster-config` parameter. For our test data, we'll use the minimal `cluster.json` to reduce impact on the cluster and speed execution.
+
+From the Barnacle login node, enter the main Oecophylla Conda environment and run the following command:
+
+```bash
+oecophylla workflow \
+--workflow-type torque \
+--cluster-config cluster_configs/cluster_test.json \
+--input-dir test_data/test_reads \
+--params cluster_configs/barnacle/tool_params.yml \
+--envs cluster_configs/barnacle/envs.yml \
+--output-dir cluster_test qc
+```
+
+Note that we have specified `--workflow-type torque`. This tells Oecophylla to submit jobs to the cluster using the `qsub` command, which is appropriate to Barnacle. Other valid options are `slurm` (e.g. Comet uses the Slurm job scheduler) and `local` (the default). 
+
