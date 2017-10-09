@@ -27,7 +27,7 @@ rule taxonomy_metaphlan2:
         db = config['params']['metaphlan2']['db'],
         map = config['params']['metaphlan2']['map']
     threads:
-        4
+        2
     log:
         taxonomy_dir + "logs/taxonomy_metaphlan2.{sample}.log"
     benchmark:

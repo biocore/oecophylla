@@ -1,8 +1,12 @@
 abundance_samples:
+- sample_S22282
+- sample_S22205
 assemblers:
 - megahit
 - metaspades
 binning_samples:
+- sample_S22282
+- sample_S22205
 mapping_assembler:
 - metaspades
 filter_db: /databases/bowtie/Homo_sapiens_Bowtie2_v0.1/Homo_sapiens
