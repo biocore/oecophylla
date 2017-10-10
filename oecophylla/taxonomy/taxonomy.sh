@@ -11,16 +11,19 @@ conda env create --name oecophylla-centrifuge -f oecophylla-centrifuge.yaml --qu
 
 # currently shogun is a hack, running the install script until we
 # have stable conda install
-conda env create --name oecophylla-shogun -f oecophylla-shogun.yaml --quiet > /dev/null
+if ! conda env list | grep -q '^oecophylla-shogun\s'
+then
+  conda env create --name oecophylla-shogun -f oecophylla-shogun.yaml --quiet > /dev/null
 
-source activate oecophylla-shogun
+  source activate oecophylla-shogun
 
-echo $CONDA_PREFIX
+  echo $CONDA_PREFIX
 
-cd $CONDA_PREFIX/bin
+  cd $CONDA_PREFIX/bin
 
-wget https://github.com/knights-lab/UTree/releases/download/v2.0c/utree-search_gg
-chmod 755 utree-search_gg
+  wget https://github.com/knights-lab/UTree/releases/download/v2.0c/utree-search_gg
+  chmod 755 utree-search_gg
 
-wget https://github.com/knights-lab/BURST/releases/download/v0.99.4a/burst_linux_DB15
-chmod 755 burst_linux_DB15
+  wget https://github.com/knights-lab/BURST/releases/download/v0.99.4a/burst_linux_DB15
+  chmod 755 burst_linux_DB15
+fi
