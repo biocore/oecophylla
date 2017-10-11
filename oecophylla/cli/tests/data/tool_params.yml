@@ -26,7 +26,7 @@ metaphlan2:
   # taxon name to TaxID dictionary
   name2tid: 
   levels: phylum,genus,species
-  map: yes
+  map: no
 kraken:
   db: test_data/test_dbs/kraken
   # Bracken kmer distribution file
@@ -34,13 +34,13 @@ kraken:
   # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
   levels: phylum,genus,species
   # whether to keep original mapping file
-  map: yes
+  map: no
 centrifuge:
   db: test_data/test_dbs/centrifuge/5min
   # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
   levels: phylum,genus,species
   # whether to keep original mapping file
-  map: yes
+  map: no
 bracken:
   kmers: test_data/test_dbs/bracken/75mers_distr.txt
 shogun:
@@ -50,7 +50,7 @@ shogun:
   # taxonomic ranks (kingdom to strain) to redistribute reads
   levels: phylum,genus,species
   # whether to keep original mapping file
-  map: yes
+  map: no
 mash:
   sketch_size: 1000
   kmer: 21
