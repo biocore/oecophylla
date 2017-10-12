@@ -16,9 +16,7 @@ before_script:
   - echo 'oecophylla FTW!'
 script:
   # run workflow
-  - export PATH=$PATH:$PWD/utree
   - source activate oecophylla
-  - pip install -e .
   - pip install nose
   - nosetests .
   - oecophylla install --avail
