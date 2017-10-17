@@ -3,7 +3,6 @@ import unittest
 import pandas as pd
 from oecophylla.util.parse import (illumina_filenames_to_df,
                                    extract_sample_reads,
-                                   add_filter_db,
                                    extract_sample_paths,
                                    read_sample_sheet,
                                    extract_samples_from_sample_sheet)
@@ -111,7 +110,6 @@ class TestParse(unittest.TestCase):
 
         self.assertDictEqual(d, exp_d)
 
-
     def test_extract_sample_paths_db(self):
         seq_dir = '%s/../../../test_data/test_reads' % os.path.abspath(
             os.path.dirname(__file__))
@@ -138,73 +136,11 @@ class TestParse(unittest.TestCase):
 
         self.assertDictEqual(d, exp_d)
 
-
-    def test_add_filter_db(self):
-        seq_dir = '%s/../../../test_data/test_reads' % os.path.abspath(
-            os.path.dirname(__file__))
-
-        sample_fp_dict ={
-            'S22401': {
-                'forward': ['%s/S22401_S100_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22401_S100_L001_R2_001.fastq.gz' % seq_dir]},
-            'S22400': {
-                'forward': ['%s/S22400_S101_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22400_S101_L001_R2_001.fastq.gz' % seq_dir]},
-            'S22402': {
-                'forward': ['%s/S22402_S105_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22402_S105_L001_R2_001.fastq.gz' % seq_dir]},
-            'S22205': {
-                'forward': ['%s/S22205_S104_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22205_S104_L001_R2_001.fastq.gz' % seq_dir]},
-            'S22207': {
-                'forward': ['%s/S22207_S103_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22207_S103_L001_R2_001.fastq.gz' % seq_dir]},
-            'S22282': {
-                'forward': ['%s/S22282_S102_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22282_S102_L001_R2_001.fastq.gz' % seq_dir]}}
-
-        d = add_filter_db(sample_fp_dict, db_fp='db', samples = None,
-                           filter_col='filter_db')
-
-        exp_d ={
-            'S22401': {
-                'forward': ['%s/S22401_S100_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22401_S100_L001_R2_001.fastq.gz' % seq_dir],
-                'filter_db': 'db'
-            },
-            'S22400': {
-                'forward': ['%s/S22400_S101_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22400_S101_L001_R2_001.fastq.gz' % seq_dir],
-                'filter_db': 'db'
-            },
-            'S22402': {
-                'forward': ['%s/S22402_S105_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22402_S105_L001_R2_001.fastq.gz' % seq_dir],
-                'filter_db': 'db'
-            },
-            'S22205': {
-                'forward': ['%s/S22205_S104_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22205_S104_L001_R2_001.fastq.gz' % seq_dir],
-                'filter_db': 'db'
-            },
-            'S22207': {
-                'forward': ['%s/S22207_S103_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22207_S103_L001_R2_001.fastq.gz' % seq_dir],
-                'filter_db': 'db'
-            },
-            'S22282': {
-                'forward': ['%s/S22282_S102_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22282_S102_L001_R2_001.fastq.gz' % seq_dir],
-                'filter_db': 'db'
-            }
-        }
-        self.assertDictEqual(d, exp_d)
-
     def test_read_sample_sheet(self):
         fname = 'example_sample_sheet.txt'
         curfile = os.path.abspath(
             os.path.dirname(__file__))
-        fname = '%s/../../../test_data/%s' % (curfile, fname)
+        fname = '%s/../../../test_data/test_config/%s' % (curfile, fname)
         df = read_sample_sheet(fname)
 
         exp_df = pd.DataFrame(
