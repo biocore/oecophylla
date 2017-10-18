@@ -1,4 +1,4 @@
-rule raw_per_file_fastqc: 
+qrule raw_per_file_fastqc: 
     """
     Makes fastqc reports for each individual input file.
     """
@@ -217,8 +217,8 @@ rule qc_filter:
                       samtools view -bS 2> {log.other} | \
                       bedtools bamtofastq -i - -fq {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq -fq2 {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq 2> {log.other}
 
-                      pigz -c {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq.gz
-                      pigz -c {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq.gz
+                      pigz -p {threads} -c {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq.gz
+                      pigz -p {threads} -c {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq.gz
 
                       scp {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq.gz {output.forward}
                       scp {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq.gz {output.reverse} 
