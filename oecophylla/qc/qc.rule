@@ -1,4 +1,4 @@
-qrule raw_per_file_fastqc: 
+rule raw_per_file_fastqc: 
     """
     Makes fastqc reports for each individual input file.
     """
