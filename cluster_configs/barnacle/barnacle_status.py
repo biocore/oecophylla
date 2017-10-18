@@ -41,10 +41,19 @@ def print_status(status):
 def main():
     jobid = sys.argv[1]
 
-    cmd = "qstat -f {}".format(jobid)
-    p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    lines = p1.communicate()[0].decode()
-    status = parse_qstat(StringIO(lines))
+    TRY_TIMES = 3
+
+    for i in range(TRY_TIMES):
+        cmd = "qstat -f {}".format(jobid)
+        p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, shell=True)
+        out, err = p1.communicate()
+
+        if err.decode().startswith('qstat: Unknown Job Id Error'):
+            time.sleep(5)
+            continue
+
+    status = parse_qstat(StringIO(out.decode())
 
     print_status(status)
 
