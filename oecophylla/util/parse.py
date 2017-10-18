@@ -116,7 +116,7 @@ def extract_sample_paths(seq_dir):
 
 
 # Option 2: read samples from sample sheet
-def read_sample_sheet(f, sep='\t', comment='#'):
+def read_sample_sheet(f, sep=',', comment='#'):
     """ Outputs a dataframe from a sample sheet
 
     Parameters
