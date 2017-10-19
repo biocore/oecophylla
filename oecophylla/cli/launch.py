@@ -169,7 +169,7 @@ def _setup_test():
               help='Specify environments for the tools in a YAML file.')
 @click.option('--cluster-config', type=click.Path(), required=False,
               help='File with parameters for a cluster job.')
-@click.option('--cluster-logs', is_flag=True, flag_value=False,
+@click.option('--cluster-logs', is_flag=True, default=False,
               help='Saves cluster log output, may be useful for debugging. ' +
                    'WARNING: only enable if absolutely necessary!')
 @click.option('--local-scratch', type=click.Path(resolve_path=True,
@@ -192,7 +192,7 @@ def _setup_test():
               'this corresponds to the number of jobs to launch.')
 @click.option('--force', is_flag=True, default=False,
               help='Restarts the run and overwrites previous input.')
-@click.option('--just-config', is_flag=True, flag_value=False,
+@click.option('--just-config', is_flag=True, default=False,
               help='Only generate the configuration file.')
 @click.option('--test', is_flag=True, default=False,
               help='Executes a run with the included test data.')
@@ -287,6 +287,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
 
         # save cluster logs if desired
         if cluster_logs:
+            print('cluster logging\n\n')
             eo = '-e {cluster.error} -o {cluster.output} '
         else:
             eo = '-e /dev/null -o /dev/null'
