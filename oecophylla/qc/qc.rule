@@ -219,8 +219,8 @@ rule qc_filter:
 
                       bedtools bamtofastq -i {temp_dir}/{wildcards.sample}.bam -fq {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq -fq2 {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq 2> {log.other}
 
-                      gzip -c {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq.gz
-                      gzip -c {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq.gz
+                      pigz -p {threads} -c {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq.gz
+                      pigz -p {threads} -c {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq.gz
 
                       cp {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq.gz {output.forward}
                       cp {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq.gz {output.reverse} 
