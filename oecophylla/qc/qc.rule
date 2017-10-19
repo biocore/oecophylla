@@ -212,16 +212,15 @@ rule qc_filter:
                       set +u; {params.env}; set -u
           
                       bowtie2 -p {threads} -x {params.filter_db} --very-sensitive -1 {input.forward} -2 {input.reverse} 2> {log.bowtie}| \
-                      samtools view -f 12 -F 256 2> {log.other}| \
-                      samtools sort -T {temp_dir} -@ {threads} -n 2> {log.other} | \
-                      samtools view -bS 2> {log.other} > {temp_dir}/{wildcards.sample}.bam
+                      samtools view -f 12 -F 256 -b -o {temp_dir}/{wildcards.sample}.unsorted.bam 2> {log.other} 
+                       
+                      samtools sort -T {temp_dir}/{wildcards.sample} -@ {threads} -n \
+                      -o {temp_dir}/{wildcards.sample}.bam {temp_dir}/{wildcards.sample}.unsorted.bam 2> {log.other} 
 
-                      bedtools bamtofastq -i {temp_dir}/{wildcards.sample}.bam \
-                      -fq {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq \
-                      -fq2 {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq 2> {log.other}
+                      bedtools bamtofastq -i {temp_dir}/{wildcards.sample}.bam -fq {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq -fq2 {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq 2> {log.other}
 
-                      pigz -p {threads} -c {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq.gz
-                      pigz -p {threads} -c {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq.gz
+                      gzip -c {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq.gz
+                      gzip -c {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq > {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq.gz
 
                       cp {temp_dir}/{wildcards.sample}.R1.trimmed.filtered.fastq.gz {output.forward}
                       cp {temp_dir}/{wildcards.sample}.R2.trimmed.filtered.fastq.gz {output.reverse} 
