@@ -13,7 +13,7 @@ from oecophylla.taxonomy.parser import (combine_profiles,
                                         pandas2biom)
 
 
-class ParserTest(TestCase):
+class TaxonomyParserTest(TestCase):
     def test_combine_profiles(self):
         exp = pd.read_table(get_data_path('shogun/combined.phylum.tsv'),
                             index_col=0)
