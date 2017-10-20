@@ -1,0 +1,52 @@
+Job Id: 522083.barnacle.ucsd.edu
+    Job_Name = timeout.pbs
+    Job_Owner = jgsanders@barnacle.ucsd.edu
+    resources_used.cput = 00:00:00
+    resources_used.mem = 3500kb
+    resources_used.vmem = 336264kb
+    resources_used.walltime = 00:00:14
+    job_state = C
+    queue = short4gb
+    server = barnacle.ucsd.edu
+    Checkpoint = u
+    ctime = Fri Oct 20 04:30:41 2017
+    Error_Path = barnacle.ucsd.edu:/home/jgsanders/test/timeout.pbs.e522083
+    exec_host = brncl-31/5
+    exec_port = 15003
+    Hold_Types = n
+    Join_Path = n
+    Keep_Files = n
+    Mail_Points = a
+    mtime = Fri Oct 20 04:30:55 2017
+    Output_Path = barnacle.ucsd.edu:/home/jgsanders/test/timeout.pbs.o522083
+    Priority = 0
+    qtime = Fri Oct 20 04:30:41 2017
+    Rerunable = True
+    Resource_List.ncpus = 1
+    Resource_List.pmem = 1gb
+    Resource_List.walltime = 00:00:01
+    session_id = 20926
+    Variable_List = PBS_O_QUEUE=route,PBS_O_HOME=/home/jgsanders,
+	PBS_O_LOGNAME=jgsanders,
+	PBS_O_PATH=/home/jgsanders/miniconda/bin:/usr/lib64/qt-3.3/bin:/usr/l
+	ocal/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/gold/2.2.0
+	.5/sbin:/opt/gold/2.2.0.5/bin:/opt/torque-4.2.8/bin:/opt/torque-4.2.8/
+	sbin:/opt/maui-3.3.1/bin:/home/jgsanders/bin:/home/jgsanders/git_sw/gi
+	t_bin:/home/jgsanders/git_sw/script_bin,
+	PBS_O_MAIL=/var/spool/mail/jgsanders,PBS_O_SHELL=/bin/bash,
+	PBS_O_LANG=en_US.UTF-8,PBS_O_WORKDIR=/home/jgsanders/test,
+	PBS_O_HOST=barnacle.ucsd.edu,PBS_O_SERVER=barnacle
+    euser = jgsanders
+    egroup = knightlab
+    queue_type = E
+    etime = Fri Oct 20 04:30:41 2017
+    exit_status = -11
+    submit_args = timeout.pbs
+    start_time = Fri Oct 20 04:30:41 2017
+    start_count = 1
+    fault_tolerant = False
+    comp_time = Fri Oct 20 04:30:55 2017
+    job_radix = 0
+    total_runtime = 14.202278
+    submit_host = barnacle.ucsd.edu
+
