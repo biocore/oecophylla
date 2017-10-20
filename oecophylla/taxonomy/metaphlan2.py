@@ -4,7 +4,7 @@ import urllib.request
 import pandas as pd
 
 
-def read_taxid_list(filename, dict=None):
+def read_taxid_list(filename, _dict=None):
     """ Read a taxID list file.
 
     A taxID list file consists of three tab separated columns: 1. ID type,
@@ -15,7 +15,7 @@ def read_taxid_list(filename, dict=None):
     ----------
     filename : str
         Path to the file containing the taxID list.
-    dict : dict
+    _dict : dict
         Optional. Provide an existing dictionary into which parsed results
         should be added. Useful if the taxID list consists of several files.
 
@@ -27,31 +27,26 @@ def read_taxid_list(filename, dict=None):
 
     Raises
     ------
-    IOError
-        If the file cannot be read.
     ValueError
         If a line does not contain of exactly three tab delimited fields.
     """
-    if dict is None:
-        dict = {}
-    try:
-        f = open(filename, 'r')
-        f.readline()  # header
-        for line in f:
-            try:
-                type, accession, taxid = line.rstrip().split("\t")
-                if type not in dict:
-                    dict[type] = {}
-                dict[type][accession] = int(taxid)
-            except ValueError:
-                f.close()
-                raise ValueError("Error parsing line '%s' of file '%s'" %
-                                 (line, filename))
+    if _dict is None:
+        _dict = dict()
+    f = open(filename, 'r')
+    f.readline()  # header
+    for line in f:
+        try:
+            _type, accession, taxid = line.rstrip().split("\t")
+            if _type not in _dict:
+                _dict[_type] = {}
+            _dict[_type][accession] = taxid
+        except ValueError:
+            f.close()
+            raise ValueError("Error parsing line '%s' of file '%s'" %
+                             (line, filename))
 
-        f.close()
-        return dict
-    except IOError:
-        raise IOError('Cannot read file "%s"' % filename)
+    f.close()
+    return _dict
 
 
 def read_metaphlan_markers_info(filename):
@@ -73,46 +68,37 @@ def read_metaphlan_markers_info(filename):
     with keys that refer to one of the three sequence sources. And their values
     are sets of marker gene IDs. For example:
     's__Escherichia_phage_vB_EcoP_G7C': {'GeneID': {'11117645', '11117646'}}
-
-    Raises
-    ------
-    IOError
-        If the file cannot be read.
     """
     clades = {}
-    try:
-        file = open(filename, 'r')
-        for line in file:
-            if line.startswith('gi|'):
-                type_ids = 'gi'
-                accession = (line.split('\t')[0]).split('|')[1]
-            elif line.startswith('GeneID:'):
-                type_ids = 'GeneID'
-                accession = (line.split('\t')[0]).split(':')[1]
-            elif line.startswith('NC_'):
-                type_ids = 'NC'
-                accession = line.split('\t')[0]
-            else:
-                type_ids = None
-                accession = None
+    file = open(filename, 'r')
+    for line in file:
+        if line.startswith('gi|'):
+            type_ids = 'gi'
+            accession = line.split('\t')[0].split('|')[1]
+        elif line.startswith('GeneID:'):
+            type_ids = 'GeneID'
+            accession = line.split('\t')[0].split(':')[1]
+        elif line.startswith('NC_'):
+            type_ids = 'NC'
+            accession = line.split('\t')[0]
+        else:
+            type_ids = None
+            accession = None
 
-            if (type_ids is not None) and (accession is not None):
-                clade = line.split("clade': '")[1].split("'")[0]
-                if clade not in clades:
-                    clades[clade] = {}
-                if type_ids not in clades[clade]:
-                    clades[clade][type_ids] = {}
-                clades[clade][type_ids][accession] = True
+        if (type_ids is not None) and (accession is not None):
+            clade = line.split("clade': '")[1].split("'")[0]
+            if clade not in clades:
+                clades[clade] = {}
+            if type_ids not in clades[clade]:
+                clades[clade][type_ids] = {}
+            clades[clade][type_ids][accession] = True
 
-        for clade in clades:
-            for type_id in clades[clade]:
-                clades[clade][type_id] = set(clades[clade][type_id].keys())
+    for clade in clades:
+        for type_id in clades[clade]:
+            clades[clade][type_id] = set(clades[clade][type_id].keys())
 
-        file.close()
-        return clades
-
-    except IOError:
-        raise IOError('Cannot read file "%s"' % filename)
+    file.close()
+    return clades
 
 
 def _read_ncbitaxonomy_file(filename):
@@ -130,28 +116,17 @@ def _read_ncbitaxonomy_file(filename):
 
     Raises
     ------
-    IOError
-        If the file cannot be read.
     ValueError
         If IDs of entries cannot be converted into int.
     """
     entries = {}
-    try:
-        file = open(filename, 'r')
-        for line in file:
-            fields = list(map(str.strip, line.split('|')))
-            try:
-                entries[int(fields[0])] = int(fields[1])
-            except ValueError:
-                file.close()
-                raise ValueError("cannot convert entry IDs (%s, %s) to int."
-                                 % (fields[0], fields[1]))
+    file = open(filename, 'r')
+    for line in file:
+        fields = list(map(str.strip, line.split('|')))
+        entries[fields[0]] = fields[1]
 
-        file.close()
-        return entries
-
-    except IOError:
-        raise IOError('Cannot read file "%s"' % filename)
+    file.close()
+    return entries
 
 
 def read_ncbi_merged(filename):
@@ -168,8 +143,6 @@ def read_ncbi_merged(filename):
 
     Raises
     ------
-    IOError
-        If the file cannot be read.
     ValueError
         If IDs of old or merged nodes cannot be converted into int.
     """
@@ -268,13 +241,13 @@ def generate_map_metaphlan2_ncbitaxids(filename_map, latest_mergeddump=None):
     # iterates over all metaphlan clades and translates the sequence IDs of the
     # clade into NCBI taxonomy IDs
     _map = []
-    for clade in clades_metaphlan.keys():
+    for clade in sorted(clades_metaphlan.keys()):
         taxids = set()
         for _type in clades_metaphlan[clade].keys():
             for _id in clades_metaphlan[clade][_type]:
                 taxids |= set([taxids_metaphlan[_type][_id]])
         _map.append({'metaphlan2_clade': clade,
-                     'NCBI_taxids': ",".join(map(str, taxids))})
+                     'NCBI_taxids': ",".join(map(str, sorted(taxids)))})
     _map = pd.DataFrame(_map)[['metaphlan2_clade', 'NCBI_taxids']]
 
     # write the resulting map into a tab separated file
