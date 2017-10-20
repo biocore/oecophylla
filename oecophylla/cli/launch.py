@@ -289,7 +289,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
         if cluster_logs:
             eo = '-e {cluster.error} -o {cluster.output} '
         else:
-            eo = ''
+            eo = '-e /dev/null -o /dev/null'
 
         cluster_setup = '\"qsub %s\
                          -l nodes=1:ppn={cluster.n} \
@@ -319,7 +319,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
         if cluster_logs:
             eo = '-e {cluster.error} -o {cluster.output} '
         else:
-            eo = ''
+            eo = '-e /dev/null -o /dev/null'
 
         cluster_setup = 'srun -e %s\
                          -n {cluster.n} \
