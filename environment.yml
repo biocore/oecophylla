@@ -3,6 +3,6 @@ channels:
   - biocore
 dependencies:
   - python==3.5
-  - snakemake==4.2.0
+  - snakemake>=4.1
   - scikit-bio==0.5.1
   - biom-format==2.1.6
