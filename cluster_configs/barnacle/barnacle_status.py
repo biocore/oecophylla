@@ -7,36 +7,38 @@ import re
 from io import StringIO
 
 def parse_qstat(lines):
-    status = {}
+    q_dict = {}
 
     for line in lines:
         if line.startswith(' '):
             entry = line.rstrip()
             p = re.compile('^ +(.+?) = (.+)')
             m = p.match(entry.rstrip())
-            status[m.groups()[0]] = m.groups()[1]
+            q_dict[m.groups()[0]] = m.groups()[1]
         elif line.startswith('\t'):
             entry += line.strip()
             p = re.compile('^ +(.+?) = (.+)')
             m = p.match(entry.rstrip())
-            status[m.groups()[0]] = m.groups()[1]
+            q_dict[m.groups()[0]] = m.groups()[1]
+
+    return(q_dict)
+
+def get_status(q_dict):
+    try:
+        if q_dict['job_state'] == 'R':
+            status = "running"
+        elif q_dict['job_state'] == 'Q':
+            status = "running"
+        elif q_dict['job_state'] == 'C' and q_dict['exit_status'] == '0':
+            status = "success"
+        elif q_dict['job_state'] == 'C' and q_dict['exit_status'] != '0':
+            status = "failed"
+        else:
+            status = "failed"
+    except KeyError:
+        status = "failed"
 
     return(status)
-
-def print_status(status):
-    try:
-        if status['job_state'] == 'R':
-            print("running")
-        elif status['job_state'] == 'Q':
-            print("running")
-        elif status['job_state'] == 'C' and status['exit_status'] == '0':
-            print("success")
-        elif status['job_state'] == 'C' and status['exit_status'] != '0':
-            print("failed")
-        else:
-            print("failed")
-    except KeyError:
-        print("failed")
 
 def main():
     jobid = sys.argv[1]
@@ -53,9 +55,11 @@ def main():
             time.sleep(5)
             continue
 
-    status = parse_qstat(StringIO(out.decode()))
+    q_dict = parse_qstat(StringIO(out.decode()))
 
-    print_status(status)
+    status = get_status(q_dict)
+
+    print(status)
 
 if __name__ == '__main__':
     main()
