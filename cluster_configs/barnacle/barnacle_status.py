@@ -9,15 +9,14 @@ from io import StringIO
 def parse_qstat(lines):
     q_dict = {}
 
+    p = re.compile('^ +(.+?) = (.+)')
     for line in lines:
         if line.startswith(' '):
             entry = line.rstrip()
-            p = re.compile('^ +(.+?) = (.+)')
             m = p.match(entry.rstrip())
             q_dict[m.groups()[0]] = m.groups()[1]
         elif line.startswith('\t'):
             entry += line.strip()
-            p = re.compile('^ +(.+?) = (.+)')
             m = p.match(entry.rstrip())
             q_dict[m.groups()[0]] = m.groups()[1]
 
