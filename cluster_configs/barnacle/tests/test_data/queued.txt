@@ -1,0 +1,38 @@
+Job Id: 515916.barnacle.ucsd.edu
+    Job_Name = pita.deblur
+    Job_Owner = amamir@barnacle.ucsd.edu
+    job_state = Q
+    queue = med4gb
+    server = barnacle.ucsd.edu
+    Checkpoint = u
+    ctime = Thu Oct 19 06:35:07 2017
+    Error_Path = barnacle.ucsd.edu:/home/amam7564/data/mice-quinoa/pita.deblur
+	.error
+    Hold_Types = n
+    Join_Path = eo
+    Keep_Files = n
+    Mail_Points = abe
+    Mail_Users = amnonimjobs@gmail.com
+    mtime = Thu Oct 19 06:35:07 2017
+    Output_Path = barnacle.ucsd.edu:/home/amam7564/data/mice-quinoa/pita.deblu
+	r.error
+    Priority = 0
+    qtime = Thu Oct 19 06:35:07 2017
+    Rerunable = True
+    Resource_List.mem = 250gb
+    Resource_List.ncpus = 1
+    Resource_List.nodect = 1
+    Resource_List.nodes = 1:ppn=32
+    Resource_List.pmem = 1gb
+    Resource_List.walltime = 48:00:00
+    euser = amamir
+    egroup = knightlab
+    queue_type = E
+    etime = Thu Oct 19 06:35:07 2017
+    submit_args = -d /home/amam7564/data/mice-quinoa -V -m abe -M amnonimjobs@
+	gmail.com -j eo -e pita.deblur.error -l walltime=48:00:00,
+	nodes=1:ppn=32,mem=250gb -N pita.deblur
+    fault_tolerant = False
+    job_radix = 0
+    submit_host = barnacle.ucsd.edu
+

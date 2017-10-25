@@ -1,0 +1,62 @@
+Job Id: 522081.barnacle.ucsd.edu
+    Job_Name = snakejob.qc_per_sample_fastqc.8980.sh
+    Job_Owner = jgsanders@barnacle.ucsd.edu
+    resources_used.cput = 00:00:12
+    resources_used.mem = 348800kb
+    resources_used.vmem = 4622536kb
+    resources_used.walltime = 00:00:27
+    job_state = C
+    queue = short4gb
+    server = barnacle.ucsd.edu
+    Checkpoint = u
+    ctime = Fri Oct 20 04:27:37 2017
+    Error_Path = barnacle.ucsd.edu:/dev/null
+    exec_host = brncl-31/4
+    exec_port = 15003
+    Hold_Types = n
+    Join_Path = n
+    Keep_Files = n
+    Mail_Points = a
+    mtime = Fri Oct 20 04:28:05 2017
+    Output_Path = barnacle.ucsd.edu:/dev/null
+    Priority = 0
+    qtime = Fri Oct 20 04:27:37 2017
+    Rerunable = True
+    Resource_List.mem = 4b
+    Resource_List.ncpus = 1
+    Resource_List.nodect = 1
+    Resource_List.nodes = 1:ppn=1
+    Resource_List.pmem = 1gb
+    Resource_List.walltime = 04:00:00
+    session_id = 4911
+    Variable_List = PBS_O_QUEUE=route,PBS_O_HOME=/home/jgsanders,
+	PBS_O_LOGNAME=jgsanders,
+	PBS_O_PATH=/home/jgsanders/miniconda/envs/oecophylla/bin:/home/jgsand
+	ers/miniconda/bin:/home/jgsanders/miniconda/bin:/home/jgsanders/minico
+	nda/bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/
+	sbin:/usr/sbin:/sbin:/opt/gold/2.2.0.5/sbin:/opt/gold/2.2.0.5/bin:/opt
+	/torque-4.2.8/bin:/opt/torque-4.2.8/sbin:/opt/maui-3.3.1/bin:/home/jgs
+	anders/bin:/home/jgsanders/git_sw/git_bin:/home/jgsanders/git_sw/scrip
+	t_bin:/home/jgsanders/bin:/home/jgsanders/git_sw/git_bin:/home/jgsande
+	rs/git_sw/script_bin:/home/jgsanders/bin:/home/jgsanders/git_sw/git_bi
+	n:/home/jgsanders/git_sw/script_bin,
+	PBS_O_MAIL=/var/spool/mail/jgsanders,PBS_O_SHELL=/bin/bash,
+	PBS_O_LANG=en_US.UTF-8,
+	PBS_O_WORKDIR=/projects/finrisk/shotgun/analysis/20171006_finrisk,
+	PBS_O_HOST=barnacle.ucsd.edu,PBS_O_SERVER=barnacle
+    euser = jgsanders
+    egroup = knightlab
+    queue_type = E
+    etime = Fri Oct 20 04:27:37 2017
+    exit_status = 0
+    submit_args = -e /dev/null -o /dev/null -l nodes=1:ppn=1 -l mem=4 -l wallt
+	ime=4:00:00 /projects/finrisk/shotgun/analysis/20171006_finrisk/.snake
+	make/tmp.lpmhvgtt/snakejob.qc_per_sample_fastqc.8980.sh
+    start_time = Fri Oct 20 04:27:38 2017
+    start_count = 1
+    fault_tolerant = False
+    comp_time = Fri Oct 20 04:28:05 2017
+    job_radix = 0
+    total_runtime = 27.615239
+    submit_host = barnacle.ucsd.edu
+
