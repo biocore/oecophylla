@@ -40,7 +40,7 @@ centrifuge:
   # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
   levels: phylum,genus,species
   # whether to keep original mapping file
-  map: yes
+  map: no
 bracken:
   kmers: test_data/test_dbs/bracken/75mers_distr.txt
 shogun:

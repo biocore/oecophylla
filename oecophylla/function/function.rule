@@ -1,3 +1,8 @@
+import sys
+sys.path.append('../taxonomy')
+from parser import (combine_profiles, pandas2biom)
+
+
 rule function_combine_metaphlan2:
     """
     Combines MetaPhlAn2 output for unified taxonomic profile for HUMAnN2.
@@ -201,12 +206,116 @@ rule humann2:
         expand(rules.function_humann2_combine_tables.output, sample=samples)
 
 
+rule function_shogun:
+    """
+    Runs SHOGUN to construct functional profiles
+    """
+    input:
+        profile = taxonomy_dir + "{sample}/shogun/{sample}.profile.txt"
+    output:
+        genus_norm = func_dir + "{sample}/shogun/{sample}.genus.normalized.txt",
+        genus_kegg = func_dir + "{sample}/shogun/{sample}.genus.kegg.txt",
+        genus_modules = func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.txt",
+        genus_coverage = func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.coverage.txt",
+        species_norm = func_dir + "{sample}/shogun/{sample}.species.normalized.txt",
+        species_kegg = func_dir + "{sample}/shogun/{sample}.species.kegg.txt",
+        species_modules = func_dir + "{sample}/shogun/{sample}.species.kegg.modules.txt",
+        species_coverage = func_dir + "{sample}/shogun/{sample}.species.kegg.modules.coverage.txt",
+        strain_norm = func_dir + "{sample}/shogun/{sample}.strain.normalized.txt",
+        strain_kegg = func_dir + "{sample}/shogun/{sample}.strain.kegg.txt",
+        strain_modules = func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.txt",
+        strain_coverage = func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.coverage.txt"
+    params:
+        env = config['envs']['shogun'],
+        db = config['params']['shogun']['db']
+    threads:
+        8
+    log:
+        func_dir + "logs/function_shogun_{sample}.log"
+    benchmark:
+        "benchmarks/function/function_shogun_{sample}.json"
+    run:
+        out_dir = os.path.dirname(output[0])
+        # out_dir = os.path.join(func_dir, "{sample}/shogun")
+        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
+            shell("""
+                  set +u; {params.env}; set -u
+
+                  cp {input.profile} {temp_dir}/{wildcards.sample}.txt
+
+                  for level in genus species strain
+                  do
+                    shogun functional \
+                    --database {params.db} \
+                    --input {temp_dir}/{wildcards.sample}.txt \
+                    --output {temp_dir} \
+                    --level $level \
+                    2>> {log} 1>&2
+                  done
+
+                  cp {temp_dir}/{wildcards.sample}.*.txt {out_dir}/
+                  """)
+
+
+rule function_shogun_combine_profiles:
+    """
+    Combines per-sample SHOGUN functional profiles into single OTU tables.
+    """
+    input:
+        genus_kegg = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.txt",
+                            sample=samples),
+        genus_modules = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.txt",
+                               sample=samples),
+        genus_coverage = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.coverage.txt",
+                                sample=samples),
+        species_kegg = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.txt",
+                              sample=samples),
+        species_modules = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.modules.txt",
+                                 sample=samples),
+        species_coverage = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.modules.coverage.txt",
+                                  sample=samples),
+        strain_kegg = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.txt",
+                             sample=samples),
+        strain_modules = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.txt",
+                                sample=samples),
+        strain_coverage = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.coverage.txt",
+                                 sample=samples)
+    output:
+        genus_kegg = func_dir + "shogun/genus.kegg.biom",
+        genus_modules = func_dir + "shogun/genus.kegg.modules.biom",
+        genus_coverage = func_dir + "shogun/genus.kegg.modules.coverage.biom",
+        species_kegg = func_dir + "shogun/species.kegg.biom",
+        species_modules = func_dir + "shogun/species.kegg.modules.biom",
+        species_coverage = func_dir + "shogun/species.kegg.modules.coverage.biom",
+        strain_kegg = func_dir + "shogun/strain.kegg.biom",
+        strain_modules = func_dir + "shogun/strain.kegg.modules.biom",
+        strain_coverage = func_dir + "shogun/strain.kegg.modules.coverage.biom"
+    log:
+        func_dir + "logs/function_shogun_combine_profiles.log"
+    benchmark:
+        "benchmarks/function/function_shogun_combine_profiles.txt"
+    run:
+        for level in ('genus', 'species', 'strain'):
+            for target in ('kegg', 'modules', 'coverage'):
+                item = '%s_%s' % (level, target)
+                pandas2biom(output[item],
+                            combine_profiles(zip(samples, input[item])))
+
+
+rule shogun_func:
+    """
+    Rule to do SHOGUN functional profiling
+        - runs "shogun functional" per sample
+        - combines SHOGUN outputs and converts to biom format
+    """
+    input:
+        expand(rules.function_shogun_combine_profiles.output, sample=samples)
+
+
 rule function:
     """
     Rule to do functional profiling of metagenomes.
-
-    Currently only runs HUMANn2
     """
     input:
-        rules.humann2.input
-
+        rules.humann2.input,
+        rules.shogun_func.input
