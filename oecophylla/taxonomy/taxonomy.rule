@@ -1,7 +1,7 @@
 from parser import (combine_profiles,
                     extract_level,
+                    combine_kraken,
                     combine_bracken,
-                    combine_centrifuge,
                     pandas2biom)
 
 
@@ -271,37 +271,21 @@ rule taxonomy_centrifuge:
                   then
                     gzip -c {temp_dir}/map.tmp > $stem.map.txt.gz
                   fi
-
-                  # run Bracken to re-estimate abundance at given rank
-                  if [[ ! -z {params.levels} ]]
-                  then
-                    IFS=',' read -r -a levels <<< "{params.levels}"
-                    for level in "${{levels[@]}}"
-                    do
-                      est_abundance.py -i {output.report} \
-                        -k {params.kmers} \
-                        -t 10 \
-                        -l $(echo $level | head -c 1 | tr a-z A-Z) \
-                        -o $stem.redist.$level.txt \
-                        2>> {log} 1>&2
-                      rm $stem.report_bracken.txt
-                    done
-                  fi
                   """)
 
 
 rule taxonomy_centrifuge_combine_profiles:
     """
-    Combines per-sample Centrifuge/Bracken output tables into single OTU
+    Combines per-sample Centrifuge's Kraken-style report files into single OTU
     tables.
     """
     input:
-        expand(taxonomy_dir + "{sample}/centrifuge/{sample}.profile.txt",
+        expand(taxonomy_dir + "{sample}/centrifuge/{sample}.report.txt",
                sample=samples)
     output:
         taxonomy_dir + "centrifuge/combined_profile.biom"
         # extra output files:
-        # combined_redist.{level}.biom foreach {levels}
+        # combined_profile.{level}.biom foreach {levels}
     params:
         levels = config['params']['centrifuge']['levels']
     log:
@@ -309,14 +293,13 @@ rule taxonomy_centrifuge_combine_profiles:
     benchmark:
         "benchmarks/taxonomy/taxonomy_centrifuge_combine_profiles.txt"
     run:
-        pandas2biom(output[0], combine_centrifuge(zip(samples, input)))
+        # this is not a typo. Centrifuge produces Kraken-style reports.
+        comb, lv2tids = combine_kraken(zip(samples, input))
+        pandas2biom(output[0], comb)
         for level in params['levels'].split(','):
-            redists = ['%s/%s/centrifuge/%s.redist.%s.txt'
-                       % (taxonomy_dir, sample, sample, level)
-                       for sample in samples]
-            pandas2biom('%s/centrifuge/combined_redist.%s.biom'
+            pandas2biom('%s/centrifuge/combined_profile.%s.biom'
                         % (taxonomy_dir, level),
-                        combine_bracken(zip(samples, redists)))
+                        comb[comb.index.isin(lv2tids[level[0].upper()])])
 
 
 rule centrifuge:
@@ -359,9 +342,9 @@ rule taxonomy_shogun:
                   stem={output.profile}
                   stem=${{stem%.profile.txt}}
 
-                  # convert and merge fastq's into fasta
-                  seqtk seq -A {input.forward} > {temp_dir}/{wildcards.sample}.fna
-                  seqtk seq -A {input.reverse} >> {temp_dir}/{wildcards.sample}.fna
+                  # interleave paired fastq's and convert to fasta
+                  seqtk mergepe {input.forward} {input.reverse} | \
+                  seqtk seq -A > {temp_dir}/{wildcards.sample}.fna
 
                   # map reads to reference database
                   shogun align \
