@@ -6,31 +6,30 @@ import time
 import re
 from io import StringIO
 
-def parse_qstat(lines):
-    q_dict = {}
+def parse_scontrol(lines):
+    s_dict = {}
 
-    p = re.compile('^ +(.+?) = (.+)')
+    p = re.compile('^(.+?)=(.+)$')
     for line in lines:
-        if line.startswith(' '):
-            entry = line.rstrip()
-            m = p.match(entry.rstrip())
-            q_dict[m.groups()[0]] = m.groups()[1]
-        elif line.startswith('\t'):
-            entry += line.strip()
-            m = p.match(entry.rstrip())
-            q_dict[m.groups()[0]] = m.groups()[1]
+        entries = line.strip().split(' ')
+        for entry in entries:
+            m = p.match(entry)
+            if m:
+                s_dict[m.groups()[0]] = m.groups()[1]
 
-    return(q_dict)
+    return(s_dict)
 
-def get_status(q_dict):
+def get_status(s_dict):
     try:
-        if q_dict['job_state'] == 'R':
+        if s_dict['JobState'] == 'RUNNING':
             status = "running"
-        elif q_dict['job_state'] == 'Q':
+        elif s_dict['JobState'] == 'PENDING':
             status = "running"
-        elif q_dict['job_state'] == 'C' and q_dict['exit_status'] == '0':
+        elif s_dict['JobState'] == 'COMPLETED' and s_dict['ExitCode'] == '0:0':
             status = "success"
-        elif q_dict['job_state'] == 'C' and q_dict['exit_status'] != '0':
+        elif s_dict['JobState'] == 'FAILED':
+            status = "failed"
+        elif s_dict['JobState'] == 'TIMEOUT':
             status = "failed"
         else:
             status = "failed"
@@ -45,18 +44,18 @@ def main():
     TRY_TIMES = 3
 
     for i in range(TRY_TIMES):
-        cmd = "qstat -f {}".format(jobid)
+        cmd = "scontrol show job  {}".format(jobid)
         p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, shell=True)
         out, err = p1.communicate()
 
-        if err.decode().startswith('qstat: Unknown Job Id Error'):
-            time.sleep(5)
+        if err.decode().startswith('slurm_load_jobs error: Invalid job id specified'):
+            time.sleep(1)
             continue
 
-    q_dict = parse_qstat(StringIO(out.decode()))
+    s_dict = parse_qstat(StringIO(out.decode()))
 
-    status = get_status(q_dict)
+    status = get_status(s_dict)
 
     print(status)
 
