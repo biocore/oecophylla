@@ -177,9 +177,11 @@ def _setup_test():
               default='/tmp',
               help='Temporary directory for storing intermediate files.')
 @click.option('--workflow-type',
-              type=click.Choice(['torque', 'slurm', 'local']),
+              type=click.Choice(['profile', 'torque', 'slurm', 'local']),
               default='local',
               help='Select where to run the pipeline (cluster or locally).')
+@click.option('--profile', type=click.Path(), required=False,
+              help='Path to Snakemake profile configuration directory')
 @click.option('--output-dir', '-o', type=click.Path(), required=False,
               help='Output directory in which to run analysis.')
 @click.option('--snakemake-args', type=click.STRING, default='',
@@ -198,7 +200,7 @@ def _setup_test():
               help='Executes a run with the included test data.')
 def workflow(targets, input_dir, sample_sheet, params, envs,
              cluster_config, cluster_logs, local_scratch, workflow_type,
-             output_dir, snakemake_args, local_cores, jobs,
+             profile, output_dir, snakemake_args, local_cores, jobs,
              force, just_config, test):
     import snakemake
     from skbio.io.registry import sniff
@@ -279,7 +281,24 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     #     _create_dir(log_dir)
     # else:
     #     os.makedirs('%s/%s' % (output_dir, 'cluster_logs'))
-    if workflow_type == 'torque':
+    if workflow_type == 'profile':
+        if not os.path.exists(os.path.join(profile, 'config.yaml')):
+            raise IOError('If submitting via cluster profile, must provide a '
+                          'cluster profile directory with a valid config.yaml')
+        if not os.path.exists(cluster_config):
+            raise IOError('If submitting to cluster, must provide a cluster '
+                          'configuration file.')
+
+        cmd = ' '.join(['snakemake ',
+                        '--snakefile %s ' % snakefile,
+                        '--cluster-config %s ' % cluster_config,
+                        '--profile %s '  % profile,
+                        '--configfile %s ' % config_fp,
+                        '--directory %s ' % output_dir,
+                        snakemake_args,
+                        ' '.join(targets)])
+
+    elif workflow_type == 'torque':
 
         if not os.path.exists(cluster_config):
             raise IOError('If submitting to cluster, must provide a cluster '
@@ -310,6 +329,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
                         '--directory %s ' % output_dir,
                         snakemake_args,
                         ' '.join(targets)])
+
     elif workflow_type == 'slurm':
 
         if not os.path.exists(cluster_config):
