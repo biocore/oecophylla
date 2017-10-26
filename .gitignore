@@ -6,6 +6,7 @@ i# Compiled source #
 *.exe
 *.o
 *.so
+__pycache__
 
 # Packages #
 ############
