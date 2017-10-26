@@ -7,6 +7,7 @@ i# Compiled source #
 *.o
 *.so
 __pycache__
+*.pyc
 
 # Packages #
 ############
