@@ -1,58 +1,24 @@
-Job Id: 522059.barnacle.ucsd.edu
-    Job_Name = snakejob.qc_filter.298.sh
-    Job_Owner = jgsanders@barnacle.ucsd.edu
-    resources_used.cput = 00:11:16
-    resources_used.mem = 3539040kb
-    resources_used.vmem = 5240192kb
-    resources_used.walltime = 00:03:04
-    job_state = R
-    queue = short4gb
-    server = barnacle.ucsd.edu
-    Checkpoint = u
-    ctime = Fri Oct 20 04:25:04 2017
-    Error_Path = barnacle.ucsd.edu:/dev/null
-    exec_host = brncl-31/0+brncl-31/1+brncl-31/2+brncl-31/3
-    exec_port = 15003+15003+15003+15003
-    Hold_Types = n
-    Join_Path = n
-    Keep_Files = n
-    Mail_Points = a
-    mtime = Fri Oct 20 04:25:05 2017
-    Output_Path = barnacle.ucsd.edu:/dev/null
-    Priority = 0
-    qtime = Fri Oct 20 04:25:04 2017
-    Rerunable = True
-    Resource_List.mem = 16b
-    Resource_List.ncpus = 1
-    Resource_List.nodect = 1
-    Resource_List.nodes = 1:ppn=4
-    Resource_List.pmem = 1gb
-    Resource_List.walltime = 04:00:00
-    session_id = 23365
-    Variable_List = PBS_O_QUEUE=route,PBS_O_HOME=/home/jgsanders,
-	PBS_O_LOGNAME=jgsanders,
-	PBS_O_PATH=/home/jgsanders/miniconda/envs/oecophylla/bin:/home/jgsand
-	ers/miniconda/bin:/home/jgsanders/miniconda/bin:/usr/lib64/qt-3.3/bin:
-	/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/gold
-	/2.2.0.5/sbin:/opt/gold/2.2.0.5/bin:/opt/torque-4.2.8/bin:/opt/torque-
-	4.2.8/sbin:/opt/maui-3.3.1/bin:/home/jgsanders/bin:/home/jgsanders/git
-	_sw/git_bin:/home/jgsanders/git_sw/script_bin:/home/jgsanders/bin:/hom
-	e/jgsanders/git_sw/git_bin:/home/jgsanders/git_sw/script_bin,
-	PBS_O_MAIL=/var/spool/mail/jgsanders,PBS_O_SHELL=/bin/bash,
-	PBS_O_LANG=en_US.UTF-8,
-	PBS_O_WORKDIR=/projects/cfstrains_11115/combined_16S,
-	PBS_O_HOST=barnacle.ucsd.edu,PBS_O_SERVER=barnacle
-    euser = jgsanders
-    egroup = knightlab
-    queue_type = E
-    etime = Fri Oct 20 04:25:04 2017
-    submit_args = -e /dev/null -o /dev/null -l nodes=1:ppn=4 -l mem=16 -l wall
-	time=4:00:00 /projects/cfstrains_11115/combined_16S/.snakemake/tmp.viu
-	bek0t/snakejob.qc_filter.298.sh
-    start_time = Fri Oct 20 04:25:05 2017
-    Walltime.Remaining = 14149
-    start_count = 1
-    fault_tolerant = False
-    job_radix = 0
-    submit_host = barnacle.ucsd.edu
+JobId=12166280 JobName=timeout.sbatch
+   UserId=jonsan(516231) GroupId=csd465(8488)
+   Priority=5358 Nice=0 Account=csd465 QOS=shared-normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:25 TimeLimit=00:01:00 TimeMin=N/A
+   SubmitTime=2017-10-25T17:06:57 EligibleTime=2017-10-25T17:06:57
+   StartTime=2017-10-25T17:07:14 EndTime=2017-10-25T17:08:16
+   PreemptTime=None SuspendTime=None SecsPreSuspend=0
+   Partition=shared AllocNode:Sid=comet-ln2:18018
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=comet-03-04
+   BatchHost=comet-03-04
+   NumNodes=1 NumCPUs=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   Socks/Node=* NtasksPerN:B:S:C=1:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=1024M MinTmpDiskNode=0
+   Features=(null) Gres=(null) Reservation=(null)
+   Shared=1 Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/jonsan/git_sw/test/timeout.sbatch
+   WorkDir=/home/jonsan/git_sw/test
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
 
