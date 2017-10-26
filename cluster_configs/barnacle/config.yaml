@@ -1,11 +1,10 @@
 # barnacle cluster config.yaml
-cluster: >
-  "qsub
+cluster: qsub
    -e {cluster.error}
    -o {cluster.output}
    -l nodes=1:ppn={cluster.n}
    -l mem={cluster.mem}
-   -l walltime={cluster.time}"
+   -l walltime={cluster.time}
 cluster-status: barnacle_status.py
 max-jobs-per-second: 1
 jobs: 16
