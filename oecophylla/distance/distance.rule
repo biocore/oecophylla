@@ -128,7 +128,7 @@ rule sourmash_sig:
                   
                   sourmash compute --scaled {params.scaled} \
                   -k {params.kmer} -o {output.sketch} \
-                  {temp_dir}/{wildcards.sample} >
+                  {temp_dir}/{wildcards.sample}
                   """)
 
 rule sourmash_dm:
