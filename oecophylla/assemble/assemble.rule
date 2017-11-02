@@ -188,11 +188,16 @@ rule assemble_per_sample_multiqc:
         assemble_dir + "multiQC_per_sample/multiqc_report.html"
     threads:
         4
+    params:
+        env = config['envs']['assemble']
     log:
         qc_dir + "logs/assemble_per_sample_multiqc.log"
     run:
         out_dir = os.path.dirname(output[0])
-        shell("multiqc -f -o {out_dir} {assemble_dir}/*/quast/report.tsv 2> {log} 1>&2")
+        shell("""
+              set +u; {params.env}; set -u
+              multiqc -f -o {out_dir} {assemble_dir}/*/quast/report.tsv 2> {log} 1>&2
+              """)
 
 
 rule assemble:
