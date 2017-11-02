@@ -53,7 +53,7 @@ def main():
             time.sleep(1)
             continue
 
-    s_dict = parse_qstat(StringIO(out.decode()))
+    s_dict = parse_scontrol(StringIO(out.decode()))
 
     status = get_status(s_dict)
 
