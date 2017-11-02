@@ -3,8 +3,8 @@
         "time"      : "4:00:00",
         "n"         : 1,
         "mem"       : 4,
-        "output"    : "cluster_logs/{rule}.{wildcards}.out",
-        "error"     : "cluster_logs/{rule}.{wildcards}.err"
+        "output"    : "/dev/null",
+        "error"     : "/dev/null"
     },
     "qc_atropos": {
         "time"      : "4:00:00",
