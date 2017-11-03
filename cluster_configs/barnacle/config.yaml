@@ -9,7 +9,7 @@ cluster-status: barnacle_status.py
 max-jobs-per-second: 1
 jobs: 16
 keep-going: True
-max-status-checks-per-second: 5
+max-status-checks-per-second: 10
 restart-times: 1
 local-cores: 1
-latency-wait: 90
+latency-wait: 20

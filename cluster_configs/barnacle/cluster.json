@@ -24,17 +24,17 @@
     "assemble_metaspades": {
         "time"      : "48:00:00",
         "n"         : 8,
-        "mem"       : 128
+        "mem"       : 120
     },
     "assemble_spades": {
         "time"      : "48:00:00",
         "n"         : 8,
-        "mem"       : 128
+        "mem"       : 120
     },
     "assemble_metaquast": {
         "time"      : "8:00:00",
         "n"         : 8,
-        "mem"       : 32
+        "mem"       : 30
     },
     "map_bowtie2_index": {
         "time"      : "2:00:00",
@@ -69,7 +69,7 @@
     "anvi_run_centrifuge": {
         "time" : "4:00:00",
         "n": 8,
-        "mem": 32
+        "mem": 30
     },
     "anvi_profile": {
         "time" : "8:00:00",
@@ -109,7 +109,7 @@
     "function_humann2": {
         "time": "8:00:00",
         "n": 8,
-        "mem": 32
+        "mem": 30
     }
 }
 
