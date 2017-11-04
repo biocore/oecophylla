@@ -1,18 +1,17 @@
 # comet cluster config.yaml
-cluster: >
-  "sbatch
+cluster: sbatch
    --partition=shared
    --nodes=1
    --ntasks-per-node={cluster.n}
    -e {cluster.error}
    -o {cluster.output}
    --mem={cluster.mem}G
-   --time={cluster.time}"
+   --time={cluster.time}
 cluster-status: comet_status.py
 max-jobs-per-second: 1
 jobs: 100
 keep-going: True
-max-status-checks-per-second: 2
+max-status-checks-per-second: 10
 restart-times: 1
 local-cores: 1
-latency-wait: 10
+latency-wait: 20

@@ -39,7 +39,7 @@ def get_status(s_dict):
     return(status)
 
 def main():
-    jobid = sys.argv[1]
+    jobid = sys.argv[1].split(' ')[-1]
 
     TRY_TIMES = 3
 
