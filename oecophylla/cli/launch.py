@@ -314,7 +314,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
 
         cluster_setup = '\"qsub %s\
                          -l nodes=1:ppn={cluster.n} \
-                         -l mem={cluster.mem} \
+                         -l mem={cluster.mem}gb \
                          -l walltime={cluster.time}\" ' % eo
 
         if jobs == None:
@@ -345,7 +345,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
 
         cluster_setup = 'srun -e %s\
                          -n {cluster.n} \
-                         --mem={cluster.mem} \
+                         --mem={cluster.mem}GB \
                          --time={cluster.time}' % eo
         if jobs == None:
             jobs = 16
