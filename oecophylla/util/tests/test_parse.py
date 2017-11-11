@@ -185,5 +185,38 @@ class TestParse(unittest.TestCase):
         self.assertDictEqual(sample_paths, exp_sample_paths)
 
 
+    def test_extract_samples_from_sample_sheet_missing(self):
+        seq_dir = '%s/../../../test_data/test_reads' % os.path.abspath(
+            os.path.dirname(__file__))
+        ss_df = pd.DataFrame(
+            [[1, 'S22205', 'S22205', 'Example Plate 1', 'A1',
+              'iTru7_101_01', 'ACGTTACC', 'iTru5_01_A', 'ACCGACAA',
+              'Example Project',  'sample_S22205'],
+             [1, 'S22282', 'S22282', 'Example Plate 1', 'B1',
+              'iTru7_101_02', 'CTGTGTTG', 'iTru5_01_B', 'AGTGGCAA',
+              'Example Project','sample_S22282'],
+             [1, 'not_here', 'not_here', 'Example Plate 1', 'B1',
+              'iTru7_101_02', 'CTGTGTTG', 'iTru5_01_B', 'AGTGGCAA',
+              'Example Project','sample_not_here']],
+            columns=['Lane', 'Sample_ID', 'Sample_Name', 'Sample_Plate',
+                   'Sample_Well', 'I7_Index_ID', 'index', 'I5_Index_ID',
+                   'index2', 'Sample_Project', 'Description'])
+
+        sample_paths = extract_samples_from_sample_sheet(
+            ss_df, seq_dir, name_col='Description', prefix_col='Sample_ID')
+
+        exp_sample_paths = {
+            'sample_S22282': {
+                'forward': ['%s/S22282_S102_L001_R1_001.fastq.gz' % seq_dir],
+                'reverse': ['%s/S22282_S102_L001_R2_001.fastq.gz' % seq_dir]},
+            'sample_S22205': {
+                'forward': ['%s/S22205_S104_L001_R1_001.fastq.gz' % seq_dir],
+                'reverse': ['%s/S22205_S104_L001_R2_001.fastq.gz' % seq_dir]
+            }
+        }
+        self.assertDictEqual(sample_paths, exp_sample_paths)
+
+
+
 if __name__ == '__main__':
     unittest.main()
