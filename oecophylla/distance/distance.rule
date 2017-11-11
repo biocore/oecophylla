@@ -14,9 +14,9 @@ rule mash_sketch:
     threads:
         1
     log:
-        distance_dir + "logs/mash_sketch.sample=[{sample}].log"
+        distance_dir + "logs/mash_sketch.sample_{sample}.log"
     benchmark:
-        "benchmarks/distance/mash_sketch.sample=[{sample}].txt"
+        "benchmarks/distance/mash_sketch.sample_{sample}.txt"
     run:
         output_base = os.path.splitext(output[0])[0]
 
@@ -117,9 +117,9 @@ rule sourmash_sig:
     threads:
         1
     log:
-        distance_dir + "logs/sourmash_sig.sample=[{sample}].log"
+        distance_dir + "logs/sourmash_sig.sample_{sample}.log"
     benchmark:
-        "benchmarks/distance/sourmash_sig.sample=[{sample}].txt"
+        "benchmarks/distance/sourmash_sig.sample_{sample}.txt"
     run:
         with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
             shell("""

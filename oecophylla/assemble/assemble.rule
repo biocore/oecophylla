@@ -13,9 +13,9 @@ rule assemble_megahit:
     threads:
         12
     log:
-        assemble_dir + "logs/assemble_megahit.sample=[{sample}].log"
+        assemble_dir + "logs/assemble_megahit.sample_{sample}.log"
     benchmark:
-        "benchmarks/assemble/assemble_megahit.sample=[{sample}].txt"
+        "benchmarks/assemble/assemble_megahit.sample_{sample}.txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             mem_b = params.memory * 1000000000
@@ -41,9 +41,9 @@ rule assemble_metaspades:
     output:
         assemble_dir + "{sample}/metaspades/{sample}.contigs.fa"
     log:
-        assemble_dir + "logs/assemble_metaspades.sample=[{sample}].log"
+        assemble_dir + "logs/assemble_metaspades.sample_{sample}.log"
     benchmark:
-        "benchmarks/assemble/assemble_metaspades.sample=[{sample}].txt"
+        "benchmarks/assemble/assemble_metaspades.sample_{sample}.txt"
     params:
         mem=240,
         env = config['envs']['assemble']
@@ -73,9 +73,9 @@ rule assemble_spades:
     output:
         assemble_dir + "{sample}/spades/{sample}.contigs.fa"
     log:
-        assemble_dir + "logs/assemble_spades.sample=[{sample}].log"
+        assemble_dir + "logs/assemble_spades.sample_{sample}.log"
     benchmark:
-        "benchmarks/assemble/assemble_spades.sample=[{sample}].txt"
+        "benchmarks/assemble/assemble_spades.sample_{sample}.txt"
     params:
         mem=240,
         env = config['envs']['assemble']
@@ -106,11 +106,11 @@ rule assemble_metaquast:
     output:
         done = assemble_dir + "{sample}/metaquast/{sample}.metaquast.done"
     log:
-        assemble_dir + "logs/assemble_metaquast.sample=[{sample}].log"
+        assemble_dir + "logs/assemble_metaquast.sample_{sample}.log"
     threads:
         12
     benchmark:
-        "benchmarks/assemble/assemble_metaquast.sample=[{sample}].txt"
+        "benchmarks/assemble/assemble_metaquast.sample_{sample}.txt"
     params:
         env = config['envs']['assemble']
     run:
@@ -137,11 +137,11 @@ rule assemble_quast:
     output:
         done = assemble_dir + "{sample}/quast/{sample}.quast.done"
     log:
-        assemble_dir + "logs/assemble_quast.sample=[{sample}].log"
+        assemble_dir + "logs/assemble_quast.sample_{sample}.log"
     threads:
         8
     benchmark:
-        "benchmarks/assemble/assemble_quast.sample=[{sample}].txt"
+        "benchmarks/assemble/assemble_quast.sample_{sample}.txt"
     params:
         env = config['envs']['assemble']
     run:
@@ -167,7 +167,7 @@ rule assemble_simplify_fasta_headers:
         fasta = assemble_dir + "{sample}/{assembler}/{sample}.contigs.simple.fa",
         headers = assemble_dir + "{sample}/{assembler}/{sample}.contigs.headers.txt"
     log:
-        assemble_dir + "logs/assemble_simplify_fasta_headers.sample=[{sample}].log"
+        assemble_dir + "logs/assemble_simplify_fasta_headers.sample_{sample}.log"
     threads:
         1
     run:

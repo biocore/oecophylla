@@ -7,9 +7,9 @@ rule bin_make_cov_files:
     output:
         temp(bin_dir + "{bin_sample}/abundance_files/{bin_sample}_abund_list.txt")
     log:
-        bin_dir + "logs/bin_make_cov_files.sample=[{bin_sample}].log"
+        bin_dir + "logs/bin_make_cov_files.sample_{bin_sample}.log"
     benchmark:
-        "benchmarks/bin/bin_make_cov_files.sample=[{bin_sample}].txt"
+        "benchmarks/bin/bin_make_cov_files.sample_{bin_sample}.txt"
     threads:
         12
     run:
@@ -41,9 +41,9 @@ rule bin_run_maxbin:
     output: 
         bin_dir + "{bin_sample}/maxbin/{bin_sample}.summary"
     log:
-        bin_dir + "logs/bin_run_maxbin.sample=[{bin_sample}].log"
+        bin_dir + "logs/bin_run_maxbin.sample_{bin_sample}.log"
     benchmark:
-        "benchmarks/bin/bin_run_maxbin.sample=[{bin_sample}].txt"
+        "benchmarks/bin/bin_run_maxbin.sample_{bin_sample}.txt"
     params:
         maxbin = config['params']['maxbin']
     threads:
@@ -67,9 +67,9 @@ rule summarize_maxbin:
     output:
         bin_dir + "{bin_sample}/maxbin/{bin_sample}_maxbin_bins.txt"
     log:
-        bin_dir + "logs/summarize_maxbin.sample=[{bin_sample}].log"
+        bin_dir + "logs/summarize_maxbin.sample_{bin_sample}.log"
     benchmark:
-        "benchmarks/bin/summarize_maxbin.sample=[{bin_sample}].txt"
+        "benchmarks/bin/summarize_maxbin.sample_{bin_sample}.txt"
     threads:
         1
     run:
@@ -96,7 +96,7 @@ rule tar_bin_cov_files:
     threads:
         1
     benchmark:
-        "benchmarks/bin/tar_bin_cov_files.sample=[{bin_sample}].txt"
+        "benchmarks/bin/tar_bin_cov_files.sample_{bin_sample}.txt"
     run:
         abund_dir = os.path.dirname(input.abund_list)
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
