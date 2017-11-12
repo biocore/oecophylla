@@ -38,6 +38,9 @@ include: "oecophylla/taxonomy/taxonomy.rule"
 include: "oecophylla/function/function.rule"
 # include: "oecophylla/report/report.rule"
 
+# execute the basic filesystem read combine locally, not as submitted job
+localrules: raw_combine_files
+
 rule all:
     input:
         # raw
