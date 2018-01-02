@@ -219,9 +219,10 @@ def extract_samples_from_sample_sheet(sample_sheet_df, seq_dir,
         f_fps = sorted(f_fps)
         r_fps = sorted(r_fps)
 
-        sample_reads_dict[s] = {
-            'forward': [os.path.join(seq_dir, x) for x in f_fps],
-            'reverse': [os.path.join(seq_dir, x) for x in r_fps]
-        }
+        if f_fps != [] and r_fps != []:
+          sample_reads_dict[s] = {
+              'forward': [os.path.join(seq_dir, x) for x in f_fps],
+              'reverse': [os.path.join(seq_dir, x) for x in r_fps]
+          }
 
     return(sample_reads_dict)

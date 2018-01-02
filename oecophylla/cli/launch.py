@@ -203,7 +203,6 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
              profile, output_dir, snakemake_args, local_cores, jobs,
              force, just_config, test):
     import snakemake
-    from skbio.io.registry import sniff
 
     # SNAKEMAKE
     snakefile = '%s/../../Snakefile' % os.path.abspath(os.path.dirname(__file__))
@@ -223,14 +222,6 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
     elif (os.path.exists(params) and
           os.path.exists(envs) and
           os.path.exists(input_dir)):
-        # INPUT DIR
-        for inp_file in glob.glob('%s/*' % input_dir):
-
-            file_format = sniff(inp_file)[0]
-
-            if (file_format != 'fasta') and (file_format != 'fastq'):
-                raise TypeError('Input files need to be in FASTA'
-                                ' or FASTQ format.')
 
         # OUTPUT
         # create output directory, if does not exist
