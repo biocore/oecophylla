@@ -154,7 +154,7 @@ def read_sample_sheet(f, sep=',', comment='#'):
     if counts.max() > 1:
         dup_samples = counts.loc[counts > 1]
         raise ValueError('Not a valid sample sheet! Some samples duplicated.\n'
-                         'Duplicated samples:\n\n{}'.format(dup_samples))
+                         'Duplicated samples:\n{}'.format(dup_samples))
     return(data_df)
 
 def extract_samples_from_sample_sheet(sample_sheet_df, seq_dir,
