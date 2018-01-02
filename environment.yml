@@ -3,7 +3,7 @@ channels:
   - biocore
   - conda-forge
 dependencies:
-  - python==3.5
-  - snakemake==4.2
+  - python>=3.5
+  - snakemake>=4.2
   - scikit-bio==0.5.1
   - biom-format==2.1.6
