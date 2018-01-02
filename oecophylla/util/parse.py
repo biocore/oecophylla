@@ -148,6 +148,13 @@ def read_sample_sheet(f, sep=',', comment='#'):
                 continue
     data_df = pd.read_csv(StringIO(data_lines),
                           sep=sep, comment=comment)
+
+    # Check that no Sample_IDs are duplicated
+    counts = data_df.groupby(['Sample_ID','Lane']).count().iloc[:,1]
+    if counts.max() > 1:
+        dup_samples = counts.loc[counts > 1]
+        raise ValueError('Not a valid sample sheet! Some samples duplicated.\n'
+                         'Duplicated samples:\n\n{}'.format(dup_samples))
     return(data_df)
 
 def extract_samples_from_sample_sheet(sample_sheet_df, seq_dir,
