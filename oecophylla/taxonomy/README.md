@@ -1,1 +1,1 @@
-![tax](https://raw.githubusercontent.com/biocore/oecophylla/master/doc/images/taxonomy.jpeg "tax")
+![tax](https://raw.githubusercontent.com/biocore/oecophylla/master/docs/images/taxonomy.jpeg "tax")

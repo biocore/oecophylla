@@ -1,1 +1,1 @@
-![assemble](https://raw.githubusercontent.com/biocore/oecophylla/master/doc/images/assemble.jpeg "assemble")
+![assemble](https://raw.githubusercontent.com/biocore/oecophylla/master/docs/images/assemble.jpeg "assemble")
