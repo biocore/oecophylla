@@ -1,0 +1,24 @@
+JobId=12166551 JobName=timeout.sbatch
+   UserId=jonsan(516231) GroupId=csd465(8488)
+   Priority=5359 Nice=0 Account=csd465 QOS=shared-normal
+   JobState=TIMEOUT Reason=TimeLimit Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:1
+   RunTime=00:01:07 TimeLimit=00:01:00 TimeMin=N/A
+   SubmitTime=2017-10-25T17:24:05 EligibleTime=2017-10-25T17:24:05
+   StartTime=2017-10-25T17:24:05 EndTime=2017-10-25T17:25:12
+   PreemptTime=None SuspendTime=None SecsPreSuspend=0
+   Partition=shared AllocNode:Sid=comet-ln2:18018
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=comet-08-01
+   BatchHost=comet-08-01
+   NumNodes=1 NumCPUs=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   Socks/Node=* NtasksPerN:B:S:C=1:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=1024M MinTmpDiskNode=0
+   Features=(null) Gres=(null) Reservation=(null)
+   Shared=1 Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/jonsan/git_sw/test/timeout.sbatch
+   WorkDir=/home/jonsan/git_sw/test
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+

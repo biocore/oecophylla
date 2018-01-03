@@ -101,7 +101,7 @@ rule assemble_spades:
 rule assemble_metaquast:
     input:
         lambda wildcards: expand(assemble_dir + "{sample}/{assembler}/{sample}.contigs.fa",
-                                 assembler = config['assemblers'],
+                                 assembler = config['params']['assemblers'],
                                  sample = wildcards.sample)
     output:
         done = assemble_dir + "{sample}/metaquast/{sample}.metaquast.done"
@@ -132,7 +132,7 @@ rule assemble_metaquast:
 rule assemble_quast:
     input:
         lambda wildcards: expand(assemble_dir + "{sample}/{assembler}/{sample}.contigs.fa",
-                                 assembler = config['assemblers'],
+                                 assembler = config['params']['assemblers'],
                                  sample = wildcards.sample)
     output:
         done = assemble_dir + "{sample}/quast/{sample}.quast.done"
@@ -188,17 +188,22 @@ rule assemble_per_sample_multiqc:
         assemble_dir + "multiQC_per_sample/multiqc_report.html"
     threads:
         4
+    params:
+        env = config['envs']['assemble']
     log:
         qc_dir + "logs/assemble_per_sample_multiqc.log"
     run:
         out_dir = os.path.dirname(output[0])
-        shell("multiqc -f -o {out_dir} {assemble_dir}/*/quast/report.tsv 2> {log} 1>&2")
+        shell("""
+              set +u; {params.env}; set -u
+              multiqc -f -o {out_dir} {assemble_dir}/*/quast/report.tsv 2> {log} 1>&2
+              """)
 
 
 rule assemble:
     input:
         expand(assemble_dir + "{sample}/{assembler}/{sample}.contigs.fa",
-               sample=samples, assembler=config['assemblers']),
+               sample=samples, assembler=config['params']['assemblers']),
         expand(assemble_dir + "{sample}/metaquast/{sample}.metaquast.done",
                sample=samples),
         expand(assemble_dir + "{sample}/quast/{sample}.quast.done",

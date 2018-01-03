@@ -1,0 +1,104 @@
+envs:
+  anvi: source activate oecophylla-anvi
+  humann2: source activate oecophylla-humann2
+  qc: source activate oecophylla-qc
+  raw: source activate oecophylla-qc
+  metaphlan2: source activate oecophylla-metaphlan2
+  kraken: source activate oecophylla-kraken
+  centrifuge: source activate oecophylla-centrifuge
+  shogun: source activate oecophylla-shogun
+  assemble: source activate oecophylla-assemble
+  distance: source activate oecophylla-distance
+params:
+  abundance_samples:
+  - sample_S22282
+  - sample_S22205
+  assemblers:
+  - megahit
+  - metaspades
+  binning_samples:
+  - sample_S22282
+  - sample_S22205
+  mapping_assembler:
+  - metaspades
+  filter_db: test_data/test_dbs/bowtie2/phix
+  trimmer: atropos
+  anvio:
+    centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
+    centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
+  atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
+    -q 15 --minimum-length 100 --pair-filter any'
+  humann2:
+    aa_db: test_data/test_dbs/uniref50_mini
+    nt_db: test_data/test_dbs/chocophlan_test
+    other: ''
+  maxbin: -plotmarker
+  metaphlan2:
+    db: test_data/test_dbs/mp2_mini/mp2_mini
+    # taxon name to TaxID dictionary
+    name2tid: 
+    levels: phylum,genus,species
+    map: no
+  kraken:
+    db: test_data/test_dbs/kraken
+    # Bracken kmer distribution file
+    kmers: test_data/test_dbs/bracken/75mers_distr.txt
+    # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
+    levels: phylum,genus,species
+    # whether to keep original mapping file
+    map: no
+  centrifuge:
+    db: test_data/test_dbs/centrifuge/5min
+    # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
+    levels: phylum,genus,species
+    # whether to keep original mapping file
+    map: yes
+  bracken:
+    kmers: test_data/test_dbs/bracken/75mers_distr.txt
+  shogun:
+    db: test_data/test_dbs/shogun
+    # alignment algorithm: bowtie2, burst and utree
+    aligner: utree
+    # taxonomic ranks (kingdom to strain) to redistribute reads
+    levels: phylum,genus,species
+    # whether to keep original mapping file
+    map: no
+  mash:
+    sketch_size: 1000
+    kmer: 21
+    min_obs: 2
+  sourmash:
+    scaled: 10000
+    kmer: 31
+samples:
+  S22205:
+    forward:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22205_S104_L001_R1_001.fastq.gz
+    reverse:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22205_S104_L001_R2_001.fastq.gz
+  S22207:
+    forward:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22207_S103_L001_R1_001.fastq.gz
+    reverse:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22207_S103_L001_R2_001.fastq.gz
+  S22282:
+    forward:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22282_S102_L001_R1_001.fastq.gz
+    reverse:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22282_S102_L001_R2_001.fastq.gz
+  S22400:
+    forward:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22400_S101_L001_R1_001.fastq.gz
+    reverse:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22400_S101_L001_R2_001.fastq.gz
+  S22401:
+    forward:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22401_S100_L001_R1_001.fastq.gz
+    reverse:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22401_S100_L001_R2_001.fastq.gz
+  S22402:
+    forward:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22402_S105_L001_R1_001.fastq.gz
+    reverse:
+    - /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/../../../test_data/test_reads/S22402_S105_L001_R2_001.fastq.gz
+tmp_dir_root: /Users/mortonjt/Dropbox/UCSD/research/software/oecophylla/oecophylla/cli/tests/test_scratch

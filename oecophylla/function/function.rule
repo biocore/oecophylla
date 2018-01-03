@@ -1,27 +1,61 @@
+import sys
+sys.path.append('../taxonomy')
+from parser import (combine_profiles, pandas2biom)
+
+
+rule function_combine_metaphlan2:
+    """
+    Combines MetaPhlAn2 output for unified taxonomic profile for HUMAnN2.
+    """
+    input:
+        expand(taxonomy_dir + "{sample}/metaphlan2/{sample}.profile.txt",
+               sample=samples)
+    output:
+        joint_prof = func_dir + "metaphlan2/joined_taxonomic_profile.tsv",
+        max_prof = func_dir + "metaphlan2/joined_taxonomic_profile_max.tsv"
+    threads:
+        1
+    params:
+        env = config['envs']['humann2']
+    log:
+        func_dir + "logs/function_combine_metaphlan.log"
+    benchmark:
+        "benchmarks/function/function_combine_metaphlan.json"
+    run:
+        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
+            for file in input:
+                shell("cp {0} {1}/.".format(file, temp_dir))
+            shell("""
+                  set +u; {params.env}; set -u
+
+                  humann2_join_tables --input {temp_dir} \
+                  --output {output.joint_prof} 2> {log} 1>&2
+
+                  humann2_reduce_table --input {output.joint_prof} \
+                  --output {output.max_prof} --function max \
+                  --sort-by level 2>> {log} 1>&2
+                  """)
+
 
 rule function_humann2:
     """
     Runs HUMAnN2 pipeline using general defaults.
 
     Other HUMAnN2 parameters can be specified as a quoted string in
-    PARAMS: HUMANN2: OTHER.
-
-    Going to do just R1 reads for now. Because of how I've split PE vs SE
-    processing and naming, still will need to make a separate rule for PE.
+    params: humann2: other.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz",
-        metaphlan_in = tax_dir + "metaphlan2/joined_taxonomic_profile_max.tsv"
+        metaphlan_in = func_dir + "metaphlan2/joined_taxonomic_profile_max.tsv"
     output:
-        genefamilies = func_dir + "{sample}/humann2/{sample}_genefamilies.biom",
-        pathcoverage = func_dir + "{sample}/humann2/{sample}_pathcoverage.biom",
-        pathabundance = func_dir + "{sample}/humann2/{sample}_pathabundance.biom"
+        genefamilies = func_dir + "{sample}/humann2/{sample}_genefamilies.tsv",
+        pathcoverage = func_dir + "{sample}/humann2/{sample}_pathcoverage.tsv",
+        pathabundance = func_dir + "{sample}/humann2/{sample}_pathabundance.tsv"
     params:
-        metaphlan_dir = config['params']['humann2']["metaphlan_dir"],
-        humann2_nt_db = config['params']['humann2']["humann2_nt_db"],
-        humann2_aa_db = config['params']['humann2']["humann2_aa_db"],
-        humann2_env = config['humann2_env'],
+        nt_db = config['params']['humann2']["nt_db"],
+        aa_db = config['params']['humann2']["aa_db"],
+        env = config['envs']['humann2'],
         other = config['params']['humann2']['other']
     threads:
         8
@@ -32,245 +66,256 @@ rule function_humann2:
     run:
         with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
             shell("""
-                  set +u; {params.humann2_env}; set -u
+                  set +u; {params.env}; set -u
 
                   zcat {input.forward} {input.reverse} > {temp_dir}/input.fastq
 
                   humann2 --input {temp_dir}/input.fastq \
                   --output {temp_dir}/{wildcards.sample} \
                   --output-basename {wildcards.sample} \
-                  --nucleotide-database {params.humann2_nt_db} \
-                  --protein-database {params.humann2_aa_db} \
+                  --nucleotide-database {params.nt_db} \
+                  --protein-database {params.aa_db} \
                   --taxonomic-profile {input.metaphlan_in} \
-                  --metaphlan {params.metaphlan_dir} \
                   --o-log {log} \
                   --threads {threads} \
-                  --output-format biom {params.other} 2> {log} 1>&2
+                  {params.other} 2> {log} 1>&2
 
-
-                  scp {temp_dir}/{wildcards.sample}/{wildcards.sample}_genefamilies.biom {output.genefamilies}
-                  scp {temp_dir}/{wildcards.sample}/{wildcards.sample}_pathcoverage.biom {output.pathcoverage}
-                  scp {temp_dir}/{wildcards.sample}/{wildcards.sample}_pathabundance.biom {output.pathabundance}
+                  scp {temp_dir}/{wildcards.sample}/{wildcards.sample}_genefamilies.tsv {output.genefamilies}
+                  scp {temp_dir}/{wildcards.sample}/{wildcards.sample}_pathcoverage.tsv {output.pathcoverage}
+                  scp {temp_dir}/{wildcards.sample}/{wildcards.sample}_pathabundance.tsv {output.pathabundance}
                   """)
-
-
-rule function_humann2_renorm_tables:
-    """
-    Renormalizes HUMAnN2 per-sample tables, per recommendation in the HUMAnN2
-    website.
-
-    Counts-per-million (cpm) or Relative Abundance (Relabund) can be specified
-    as a list in the PARAMS: HUMANN2: NORMS variable in the config file.
-    """
-    input:
-        genefamilies = func_dir + "{sample}/humann2/{sample}_genefamilies.biom",
-        pathcoverage = func_dir + "{sample}/humann2/{sample}_pathcoverage.biom",
-        pathabundance = func_dir + "{sample}/humann2/{sample}_pathabundance.biom"
-    output:
-        genefamilies = func_dir + "{sample}/humann2/{sample}_genefamilies_{norm}.biom",
-        pathcoverage = func_dir + "{sample}/humann2/{sample}_pathcoverage_{norm}.biom",
-        pathabundance = func_dir + "{sample}/humann2/{sample}_pathabundance_{norm}.biom"
-    threads:
-        1
-    params:
-        humann2_env = config['humann2_env']
-    log:
-        func_dir + "logs/function_humann2_renorm_tables_{sample}_{norm}.log"
-    benchmark:
-        "benchmarks/function/function_humann2_renorm_tables_{sample}_{norm}.json"
-    run:
-        shell("""
-              set +u; {params.humann2_env}; set -u
-
-              humann2_renorm_table --input {input.genefamilies} \
-              --output {output.genefamilies} \
-              --units {wildcards.norm} 2> {log} 1>&2
-
-              humann2_renorm_table --input {input.pathcoverage} \
-              --output {output.pathcoverage} \
-              --units {wildcards.norm} 2>> {log} 1>&2
-
-              humann2_renorm_table --input {input.pathabundance} \
-              --output {output.pathabundance} \
-              --units {wildcards.norm} 2>> {log} 1>&2
-              """)
 
 
 rule function_humann2_combine_tables:
     """
-    Combines the per-sample normalized tables into a single run-wide table.
+    Combines the per-sample normalized tables into a single run-wide table. 
 
     Because HUMAnN2 takes a directory as input, first copies all the individual
     tables generated in this run to a temp directory and runs on that.
     """
     input:
-        lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_genefamilies_{norm}.biom",
-               sample=samples, norm=wildcards.norm),
-        lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_pathcoverage_{norm}.biom",
-               sample=samples, norm=wildcards.norm),
-        lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_pathabundance_{norm}.biom",
-               sample=samples, norm=wildcards.norm)
+        genef = lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_genefamilies.tsv",
+               sample=samples),
+        pathc = lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_pathcoverage.tsv",
+               sample=samples),
+        patha = lambda wildcards: expand(func_dir + "{sample}/humann2/{sample}_pathabundance.tsv",
+               sample=samples)
     output:
-        genefamilies = func_dir + "humann2/combined_genefamilies_{norm}_all.biom",
-        pathcoverage = func_dir + "humann2/combined_pathcoverage_{norm}_all.biom",
-        pathabundance = func_dir + "humann2/combined_pathabundance_{norm}_all.biom"
-    log:
-        func_dir + "logs/function_humann2_combine_tables_{norm}.log"
+        genefamilies = func_dir + "humann2/genefamilies.biom",
+        pathcoverage = func_dir + "humann2/pathcoverage.biom",
+        pathabundance = func_dir + "humann2/pathabundance.biom",
+        genefamilies_cpm = func_dir + "humann2/genefamilies_cpm.biom",
+        pathcoverage_relab = func_dir + "humann2/pathcoverage_relab.biom",
+        pathabundance_relab = func_dir + "humann2/pathabundance_relab.biom",
+        genefamilies_cpm_strat = func_dir + "humann2/genefamilies_cpm_stratified.biom",
+        pathcoverage_relab_strat = func_dir + "humann2/pathcoverage_relab_stratified.biom",
+        pathabundance_relab_strat = func_dir + "humann2/pathabundance_relab_stratified.biom",
+        genefamilies_cpm_unstrat = func_dir + "humann2/genefamilies_cpm_unstratified.biom",
+        pathcoverage_relab_unstrat = func_dir + "humann2/pathcoverage_relab_unstratified.biom",
+        pathabundance_relab_unstrat = func_dir + "humann2/pathabundance_relab_unstratified.biom"
     params:
-        humann2_env = config['humann2_env']
+        env = config['envs']['humann2']
+    threads:
+        2
+    log:
+        func_dir + "logs/function_humann2_combine_tables.log"
     benchmark:
-        "benchmarks/function/function_humann2_combine_tables_{norm}.json"
+        "benchmarks/function/function_humann2_combine_tables.json"
     run:
-        with tempfile.TemporaryDirectory(dir=func_dir + "humann2") as temp_dir:
-            for file in input:
-                shell("cp {0} {1}/.".format(file, temp_dir))
+        out_dir = os.path.join(func_dir, "humann2")
+        with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
             shell("""
-                  set +u; {params.humann2_env}; set -u
+                  set +u; {params.env}; set -u
 
-                  humann2_join_tables --input {temp_dir} \
-                  --output {output.genefamilies} \
+                  # copy per-sample tables
+                  mkdir {temp_dir}/genef
+                  cp {input.genef} {temp_dir}/genef/.
+
+                  mkdir {temp_dir}/pathc
+                  cp {input.pathc} {temp_dir}/pathc/.
+
+                  mkdir {temp_dir}/patha
+                  cp {input.patha} {temp_dir}/patha/.
+
+                  # combine tables
+                  humann2_join_tables --input {temp_dir}/genef \
+                  --output {temp_dir}/genefamilies.tsv \
                   --file_name genefamilies 2> {log} 1>&2
 
-                  humann2_join_tables --input {temp_dir} \
-                  --output {output.pathcoverage} \
+                  humann2_join_tables --input {temp_dir}/pathc \
+                  --output {temp_dir}/pathcoverage.tsv \
                   --file_name pathcoverage 2>> {log} 1>&2
 
-                  humann2_join_tables --input {temp_dir} \
-                  --output {output.pathabundance} \
+                  humann2_join_tables --input {temp_dir}/patha \
+                  --output {temp_dir}/pathabundance.tsv \
                   --file_name pathabundance 2>> {log} 1>&2
 
+
+                  # normalize
+                  humann2_renorm_table \
+                  --input {temp_dir}/genefamilies.tsv \
+                  --output {temp_dir}/genefamilies_cpm.tsv \
+                  --units cpm -s n 2>> {log} 1>&2
+
+                  humann2_renorm_table \
+                  --input {temp_dir}/pathcoverage.tsv \
+                  --output {temp_dir}/pathcoverage_relab.tsv \
+                  --units relab -s n 2>> {log} 1>&2
+
+                  humann2_renorm_table \
+                  --input {temp_dir}/pathabundance.tsv \
+                  --output {temp_dir}/pathabundance_relab.tsv \
+                  --units relab -s n 2>> {log} 1>&2
+
+
+                  # stratify
+                  humann2_split_stratified_table \
+                  --input {temp_dir}/genefamilies_cpm.tsv \
+                  --output {temp_dir} 2>> {log} 1>&2
+
+                  humann2_split_stratified_table \
+                  --input {temp_dir}/pathcoverage_relab.tsv \
+                  --output {temp_dir} 2>> {log} 1>&2
+
+                  humann2_split_stratified_table \
+                  --input {temp_dir}/pathabundance_relab.tsv \
+                  --output {temp_dir} 2>> {log} 1>&2
+
+
+                  # convert to biom
+                  for f in {temp_dir}/*.tsv
+                  do
+                  fn=$(basename "$f")
+                  biom convert -i $f -o {temp_dir}/"${{fn%.*}}".biom --to-hdf5
+                  done
+
+
+                  # copy bioms to output
+                  cp {temp_dir}/*.biom {out_dir}/.
                   """)
-
-rule function_humann2_remove_unmapped:
-    """
-    By default, HUMAnN2 includes the un-annoated reads (either unmapped in the
-    first step of the pipeline or not matched in the translated alignment step)
-    in the output files. In my experience, this causes relatively small
-    differences in run quality (e.g. different read lengths) to have huge
-    effects on the evaluated outcome, as the overall proportion of unmatched
-    reads varies by run, and the compositionality of the data then causes large
-    fluctuations in the count estimates of the annotated genes and pathways.
-
-    To remove this problem, this rule renormalizes the combined tables after
-    extracting unmatched read categories.
-    """
-    input:
-        genefamilies = func_dir + "humann2/combined_genefamilies_{norm}_all.biom",
-        pathcoverage = func_dir + "humann2/combined_pathcoverage_{norm}_all.biom",
-        pathabundance = func_dir + "humann2/combined_pathabundance_{norm}_all.biom"
-    output:
-        genefamilies = func_dir + "humann2/combined_genefamilies_{norm}_mapped.biom",
-        pathcoverage = func_dir + "humann2/combined_pathcoverage_{norm}_mapped.biom",
-        pathabundance = func_dir + "humann2/combined_pathabundance_{norm}_mapped.biom"
-    threads:
-        1
-    params:
-        humann2_env = config['humann2_env']
-    log:
-        func_dir + "logs/function_humann2_remove_unmapped_{norm}.log"
-    benchmark:
-        "benchmarks/function/function_humann2_remove_unmapped_{norm}.json"
-    run:
-        shell("""
-              set +u; {params.humann2_env}; set -u
-
-              humann2_renorm_table --input {input.genefamilies} \
-              --output {output.genefamilies} \
-              --units {wildcards.norm} -s n 2> {log} 1>&2
-
-              humann2_renorm_table --input {input.pathcoverage} \
-              --output {output.pathcoverage} \
-              --units {wildcards.norm} -s n 2>> {log} 1>&2
-
-              humann2_renorm_table --input {input.pathabundance} \
-              --output {output.pathabundance} \
-              --units {wildcards.norm} -s n 2>> {log} 1>&2
-              """)
-
-
-rule function_humann2_split_stratified_tables:
-    """
-    Splits the grouped tables into separate grouped taxonomy-stratified and un-
-    stratified tables for downstream analysis. Does this for both the combined
-    tables including unmatched reads (*_all) and those excluding unmatched
-    reads (*_mapped).
-
-    The un-stratified tables should then be directly useful for downstream
-    analysis in e.g. beta diversity.
-    """
-    input:
-        genefamilies = func_dir + "humann2/combined_genefamilies_{norm}_{mapped}.biom",
-        pathcoverage = func_dir + "humann2/combined_pathcoverage_{norm}_{mapped}.biom",
-        pathabundance = func_dir + "humann2/combined_pathabundance_{norm}_{mapped}.biom"
-    output:
-        genefamilies = func_dir + "humann2/stratified/combined_genefamilies_{norm}_{mapped}_stratified.biom",
-        pathcoverage = func_dir + "humann2/stratified/combined_pathcoverage_{norm}_{mapped}_stratified.biom",
-        pathabundance = func_dir + "humann2/stratified/combined_pathabundance_{norm}_{mapped}_stratified.biom",
-        genefamilies_unstrat = func_dir + "humann2/stratified/combined_genefamilies_{norm}_{mapped}_unstratified.biom",
-        pathcoverage_unstrat = func_dir + "humann2/stratified/combined_pathcoverage_{norm}_{mapped}_unstratified.biom",
-        pathabundance_unstrat = func_dir + "humann2/stratified/combined_pathabundance_{norm}_{mapped}_unstratified.biom"
-    threads:
-        1
-    params:
-        humann2_env = config['humann2_env']
-    log:
-        func_dir + "logs/function_humann2_split_stratified_tables_{norm}_{mapped}.log"
-    benchmark:
-        "benchmarks/function/function_humann2_split_stratified_tables_{norm}_{mapped}.json"
-    run:
-        out_dir = os.path.dirname(output[0])
-        shell("""
-              set +u; {params.humann2_env}; set -u
-
-              humann2_split_stratified_table --input {input.genefamilies} \
-              --output {out_dir} 2> {log} 1>&2
-
-              humann2_split_stratified_table --input {input.pathcoverage} \
-              --output {out_dir} 2>> {log} 1>&2
-
-              humann2_split_stratified_table --input {input.pathabundance} \
-              --output {out_dir} 2>> {log} 1>&2
-              """)
 
 
 rule humann2:
     """
-    Rule to do Humann2
-        - metaphlan2_sample_pe
-        - combine_metaphlan
-        - humann2_sample_pe
-        - humann2_combine_tables
-        - humann2_remove_unmapped
-        - humann2_split_stratified_tables
+    Rule to do HUMAnN2
+        - combines MetaPhlAn2 profiles to select db
+        - runs HUMAnN2 per sample
+        - combines HUMAnN2 outputs and converts to biom format
     """
     input:
-        expand(# individual normed bioms
-               func_dir + "{sample}/humann2/{sample}_genefamilies_{norm}.biom",
-               norm = config['params']['humann2']['norms'],
-               sample = samples),
-        expand(# stratified
-               func_dir + "humann2/stratified/combined_genefamilies_{norm}_{mapped}_unstratified.biom",
-               norm = config['params']['humann2']['norms'],
-               mapped=['all','mapped'])
+        expand(rules.function_humann2_combine_tables.output, sample=samples)
 
+
+rule function_shogun:
+    """
+    Runs SHOGUN to construct functional profiles
+    """
+    input:
+        profile = taxonomy_dir + "{sample}/shogun/{sample}.profile.txt"
+    output:
+        genus_norm = func_dir + "{sample}/shogun/{sample}.genus.normalized.txt",
+        genus_kegg = func_dir + "{sample}/shogun/{sample}.genus.kegg.txt",
+        genus_modules = func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.txt",
+        genus_coverage = func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.coverage.txt",
+        species_norm = func_dir + "{sample}/shogun/{sample}.species.normalized.txt",
+        species_kegg = func_dir + "{sample}/shogun/{sample}.species.kegg.txt",
+        species_modules = func_dir + "{sample}/shogun/{sample}.species.kegg.modules.txt",
+        species_coverage = func_dir + "{sample}/shogun/{sample}.species.kegg.modules.coverage.txt",
+        strain_norm = func_dir + "{sample}/shogun/{sample}.strain.normalized.txt",
+        strain_kegg = func_dir + "{sample}/shogun/{sample}.strain.kegg.txt",
+        strain_modules = func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.txt",
+        strain_coverage = func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.coverage.txt"
+    params:
+        env = config['envs']['shogun'],
+        db = config['params']['shogun']['db']
+    threads:
+        8
+    log:
+        func_dir + "logs/function_shogun_{sample}.log"
+    benchmark:
+        "benchmarks/function/function_shogun_{sample}.json"
+    run:
+        out_dir = os.path.dirname(output[0])
+        # out_dir = os.path.join(func_dir, "{sample}/shogun")
+        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
+            shell("""
+                  set +u; {params.env}; set -u
+
+                  cp {input.profile} {temp_dir}/{wildcards.sample}.txt
+
+                  for level in genus species strain
+                  do
+                    shogun functional \
+                    --database {params.db} \
+                    --input {temp_dir}/{wildcards.sample}.txt \
+                    --output {temp_dir} \
+                    --level $level \
+                    2>> {log} 1>&2
+                  done
+
+                  cp {temp_dir}/{wildcards.sample}.*.txt {out_dir}/
+                  """)
+
+
+rule function_shogun_combine_profiles:
+    """
+    Combines per-sample SHOGUN functional profiles into single OTU tables.
+    """
+    input:
+        genus_kegg = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.txt",
+                            sample=samples),
+        genus_modules = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.txt",
+                               sample=samples),
+        genus_coverage = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.coverage.txt",
+                                sample=samples),
+        species_kegg = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.txt",
+                              sample=samples),
+        species_modules = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.modules.txt",
+                                 sample=samples),
+        species_coverage = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.modules.coverage.txt",
+                                  sample=samples),
+        strain_kegg = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.txt",
+                             sample=samples),
+        strain_modules = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.txt",
+                                sample=samples),
+        strain_coverage = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.coverage.txt",
+                                 sample=samples)
+    output:
+        genus_kegg = func_dir + "shogun/genus.kegg.biom",
+        genus_modules = func_dir + "shogun/genus.kegg.modules.biom",
+        genus_coverage = func_dir + "shogun/genus.kegg.modules.coverage.biom",
+        species_kegg = func_dir + "shogun/species.kegg.biom",
+        species_modules = func_dir + "shogun/species.kegg.modules.biom",
+        species_coverage = func_dir + "shogun/species.kegg.modules.coverage.biom",
+        strain_kegg = func_dir + "shogun/strain.kegg.biom",
+        strain_modules = func_dir + "shogun/strain.kegg.modules.biom",
+        strain_coverage = func_dir + "shogun/strain.kegg.modules.coverage.biom"
+    log:
+        func_dir + "logs/function_shogun_combine_profiles.log"
+    benchmark:
+        "benchmarks/function/function_shogun_combine_profiles.txt"
+    run:
+        for level in ('genus', 'species', 'strain'):
+            for target in ('kegg', 'modules', 'coverage'):
+                item = '%s_%s' % (level, target)
+                pandas2biom(output[item],
+                            combine_profiles(zip(samples, input[item])))
+
+
+rule shogun_func:
+    """
+    Rule to do SHOGUN functional profiling
+        - runs "shogun functional" per sample
+        - combines SHOGUN outputs and converts to biom format
+    """
+    input:
+        expand(rules.function_shogun_combine_profiles.output, sample=samples)
 
 
 rule function:
     """
-    Rule to do Humann2
-        - metaphlan2_sample_pe
-        - combine_metaphlan
-        - humann2_sample_pe
-        - humann2_combine_tables
-        - humann2_remove_unmapped
-        - humann2_split_stratified_tables
+    Rule to do functional profiling of metagenomes.
     """
     input:
-        expand(# individual normed bioms
-               func_dir + "{sample}/humann2/{sample}_genefamilies_{norm}.biom",
-               norm = config['params']['humann2']['norms'],
-               sample = samples),
-        expand(# stratified
-               func_dir + "humann2/stratified/combined_genefamilies_{norm}_{mapped}_unstratified.biom",
-               norm = config['params']['humann2']['norms'],
-               mapped=['all','mapped'])
+        rules.humann2.input,
+        rules.shogun_func.input

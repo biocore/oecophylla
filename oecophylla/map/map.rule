@@ -1,6 +1,6 @@
 rule map_bowtie2_index:
     input:
-        assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['mapping_assembler']
+        assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['params']['mapping_assembler']
     output:
         touch(map_dir + "{bin_sample}/mapping/{bin_sample}.done")
     log:
@@ -47,9 +47,9 @@ rule map_bowtie2:
 
 rule map_faidx_index:
     input:
-        assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['mapping_assembler']
+        assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['params']['mapping_assembler']
     output:
-        assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa.fai" % config['mapping_assembler']
+        assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa.fai" % config['params']['mapping_assembler']
     log:
         map_dir + "logs/map_faidx_index.sample=[{bin_sample}].log"
     benchmark:
@@ -63,8 +63,8 @@ rule map_faidx_index:
 rule map_cram:
     input:
         bam = map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.bam",
-        ref_idx = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa.fai" % config['mapping_assembler'],
-        ref = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['mapping_assembler']
+        ref_idx = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa.fai" % config['params']['mapping_assembler'],
+        ref = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['params']['mapping_assembler']
     output:
         map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.cram"
     params:
@@ -89,5 +89,5 @@ rule map_cram:
 rule map:
     input:
         expand(map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.cram",
-               sample=samples, bin_sample=config['binning_samples'],
-               abund_sample=config['abundance_samples'])
+               sample=samples, bin_sample=config['params']['binning_samples'],
+               abund_sample=config['params']['abundance_samples'])

@@ -1,0 +1,10 @@
+1	|	all	|		|	synonym	|
+1	|	root	|		|	scientific name	|
+2	|	Bacteria	|	Bacteria <prokaryotes>	|	scientific name	|
+2	|	Monera	|	Monera <Bacteria>	|	in-part	|
+2	|	Procaryotae	|	Procaryotae <Bacteria>	|	in-part	|
+2	|	Prokaryota	|	Prokaryota <Bacteria>	|	in-part	|
+2	|	Prokaryotae	|	Prokaryotae <Bacteria>	|	in-part	|
+2	|	bacteria	|	bacteria <blast2>	|	blast name	|
+2	|	eubacteria	|		|	genbank common name	|
+2	|	not Bacteria Haeckel 1894	|		|	synonym	|

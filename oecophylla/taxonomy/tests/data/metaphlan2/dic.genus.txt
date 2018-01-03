@@ -1,0 +1,14 @@
+g__Bacteroides	816
+g__Barnesiella	397864
+g__Prevotella	838
+g__Alistipes	239759
+g__Eubacterium	1730
+g__Roseburia	841
+g__Faecalibacterium	216851
+g__Ruminococcus	1263
+g__Subdoligranulum	292632
+g__Catenibacterium	135858
+g__Enterobacter	547
+g__Escherichia	561
+g__Klebsiella	570
+g__Akkermansia	239934

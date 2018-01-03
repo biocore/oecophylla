@@ -1,0 +1,56 @@
+abundance_samples:
+assemblers:
+- megahit
+- metaspades
+binning_samples:
+mapping_assembler:
+- metaspades
+filter_db: /databases/bowtie/Homo_sapiens_Bowtie2_v0.1/Homo_sapiens
+trimmer: atropos
+anvio:
+  centrifuge_base: /home/jgsanders/miniconda/envs/anvio2/centrifuge
+  centrifuge_models: /home/jgsanders/miniconda/envs/anvio2/centrifuge/b+h+v/b+h+v
+atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
+  -q 15 --minimum-length 100 --pair-filter any'
+humann2:
+  aa_db: /databases/humann2_data/uniref90/uniref
+  nt_db: /databases/humann2_data/full_chocophlan.v0.1.1/chocophlan
+  other: ''
+maxbin: -plotmarker
+metaphlan2:
+  db: /databases/metaphlan2/db_v20/mpa_v20_m200
+  # taxon name to TaxID dictionary
+  name2tid: 
+  levels: phylum,genus,species
+  map: no
+kraken:
+  db: /databases/genome/rep82/kraken
+  # Bracken kmer distribution file
+  kmers: /databases/genome/rep82/bracken/75mers_distr.txt
+  # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
+  levels: phylum,genus,species
+  # whether to keep original mapping file
+  map: no
+centrifuge:
+  db: /databases/genome/rep82/centrifuge/rep82
+  # taxonomic ranks (kingdom to species) to reestimate abundance using Bracken
+  levels: phylum,genus,species
+  # whether to keep original mapping file
+  map: yes
+bracken:
+  kmers: /databases/genome/rep82/bracken/75mers_distr.txt
+shogun:
+  db: /databases/genome/rep82/shogun
+  # alignment algorithm: bowtie2, burst and utree
+  aligner: utree
+  # taxonomic ranks (kingdom to strain) to redistribute reads
+  levels: phylum,genus,species
+  # whether to keep original mapping file
+  map: no
+mash:
+  sketch_size: 1000
+  kmer: 21
+  min_obs: 2
+sourmash:
+  scaled: 10000
+  kmer: 31

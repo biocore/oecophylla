@@ -1,3 +1,10 @@
+from parser import (combine_profiles,
+                    extract_level,
+                    combine_kraken,
+                    combine_bracken,
+                    pandas2biom)
+
+
 rule taxonomy_metaphlan2:
     """
     Runs MetaPhlan2 on a set of samples to create a joint taxonomic profile for
@@ -12,83 +19,108 @@ rule taxonomy_metaphlan2:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
-        taxonomy_dir + "{sample}/metaphlan2/{sample}_metaphlan2_output.tsv"
+        profile = taxonomy_dir + "{sample}/metaphlan2/{sample}.profile.txt"
+        # extra output file:
+        # {sample}.map.txt.gz if {map} is ON
     params:
-        metaphlan2_db = config['params']['metaphlan2']["metaphlan2_db"],
-        metaphlan2_env = config['envs']['metaphlan2']
+        env = config['envs']['metaphlan2'],
+        db = config['params']['metaphlan2']['db'],
+        map = config['params']['metaphlan2']['map']
     threads:
-        4
+        2
     log:
         taxonomy_dir + "logs/taxonomy_metaphlan2.{sample}.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_metaphlan2.{sample}.json"
+        "benchmarks/taxonomy/taxonomy_metaphlan2.{sample}.txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
-                  set +u; {params.metaphlan2_env}; set -u
+                  set +u; {params.env}; set -u
 
+                  # get stem file path
+                  stem={output.profile}
+                  stem=${{stem%.profile.txt}}
+
+                  # merge input files
                   zcat {input.forward} {input.reverse} > {temp_dir}/input.fastq
 
+                  # run MetaPhlAn2 to generate taxonomic profile
                   metaphlan2.py {temp_dir}/input.fastq \
                     --input_type fastq \
-                    --mpa_pkl {params.metaphlan2_db}.pkl \
-                    --bowtie2db {params.metaphlan2_db} \
+                    --mpa_pkl {params.db}.pkl \
+                    --bowtie2db {params.db} \
                     --nproc {threads} \
                     --tmp_dir {temp_dir} \
-                    --no_map \
-                    --input_type fastq > {output}  2> {log}
+                    --bowtie2out {temp_dir}/map.tmp \
+                    -o {output.profile} \
+                    2> {log} 1>&2
+
+                  # keep mapping file
+                  if [[ "{params.map}" == "True" ]]
+                  then
+                    gzip -c {temp_dir}/map.tmp > $stem.map.txt.gz
+                  fi
                   """)
 
 
 rule taxonomy_combine_metaphlan2:
     """
-    Combines MetaPhlan2 output for unified taxonomic profile for HUMAnN2.
+    Combines per-sample MetaPhlAn2 output profiles into single OTU tables.
     """
     input:
-        expand(taxonomy_dir + "{sample}/metaphlan2/{sample}_metaphlan2_output.tsv",
+        expand(taxonomy_dir + "{sample}/metaphlan2/{sample}.profile.txt",
                sample=samples)
     output:
-        joint_prof = taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-        max_prof = taxonomy_dir + "metaphlan2/joined_taxonomic_profile_max.tsv"
+        taxonomy_dir + "metaphlan2/combined_profile.biom"
+        # extra output files:
+        # combined_profile.{level}.biom foreach {levels}
     threads:
         1
     params:
-        humann2_env = config['envs']['humann2']
+        name2tid = config['params']['metaphlan2']['name2tid'],
+        levels = config['params']['metaphlan2']['levels']
     log:
         taxonomy_dir + "logs/taxonomy_combine_metaphlan2.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_combine_metaphlan2.json"
+        "benchmarks/taxonomy/taxonomy_combine_metaphlan2.txt"
     run:
-        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
-            for file in input:
-                shell("cp {0} {1}/.".format(file, temp_dir))
-            shell("""
-                  set +u; {params.humann2_env}; set -u
-
-                  humann2_join_tables --input {temp_dir} --output {output.joint_prof} 2> {log} 1>&2
-                  humann2_reduce_table --input {output.joint_prof} \
-                  --output {output.max_prof} --function max --sort-by level 2>> {log} 1>&2
-                  """)
+        table = combine_profiles(zip(samples, input))
+        pandas2biom(output[0], table)
+        name2tid = None
+        if params['name2tid']:
+            with open(params['name2tid'], 'r') as f:
+                name2tid = dict(x.split('\t') for x in f.read().splitlines())
+        for level in params['levels'].split(','):
+            pandas2biom('%s/metaphlan2/combined_profile.%s.biom'
+                        % (taxonomy_dir, level),
+                        extract_level(table, level[0].lower(), delim='|',
+                                      dic=name2tid))
 
 
 rule metaphlan2:
     input:
-        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv"
+        taxonomy_dir + "metaphlan2/combined_profile.biom"
 
 
 rule taxonomy_kraken:
     """
-    Runs Kraken using general defaults.
+    Runs Kraken with Bracken to construct taxonomic profiles.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
-        map = taxonomy_dir + "{sample}/kraken/{sample}_map.txt",
-        report = taxonomy_dir + "{sample}/kraken/{sample}_report.txt"
+        report = taxonomy_dir + "{sample}/kraken/{sample}.report.txt",
+        profile = taxonomy_dir + "{sample}/kraken/{sample}.profile.txt"
+        # extra output files:
+        # {sample}.map.txt.gz if {map} is ON
+        # {sample}.redist.{level}.txt foreach {levels}
     params:
-        kraken_db = config['params']['kraken']['kraken_db'],
-        kraken_env = config['envs']['kraken']
+        env = config['envs']['kraken'],
+        db = config['params']['kraken']['db'],
+        kmers = config['params']['bracken']['kmers'],
+        levels = config['params']['kraken']['levels'],
+        map = config['params']['kraken']['map']
     threads:
         12
     log:
@@ -97,154 +129,299 @@ rule taxonomy_kraken:
         "benchmarks/taxonomy/taxonomy_kraken.sample=[{sample}].txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
-            map_base = os.path.basename(output['map'])
-            report_base = os.path.basename(output['report'])
-
             shell("""
-                  set +u; {params.kraken_env}; set -u
+                  set +u; {params.env}; set -u
 
+                  # get stem file path
+                  stem={output.report}
+                  stem=${{stem%.report.txt}}
+
+                  # run Kraken to align reads against reference genomes
                   kraken {input.forward} {input.reverse} \
-                    --db {params.kraken_db} \
+                    --db {params.db} \
                     --paired \
                     --fastq-input \
                     --gzip-compressed \
                     --only-classified-output \
                     --threads {threads} \
-                    1> {temp_dir}/{map_base} \
+                    1> {temp_dir}/map.tmp \
                     2> {log}
 
-                  kraken-report {temp_dir}/{map_base} \
-                    --db {params.kraken_db} \
-                    1> {temp_dir}/{report_base} \
+                  # generate hierarchical report
+                  kraken-report {temp_dir}/map.tmp \
+                    --db {params.db} \
+                    1> {output.report} \
                     2>> {log}
 
-                  scp {temp_dir}/{map_base} {output.map}
-                  scp {temp_dir}/{report_base} {output.report}
+                  # generate lineage to count table
+                  kraken-mpa-report {temp_dir}/map.tmp \
+                    --db {params.db} \
+                    1> {output.profile} \
+                    2>> {log}
+
+                  # keep mapping file
+                  if [[ "{params.map}" == "True" ]]
+                  then
+                    gzip -c {temp_dir}/map.tmp > $stem.map.txt.gz
+                  fi
+
+                  # run Bracken to re-estimate abundance at given rank
+                  if [[ ! -z {params.levels} ]]
+                  then
+                    IFS=',' read -r -a levels <<< "{params.levels}"
+                    for level in "${{levels[@]}}"
+                    do
+                      est_abundance.py -i {output.report} \
+                        -k {params.kmers} \
+                        -t 10 \
+                        -l $(echo $level | head -c 1 | tr a-z A-Z) \
+                        -o $stem.redist.$level.txt \
+                        2>> {log} 1>&2
+                      rm $stem.report_bracken.txt
+                    done
+                  fi
                   """)
 
 
-rule taxonomy_kraken_combine_reports:
+rule taxonomy_kraken_combine_profiles:
     """
-    Combines the per-sample taxonomic profiles into a single run-wide table.
+    Combines per-sample Kraken/Bracken output tables into single OTU tables.
     """
     input:
-        expand(taxonomy_dir + "{sample}/kraken/{sample}_map.txt", sample=samples)
+        expand(taxonomy_dir + "{sample}/kraken/{sample}.profile.txt",
+               sample=samples)
     output:
-        report = taxonomy_dir + "kraken/combined_profile.tsv"
+        taxonomy_dir + "kraken/combined_profile.biom"
+        # extra output files:
+        # combined_redist.{level}.biom foreach {levels}
     params:
-        kraken_db = config['params']['kraken']["kraken_db"],
-        kraken_env = config['envs']['kraken']
+        levels = config['params']['kraken']['levels']
     log:
-        taxonomy_dir + "logs/taxonomy_kraken_combine_reports.log"
+        taxonomy_dir + "logs/taxonomy_kraken_combine_profiles.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_kraken_combine_reports.txt"
+        "benchmarks/taxonomy/taxonomy_kraken_combine_profiles.txt"
     run:
-        shell("""
-              set +u; {params.kraken_env}; set -u
-
-              kraken-mpa-report {input} \
-                --db {params.kraken_db} \
-                --header-line \
-                | sed '1 s/.map.txt//g' 1> {output.report} \
-                2> {log}
-              """)
+        pandas2biom(output[0], combine_profiles(zip(samples, input)))
+        for level in params['levels'].split(','):
+            redists = ['%s/%s/kraken/%s.redist.%s.txt'
+                       % (taxonomy_dir, sample, sample, level)
+                       for sample in samples]
+            pandas2biom('%s/kraken/combined_redist.%s.biom'
+                        % (taxonomy_dir, level),
+                        combine_bracken(zip(samples, redists)))
 
 
 rule kraken:
     input:
-        taxonomy_dir + "kraken/combined_profile.tsv"
+        taxonomy_dir + "kraken/combined_profile.biom"
 
 
-rule taxonomy_shogun:
+rule taxonomy_centrifuge:
     """
-    Runs SHOGUN to infer taxonomic composition of sample.
+    Runs Centrifuge with Bracken to construct taxonomic profiles.
     """
     input:
         forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
         reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
     output:
-        taxon_counts = taxonomy_dir + "{sample}/shogun/{sample}.taxon_counts.tsv"
+        report = taxonomy_dir + "{sample}/centrifuge/{sample}.report.txt",
+        profile = taxonomy_dir + "{sample}/centrifuge/{sample}.profile.txt"
+        # extra output files:
+        # {sample}.map.txt.gz if {map} is ON
+        # {sample}.redist.{level}.txt foreach {levels}
     params:
-        shogun = config['params']['shogun'],
-        shogun_env = config['envs']['shogun']
+        env = config['envs']['centrifuge'],
+        db = config['params']['centrifuge']['db'],
+        kmers = config['params']['bracken']['kmers'],
+        levels = config['params']['centrifuge']['levels'],
+        map = config['params']['centrifuge']['map']
     threads:
-        2
+        12
+    log:
+        taxonomy_dir + "logs/taxonomy_centrifuge.sample=[{sample}].log"
+    benchmark:
+        "benchmarks/taxonomy/taxonomy_centrifuge.sample=[{sample}].txt"
+    run:
+        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
+            shell("""
+                  set +u; {params.env}; set -u
+
+                  # get stem file path
+                  stem={output.report}
+                  stem=${{stem%.report.txt}}
+
+                  # run Centrifuge to align reads against reference genomes
+                  centrifuge \
+                    -1 {input.forward} \
+                    -2 {input.reverse} \
+                    -x {params.db} \
+                    -p {threads} \
+                    -S {temp_dir}/map.tmp \
+                    --report-file {output.profile} \
+                    2> {log} 1>&2
+
+                  # generate Kraken-style hierarchical report
+                  centrifuge-kreport {temp_dir}/map.tmp \
+                    -x {params.db} \
+                    1> {output.report} \
+                    2>> {log}
+
+                  # keep mapping file
+                  if [[ "{params.map}" == "True" ]]
+                  then
+                    gzip -c {temp_dir}/map.tmp > $stem.map.txt.gz
+                  fi
+                  """)
+
+
+rule taxonomy_centrifuge_combine_profiles:
+    """
+    Combines per-sample Centrifuge's Kraken-style report files into single OTU
+    tables.
+    """
+    input:
+        expand(taxonomy_dir + "{sample}/centrifuge/{sample}.report.txt",
+               sample=samples)
+    output:
+        taxonomy_dir + "centrifuge/combined_profile.biom"
+        # extra output files:
+        # combined_profile.{level}.biom foreach {levels}
+    params:
+        levels = config['params']['centrifuge']['levels']
+    log:
+        taxonomy_dir + "logs/taxonomy_centrifuge_combine_profiles.log"
+    benchmark:
+        "benchmarks/taxonomy/taxonomy_centrifuge_combine_profiles.txt"
+    run:
+        # this is not a typo. Centrifuge produces Kraken-style reports.
+        comb, lv2tids = combine_kraken(zip(samples, input))
+        pandas2biom(output[0], comb)
+        for level in params['levels'].split(','):
+            pandas2biom('%s/centrifuge/combined_profile.%s.biom'
+                        % (taxonomy_dir, level),
+                        comb[comb.index.isin(lv2tids[level[0].upper()])])
+
+
+rule centrifuge:
+    input:
+        taxonomy_dir + "centrifuge/combined_profile.biom"
+
+
+rule taxonomy_shogun:
+    """
+    Runs SHOGUN with choice of aligner to construct taxonomic profiles.
+    """
+    input:
+        forward = qc_dir + "{sample}/filtered/{sample}.R1.trimmed.filtered.fastq.gz",
+        reverse = qc_dir + "{sample}/filtered/{sample}.R2.trimmed.filtered.fastq.gz"
+    output:
+        profile = taxonomy_dir + "{sample}/shogun/{sample}.profile.txt",
+        # extra output files:
+        # {sample}.{aligner}.{ext}.gz if {map} is ON
+        # {sample}.redist.{level}.txt foreach {levels}
+    params:
+        env = config['envs']['shogun'],
+        db = config['params']['shogun']['db'],
+        aligner = config['params']['shogun']['aligner'],
+        levels = config['params']['shogun']['levels'],
+        map = config['params']['shogun']['map']
+    threads:
+        12
     log:
         taxonomy_dir + "logs/taxonomy_shogun.sample=[{sample}].log"
     benchmark:
         "benchmarks/taxonomy/taxonomy_shogun.sample=[{sample}].txt"
     run:
+        aln2ext = {'utree': 'tsv', 'burst': 'b6', 'bowtie2': 'sam'}
+        ext = aln2ext[params['aligner']]
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
-                  set +u; {params.shogun_env}; set -u
+                  set +u; {params.env}; set -u
 
-                  # convert and merge fastq's into fasta
-                  seqtk seq -A {input.forward} > {temp_dir}/{wildcards.sample}.fna
-                  seqtk seq -A {input.reverse} >> {temp_dir}/{wildcards.sample}.fna
+                  # get stem file path
+                  stem={output.profile}
+                  stem=${{stem%.profile.txt}}
 
-                  # run shogun
-                  shogun_utree_lca.py {params.shogun} \
+                  # interleave paired fastq's and convert to fasta
+                  seqtk mergepe {input.forward} {input.reverse} | \
+                  seqtk seq -A > {temp_dir}/{wildcards.sample}.fna
+
+                  # map reads to reference database
+                  shogun align \
+                  --aligner {params.aligner} \
                   --threads {threads} \
-                  --input {temp_dir} \
+                  --database {params.db} \
+                  --input {temp_dir}/{wildcards.sample}.fna \
                   --output {temp_dir} \
                   2> {log} 1>&2
 
-                  # parse output
-                  echo '#'SampleID$'\t'{wildcards.sample} > {output.taxon_counts}
-                  cat {temp_dir}/taxon_counts.csv | \
-                  tail -n+2 | tr "," "\\t" >> {output.taxon_counts}
+                  # build taxonomic profile based on read map
+                  shogun assign_taxonomy \
+                  --aligner {params.aligner} \
+                  --database {params.db} \
+                  --input {temp_dir}/alignment.{params.aligner}.{ext} \
+                  --output {output.profile} \
+                  2> {log} 1>&2
+
+                  # keep mapping file
+                  if [[ "{params.map}" == "True" ]]
+                  then
+                    gzip -c {temp_dir}/alignment.{params.aligner}.{ext} > $stem.{params.aligner}.{ext}.gz
+                  fi
+
+                  # redistribute reads to given taxonomic ranks
+                  if [[ ! -z {params.levels} ]]
+                  then
+                    IFS=',' read -r -a levels <<< "{params.levels}"
+                    for level in "${{levels[@]}}"
+                    do
+                      shogun redistribute \
+                      --database {params.db} \
+                      --level $level \
+                      --input {output.profile} \
+                      --output $stem.redist.$level.txt \
+                      2> {log} 1>&2
+                    done
+                  fi
                   """)
 
 
-rule taxonomy_shogun_combine_tables:
+rule taxonomy_shogun_combine_profiles:
     """
-    Combines the per-sample normalized tables into a single run-wide table.
+    Combines per-sample SHOGUN output tables into single OTU tables.
     """
     input:
-        expand(taxonomy_dir + "{sample}/shogun/{sample}.taxon_counts.tsv",
+        expand(taxonomy_dir + "{sample}/shogun/{sample}.profile.txt",
                sample=samples)
     output:
-        report = taxonomy_dir + "shogun/combined_profile.tsv"
+        taxonomy_dir + "shogun/combined_profile.biom"
+        # extra output files:
+        # combined_redist.{level}.biom foreach {levels}
+    params:
+        levels = config['params']['shogun']['levels']
     log:
-        taxonomy_dir + "logs/taxonomy_shogun_combine_tables.log"
+        taxonomy_dir + "logs/taxonomy_shogun_combine_profiles.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_shogun_combine_tables.txt"
+        "benchmarks/taxonomy/taxonomy_shogun_combine_profiles.txt"
     run:
-        taxa, samples = {}, []
-        for file in input:
-            with open(file, 'r') as f:
-                sample = f.readline().strip().split('\t')[1]
-                samples.append(sample)
-                for line in f:
-                    taxon, count = line.strip().split('\t')
-                    if taxon in taxa:
-                        taxa[taxon][sample] = count
-                    else:
-                        taxa[taxon] = {sample: count}
-        with open(output[0], 'w') as f:
-            f.write('#SampleID\t%s\n' % '\t'.join(samples))
-            for taxon in sorted(taxa):
-                row = [taxon]
-                for sample in samples:
-                    if sample in taxa[taxon]:
-                        row.append(taxa[taxon][sample])
-                    else:
-                        row.append('0.0')
-                f.write('%s\n' % '\t'.join(row))
-        with open(log[0], 'w') as f:
-            f.write('Successfully merged counts of %d taxa from %d samples.\n'
-                    % (len(taxa), len(samples)))
+        pandas2biom(output[0], combine_profiles(zip(samples, input)))
+        for level in params['levels'].split(','):
+            redists = ['%s/%s/shogun/%s.redist.%s.txt'
+                       % (taxonomy_dir, sample, sample, level)
+                       for sample in samples]
+            pandas2biom('%s/shogun/combined_redist.%s.biom'
+                        % (taxonomy_dir, level),
+                        combine_profiles(zip(samples, redists)))
 
 
 rule shogun:
     input:
-        taxonomy_dir + "shogun/combined_profile.tsv"
+        taxonomy_dir + "shogun/combined_profile.biom"
 
 
 rule taxonomy:
     input:
-        taxonomy_dir + "metaphlan2/joined_taxonomic_profile.tsv",
-        taxonomy_dir + "kraken/combined_profile.tsv",
-        taxonomy_dir + "shogun/combined_profile.tsv"
-
-
+        taxonomy_dir + "metaphlan2/combined_profile.biom",
+        taxonomy_dir + "kraken/combined_profile.biom",
+        taxonomy_dir + "centrifuge/combined_profile.biom",
+        taxonomy_dir + "shogun/combined_profile.biom"

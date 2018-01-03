@@ -1,0 +1,29 @@
+# PI,Knight,robknight@ucsd.edu,,
+# Contact,Jeff Dereus,Gail Ackermann,Jon Sanders,Greg Humphrey
+# ,jdereus@ucsd.edu,ackermag@ucsd.edu,jonsan@gmail.com,ghsmu414@gmail.com
+[Header]
+IEMFileVersion,4
+Investigator Name,Knight
+Experiment Name,
+Date,2017-08-13
+Workflow,GenerateFASTQ
+Application,FASTQ Only
+Assay,Metagenomics
+Description,
+Chemistry,Default
+
+[Reads]
+150
+150
+
+[Settings]
+ReverseComplement,0
+
+[Data]
+Lane,Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+1,S22205,S22205,Example Plate 1,A1,iTru7_101_01,ACGTTACC,iTru5_01_A,ACCGACAA,Example Project,sample_S22205
+1,S22282,S22282,Example Plate 1,B1,iTru7_101_02,CTGTGTTG,iTru5_01_B,AGTGGCAA,Example Project,sample_S22282
+1,S22401,S22401,Example Plate 1,C1,iTru7_101_03,TGAGGTGT,iTru5_01_C,CACAGACT,Example Project,sample_S22401
+1,S22207,S22207,Example Plate 1,D1,iTru7_101_04,GATCCATG,iTru5_01_D,CGACACTT,Example Project,sample_S22207
+1,S22400,S22400,Example Plate 1,E1,iTru7_101_05,GCCTATCA,iTru5_01_E,GACTTGTG,Example Project,sample_S22400
+1,S22402,S22402,Example Plate 1,F1,iTru7_101_06,AACAACCG,iTru5_01_F,GTGAGACT,Example Project,sample_S22402
