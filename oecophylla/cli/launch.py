@@ -277,6 +277,7 @@ def workflow(targets, input_dir, sample_sheet, params, envs,
             raise IOError('If submitting via cluster profile, must provide a '
                           'cluster profile directory with a valid config.yaml.'
                           '\n\nPath provided was: %s' % profile)
+
         if not os.path.exists(cluster_config):
             raise IOError('If submitting to cluster, must provide a cluster '
                           'configuration file.')

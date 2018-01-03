@@ -2,10 +2,10 @@
 
 oecophylla workflow \
 --test \
---cluster-config cluster.json \
+--cluster-config ../cluster.json \
 --local-scratch /localscratch \
 --workflow-type profile \
 --profile ./ \
---output-dir ../barnacle_test_out \
+--output-dir barnacle_test_out \
 -j 16 \
 all
