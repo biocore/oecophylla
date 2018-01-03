@@ -43,11 +43,12 @@ Knight Lab's *Barnacle* compute cluster:
 1. **Input reads directory**: ``test_data/test_reads``
 2. **Parameters file**: ``cluster_configs/barnacle/tool_params.yml``
 3. **Environment file**: ``cluster_configs/barnacle/envs.yml``
-4. **Cluster file**: ``cluster_configs/barnacle/cluster.json``
+4. **Cluster file**: ``cluster_configs/cluster.json``
 
-We have also provided a minimal ``cluster.json`` file suitable for the reduced 
-resources required by the test data, located in ``cluster_configs/
-cluster_test.json``. 
+We have also provided a ``cluster.json`` file containing defaults that should
+be suitable for most instances of the job execution. Note that running on
+datasets with fewer sequences will demand fewer resources for some jobs, and it
+may be possible to execute more efficiently by changing these defaults.
 
 
 Run the Oecophylla launch script
@@ -56,8 +57,7 @@ Run the Oecophylla launch script
 Running Oecophylla from the cluster is otherwise identical to running locally, 
 with the exception that you must specify a cluster workflow type with the ``
 --workflow-type`` parameter and provide a path to a ``cluster.json`` file with 
-the ``--cluster-config`` parameter. For our test data, we'll use the minimal ``
-cluster.json`` to reduce impact on the cluster and speed execution.
+the ``--cluster-config`` parameter.
 
 From the Barnacle login node, enter the main Oecophylla Conda environment and 
 run the following command:
@@ -67,7 +67,7 @@ run the following command:
         
     oecophylla workflow \
     --workflow-type torque \
-    --cluster-config cluster_configs/cluster_test.json \
+    --cluster-config cluster_configs/cluster.json \
     --input-dir test_data/test_reads \
     --params cluster_configs/barnacle/tool_params.yml \
     --envs cluster_configs/barnacle/envs.yml \
@@ -91,6 +91,12 @@ cluster, simplifying execution and allowing tweaks to improve performance and
 reliability. This can include, for example, cluster status scripts that allow
 Snakemake to query the scheduler directly for updates on job status.
 
+Note that we have also included cluster-specific environment (``envs.yml``)
+and parameters (``tool_params.yml``) files. These may include things like the
+correct paths to centralized database installations or centralized environment
+config commands, and are suggested as starting points for running your own
+data on these clusters.
+
 
 Run the Oecophylla launch script
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,6 +110,7 @@ the ``--profile`` flag, and pass 'profile' to the ``--workflow-type`` flag:
     oecophylla workflow \
     --workflow-type profile \
     --profile cluster_configs/barnacle \
+    --cluster-config cluster_configs/cluster.json \
     --input-dir test_data/test_reads \
     --params cluster_configs/barnacle/tool_params.yml \
     --envs cluster_configs/barnacle/envs.yml \
@@ -112,6 +119,31 @@ the ``--profile`` flag, and pass 'profile' to the ``--workflow-type`` flag:
 Note that in this case, the number of simultaneous jobs is being specified in
 the file ``cluster_configs/barnacle/config.yaml``, along with other
 cluster-specific Snakemake configuration values. 
+
+
+Running the built-in cluster profile test script
+------------------------------------------------
+
+The above examples are very similar to how you would execute on test data: you
+manually specify filepaths for each required file.
+
+However, if you just want to run a quick test to make sure everything is
+working, there are included test scripts for each of the cluster profiles.
+These will run using the ``--test`` flag in Oecophylla, and thus will write
+outputs to ``<oecophylla directory>/test_out`` and use the included minimal
+test databases.
+
+If you run these, make sure to install the test databases first using
+``oecophylla install --tests``.
+
+You can execute the test scripts as so:
+
+..  code-block:: bash
+
+    bash cluster_configs/barnacle/test_barnacle.sh
+
+This will try to run *all* available steps using Barnacle profile and the
+included test data and test databases.
 
 
 Notes on cluster execution
