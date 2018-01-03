@@ -14,4 +14,4 @@ Because Oecophylla is written using the Snakemake bioinformatics workflow system
 ## Documentation
 
 You can find instructions on installation and use of Oecophylla at the 
-[ReadTheDocs.io documentation](http://oecophylla.readthedocs.io).
+[documentation](http://oecophylla.readthedocs.io) on ReadTheDocs.io.
