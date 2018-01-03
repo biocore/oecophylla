@@ -1,16 +1,12 @@
+# bash script to execute on test data in Barnacle environment
+
 mkdir -p test_out/cluster_logs
-mkdir -p test_out/results/qc/cluster_logs
-mkdir -p test_out/results/assemble/cluster_logs
-mkdir -p test_out/results/raw/cluster_logs
-mkdir -p test_out/results/taxonomy/cluster_logs
-mkdir -p test_out/results/function/cluster_logs
 
 oecophylla workflow \
 --test \
---local-scratch /localscratch \
---cluster-config ../cluster.json \
+--cluster-config cluster_configs/cluster_test.json \
+--local-scratch '/scratch/$USER/$SLURM_JOB_ID' \
 --workflow-type profile \
---profile ./ \
---output-dir test_out \
+--profile cluster_configs/comet \
 -j 16 \
 all
