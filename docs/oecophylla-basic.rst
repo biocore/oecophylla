@@ -1,9 +1,9 @@
 Running Oecophylla locally
 ==========================
 
-For this tutorial, we'll analyze a pair of shallowly sequenced  microbiome 
-samples distributed with the repository. They are located in ``oecophylla/
-test_data/test_reads``.
+For this tutorial, we'll analyze a pair of shallowly sequenced microbiome 
+samples distributed with the repository. They are located in
+``oecophylla/test_data/test_reads``.
 
 This tutorial essentially duplicates the automatic execution of test data
 above, walking you through each step with the test data, but *as if you were
@@ -47,10 +47,10 @@ following *from the Oecophylla directory*:
 ..  code-block:: bash
     :caption: note that the backslash here is just escaping the return
     
-    oecophylla workflow \\
-    --input-dir test_data/test_reads \\
-    --params test_data/test_config/test_params.yml \\
-    --envs test_data/test_config/test_envs.yml \\
+    oecophylla workflow \
+    --input-dir test_data/test_reads \
+    --params test_data/test_config/test_params.yml \
+    --envs test_data/test_config/test_envs.yml \
     --output-dir test_output qc
 
 Then go get a cup of coffee. 

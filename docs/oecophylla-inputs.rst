@@ -38,7 +38,7 @@ The quick way
 ~~~~~~~~~~~~~
 
 If all of your samples are in the same folder, and **if they follow the
-standard Illumina naming convention [1]_**, you can just pass the input folder to
+standard Illumina naming convention** [1]_, you can just pass the input folder to
 ``oecophylla workflow`` and it will guess sample names from file names. 
 
 
@@ -46,12 +46,8 @@ standard Illumina naming convention [1]_**, you can just pass the input folder t
     :caption: this will find all six samples in the included test_reads 
     directory
     
-    oecophylla workflow \\
+    oecophylla workflow \
     --input-dir test_data/test_reads 
-
-.. [1] as in ``sample1_S001_L001_R1_001.fastq.gz``, where ``sample1`` is 
-   followed by an index, lane, read, and run number and has the ``.fastq.gz``
-   extension.
 
 
 The precise way
@@ -71,8 +67,8 @@ directory and the path to the sample sheet to Oecophylla:
 ..  code-block:: bash
     :caption: this will only run two of the 6 test samples provided:
     
-    oecophylla workflow \\
-    --input-dir test_data/test_reads \\
+    oecophylla workflow \
+    --input-dir test_data/test_reads \
     --sample-sheet test_data/test_config/example_sample_sheet.txt
 
 
@@ -102,7 +98,7 @@ list to each of these levels, as so:
         - test_data/test_reads/S22282_S102_L001_R2_001.fastq.gz
 
 
-Paremeters
+Parameters
 ----------
 
 Oecophylla wraps a lot of tools, and some subset of parameters for these tools
@@ -118,9 +114,7 @@ we package to verify installation. For example, the following portion of the
 ``test_params.yml`` file links to the test **humann2** databases, along with **Atropos** parameters suitable for trimming Kapa HyperPlus libraries:
 
 ..  code-block:: yaml
-    :caption: this has *relative* file paths, because executing the test
-    runs with the --test parameter always produces outputs with ``test_data``
-    linked in the output directory
+    :caption: this has *relative* file paths, because executing the test runs with the --test parameter always produces outputs with ``test_data`` linked in the output directory
 
     atropos: ' -a GATCGGAAGAGCACACGTCTGAACTCCAGTCAC -A GATCGGAAGAGCGTCGTGTAGGGAAAGGAGTGT
       -q 15 --minimum-length 100 --pair-filter any'
@@ -157,9 +151,10 @@ tell the shell doing the execution of each job how to set up the environment
 for that job [2]_. This file contains a one-line command sufficient to set up
 the environment for each module, which is executed at the beginning of each
 job run from that module. We've provided default ``envs.yml`` files in the
-``test_data/test_config/test_envs.yml`` and ``cluster_configs/barnacle/\
-envs.yml`` files suitable for running standard analysis using the oecophylla-
-installed module Conda environments. They look like this:
+``test_data/test_config/test_envs.yml`` and
+``cluster_configs/barnacle/envs.yml`` files suitable for running standard
+analysis using the oecophylla-installed module Conda environments. They look
+like this:
 
 ..  code-block:: yaml
 
@@ -169,8 +164,8 @@ installed module Conda environments. They look like this:
 
 Eventually, we will install some standard module environments on Barnacle
 centrally using the GNU Modules system. To use these environments once they
-are available, we will change the lines per-module in ``cluster_configs/\
-barnacle/envs.yml`` to look something like this:
+are available, we will change the lines per-module in
+``cluster_configs/barnacle/envs.yml`` to look something like this:
 
 ..  code-block:: yaml
 
@@ -178,6 +173,10 @@ barnacle/envs.yml`` to look something like this:
     qc: module load oecophylla-qc
     raw: module load oecophylla-qc
 
+
+.. [1] as in ``sample1_S001_L001_R1_001.fastq.gz``, where ``sample1`` is 
+   followed by an index, lane, read, and run number and has the ``.fastq.gz``
+   extension.
 
 .. [2] This slightly reproduces Snakemake's built-in conda environment
    specification feature. Why not use the former? We did this so that central

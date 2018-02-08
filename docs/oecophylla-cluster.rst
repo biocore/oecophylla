@@ -7,8 +7,8 @@ huge, you will most likely want to run your analysis on a cluster.
 
 Snakemake (and thus Oecophylla) are built to run in a cluster environment.
 
-There are currently two primary ways to run Oecophylla on a cluster: generic
-cluster execution (currently enabled with Torque/PBS and SLURM schedulers)
+There are currently two primary ways to run Oecophylla on a cluster: **generic
+cluster** execution (currently enabled with Torque/PBS and SLURM schedulers)
 and **cluster profile** execution.
 
 
@@ -72,14 +72,14 @@ run the following command:
 ..  code-block:: bash
     :caption: note that the backslash here is just escaping the return
         
-    oecophylla workflow \\
-    --workflow-type torque \\
-    --cluster-config cluster_configs/cluster.json \\
-    --input-dir test_data/test_reads \\
-    --params cluster_configs/barnacle/tool_params.yml \\
-    --envs cluster_configs/barnacle/envs.yml \\
-    --jobs 16 \\
-    --local-scratch /localscratch \\
+    oecophylla workflow \
+    --workflow-type torque \
+    --cluster-config cluster_configs/cluster.json \
+    --input-dir test_data/test_reads \
+    --params cluster_configs/barnacle/tool_params.yml \
+    --envs cluster_configs/barnacle/envs.yml \
+    --jobs 16 \
+    --local-scratch /localscratch \
     --output-dir cluster_test qc
 
 Note that we have specified ``--workflow-type torque``. This tells Oecophylla 
@@ -115,14 +115,14 @@ the ``--profile`` flag, and pass 'profile' to the ``--workflow-type`` flag:
 
 ..  code-block:: bash
 
-    oecophylla workflow \\
-    --workflow-type profile \\
-    --profile cluster_configs/barnacle \\
-    --cluster-config cluster_configs/cluster.json \\
-    --input-dir test_data/test_reads \\
-    --params cluster_configs/barnacle/tool_params.yml \\
-    --envs cluster_configs/barnacle/envs.yml \\
-    --local-scratch /localscratch \\
+    oecophylla workflow \
+    --workflow-type profile \
+    --profile cluster_configs/barnacle \
+    --cluster-config cluster_configs/cluster.json \
+    --input-dir test_data/test_reads \
+    --params cluster_configs/barnacle/tool_params.yml \
+    --envs cluster_configs/barnacle/envs.yml \
+    --local-scratch /localscratch \
     --output-dir cluster_test qc
 
 Note that in this case, the number of simultaneous jobs is being specified in

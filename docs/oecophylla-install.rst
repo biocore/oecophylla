@@ -27,6 +27,7 @@ that subsequent git updates to the repository will be reflected. You can
 **alternatively** run these commands directly: 
 
 .. code-block:: bash
+   :caption: **Don't actually run this** if you've already run install.sh
 
    conda env create --name oecophylla -f environment.yml
 
