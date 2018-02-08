@@ -10,7 +10,7 @@ rule raw_per_file_fastqc:
     threads:
         4
     log:
-        raw_dir + "logs/raw_per_file_fastqc.sample=[{sample}].log"
+        raw_dir + "logs/raw_per_file_fastqc.sample_{sample}.log"
     params:
         env = config['envs']['raw']
     run:
@@ -61,7 +61,7 @@ rule raw_combine_files:
     threads:
         4
     log:
-        raw_dir + "logs/raw_combine_files.sample=[{sample}].log"
+        raw_dir + "logs/raw_combine_files.sample_{sample}.log"
     run:
         f_fastqs = ' '.join(input.forward)
         r_fastqs = ' '.join(input.reverse)
@@ -86,7 +86,7 @@ rule raw_per_sample_fastqc:
     params:
         env = config['envs']['raw']
     log:
-        raw_dir + "logs/raw_per_sample_fastqc.sample=[{sample}].log"
+        raw_dir + "logs/raw_per_sample_fastqc.sample_{sample}.log"
     run:
         out_dir = os.path.dirname(output[0])
         print(out_dir)
@@ -145,9 +145,9 @@ rule qc_atropos:
         atropos = config['params']['atropos'],
         env = config['envs']['qc']
     log:
-        qc_dir + "logs/qc_atropos.sample=[{sample}].log"
+        qc_dir + "logs/qc_atropos.sample_{sample}.log"
     benchmark:
-        "benchmarks/qc/qc_atropos.sample=[{sample}].txt"
+        "benchmarks/qc/qc_atropos.sample_{sample}.txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             f_fp = os.path.basename(output.forward)
@@ -191,10 +191,10 @@ rule qc_filter:
     threads:
         4
     log:
-        bowtie = qc_dir + "logs/qc_filter.bowtie.sample=[{sample}].log",
-        other = qc_dir + "logs/qc_filter.other.sample=[{sample}].log"
+        bowtie = qc_dir + "logs/qc_filter.bowtie.sample_{sample}.log",
+        other = qc_dir + "logs/qc_filter.other.sample_{sample}.log"
     benchmark:
-         "benchmarks/qc/qc_filter.sample=[{sample}].txt"
+         "benchmarks/qc/qc_filter.sample_{sample}.txt"
     run:
         if params.filter_db is None:
             f_fp = os.path.abspath(input.forward)
@@ -242,9 +242,9 @@ rule qc_per_sample_fastqc:
     params:
         env = config['envs']['qc']
     log:
-        qc_dir + "logs/qc_per_sample_fastqc.sample=[{sample}].log"
+        qc_dir + "logs/qc_per_sample_fastqc.sample_{sample}.log"
     benchmark:
-        "benchmarks/qc/qc_per_sample_fastqc.sample=[{sample}].txt"
+        "benchmarks/qc/qc_per_sample_fastqc.sample_{sample}.txt"
     run:
         out_dir = os.path.dirname(output[0])
         shell("""

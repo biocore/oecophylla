@@ -58,7 +58,7 @@ def load_multiqc_data(fp, label_col=None, label_val=None, column_prefix=None,
 
 
 # function to read a benchmark file
-def read_benchmark(fp, pattern = '^.*benchmarks/(.+?)/(.+?)\.sample=\[(.+?)\](\.abund_sample=\[(.+?)\])?\.txt$'):
+def read_benchmark(fp, pattern = '^.*benchmarks/(.+?)/(.+?)\.sample_(.+?)(\.abund_sample_(.+?))?\.txt$'):
     # check to make sure .txt filepath matches expected format
     m = re.search(pattern, fp)
 

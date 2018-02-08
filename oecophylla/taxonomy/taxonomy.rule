@@ -29,9 +29,9 @@ rule taxonomy_metaphlan2:
     threads:
         2
     log:
-        taxonomy_dir + "logs/taxonomy_metaphlan2.{sample}.log"
+        taxonomy_dir + "logs/taxonomy_metaphlan2.sample_{sample}.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_metaphlan2.{sample}.txt"
+        "benchmarks/taxonomy/taxonomy_metaphlan2.sample_{sample}.txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
@@ -124,9 +124,9 @@ rule taxonomy_kraken:
     threads:
         12
     log:
-        taxonomy_dir + "logs/taxonomy_kraken.sample=[{sample}].log"
+        taxonomy_dir + "logs/taxonomy_kraken.sample_{sample}.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_kraken.sample=[{sample}].txt"
+        "benchmarks/taxonomy/taxonomy_kraken.sample_{sample}.txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
@@ -238,9 +238,9 @@ rule taxonomy_centrifuge:
     threads:
         12
     log:
-        taxonomy_dir + "logs/taxonomy_centrifuge.sample=[{sample}].log"
+        taxonomy_dir + "logs/taxonomy_centrifuge.sample_{sample}.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_centrifuge.sample=[{sample}].txt"
+        "benchmarks/taxonomy/taxonomy_centrifuge.sample_{sample}.txt"
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
@@ -328,9 +328,9 @@ rule taxonomy_shogun:
     threads:
         12
     log:
-        taxonomy_dir + "logs/taxonomy_shogun.sample=[{sample}].log"
+        taxonomy_dir + "logs/taxonomy_shogun.sample_{sample}.log"
     benchmark:
-        "benchmarks/taxonomy/taxonomy_shogun.sample=[{sample}].txt"
+        "benchmarks/taxonomy/taxonomy_shogun.sample_{sample}.txt"
     run:
         aln2ext = {'utree': 'tsv', 'burst': 'b6', 'bowtie2': 'sam'}
         ext = aln2ext[params['aligner']]

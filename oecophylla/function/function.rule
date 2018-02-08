@@ -60,9 +60,9 @@ rule function_humann2:
     threads:
         8
     log:
-        func_dir + "logs/function_humann2_{sample}.log"
+        func_dir + "logs/function_humann2.sample_{sample}.log"
     benchmark:
-        "benchmarks/function/function_humann2_{sample}.json"
+        "benchmarks/function/function_humann2.sample_{sample}.json"
     run:
         with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
             shell("""
@@ -231,9 +231,9 @@ rule function_shogun:
     threads:
         8
     log:
-        func_dir + "logs/function_shogun_{sample}.log"
+        func_dir + "logs/function_shogun.sample_{sample}.log"
     benchmark:
-        "benchmarks/function/function_shogun_{sample}.json"
+        "benchmarks/function/function_shogun.sample_{sample}.json"
     run:
         out_dir = os.path.dirname(output[0])
         # out_dir = os.path.join(func_dir, "{sample}/shogun")
