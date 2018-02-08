@@ -11,7 +11,7 @@ from oecophylla.util.parse import (illumina_filenames_to_df,
 import subprocess
 
 """
-mThis is the main Oecophylla script which handles launching of the entire
+This is the main Oecophylla script which handles launching of the entire
 pipeline and installation of all necessary modules/environments.
 Using a set of FASTA/FASTQ input files,
 sample sheet (Illumina-specific) and tool parameters file,
