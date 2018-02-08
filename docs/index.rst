@@ -24,6 +24,12 @@ Oecophylla tutorials
    oecophylla-basic
 
 .. toctree::
+   :caption: More about input files
+   :maxdepth: 2
+
+   oecophylla-inputs
+
+.. toctree::
    :caption: Cluster execution
    :maxdepth: 2
 

@@ -59,19 +59,27 @@ with the exception that you must specify a cluster workflow type with the ``
 --workflow-type`` parameter and provide a path to a ``cluster.json`` file with 
 the ``--cluster-config`` parameter.
 
+You will also want to provide a path to your local scratch space for cluster
+execution---this is typically a fast hard drive located in the cluster node
+itself, and saves the cluster from having to write certain types of data to
+the networked cluster filesystem. On our Barnacle cluster, this local scratch
+space is accessed at ``/localscratch``. Oecophylla jobs are all optimized to
+use local scratch space wherever possible.
+
 From the Barnacle login node, enter the main Oecophylla Conda environment and 
 run the following command:
 
 ..  code-block:: bash
     :caption: note that the backslash here is just escaping the return
         
-    oecophylla workflow \
-    --workflow-type torque \
-    --cluster-config cluster_configs/cluster.json \
-    --input-dir test_data/test_reads \
-    --params cluster_configs/barnacle/tool_params.yml \
-    --envs cluster_configs/barnacle/envs.yml \
-    --jobs 16 \
+    oecophylla workflow \\
+    --workflow-type torque \\
+    --cluster-config cluster_configs/cluster.json \\
+    --input-dir test_data/test_reads \\
+    --params cluster_configs/barnacle/tool_params.yml \\
+    --envs cluster_configs/barnacle/envs.yml \\
+    --jobs 16 \\
+    --local-scratch /localscratch \\
     --output-dir cluster_test qc
 
 Note that we have specified ``--workflow-type torque``. This tells Oecophylla 
@@ -107,13 +115,14 @@ the ``--profile`` flag, and pass 'profile' to the ``--workflow-type`` flag:
 
 ..  code-block:: bash
 
-    oecophylla workflow \
-    --workflow-type profile \
-    --profile cluster_configs/barnacle \
-    --cluster-config cluster_configs/cluster.json \
-    --input-dir test_data/test_reads \
-    --params cluster_configs/barnacle/tool_params.yml \
-    --envs cluster_configs/barnacle/envs.yml \
+    oecophylla workflow \\
+    --workflow-type profile \\
+    --profile cluster_configs/barnacle \\
+    --cluster-config cluster_configs/cluster.json \\
+    --input-dir test_data/test_reads \\
+    --params cluster_configs/barnacle/tool_params.yml \\
+    --envs cluster_configs/barnacle/envs.yml \\
+    --local-scratch /localscratch \\
     --output-dir cluster_test qc
 
 Note that in this case, the number of simultaneous jobs is being specified in

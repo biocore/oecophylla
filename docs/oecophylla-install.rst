@@ -12,9 +12,19 @@ GitHub:
    git clone https://github.com/biocore/oecophylla.git
 
 
-Then, run ``bash install.sh`` from the ``oecophylla`` directory.
+Then, change to the ``oecophylla`` directory and run the install script:
 
-This will execute the following commands: 
+.. code-block:: bash
+
+   cd oecophylla
+
+   bash install.sh
+
+
+This script is just there for convenience, and creates a Conda environment,
+activates it, and pip installs the repository with the 'editable' flag, so
+that subsequent git updates to the repository will be reflected. You can
+**alternatively** run these commands directly: 
 
 .. code-block:: bash
 
@@ -45,7 +55,7 @@ You can install all of these modules by executing:
 
 .. code-block:: bash
 
-   oecophylla install all
+   oecophylla install --all
 
 
 Fair warning: installing all modules will take a bit of time. 
