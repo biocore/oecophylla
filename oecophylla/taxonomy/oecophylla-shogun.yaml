@@ -12,5 +12,6 @@ dependencies:
   - numpy
   - cytoolz
   - pip
+  - seqtk
   - pip:
     - "git+https://github.com/knights-lab/SHOGUN.git"

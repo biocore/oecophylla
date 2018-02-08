@@ -1,4 +1,4 @@
 channels:
   - bioconda
 dependencies:
-  - centrifuge
+  - centrifuge=1.0.3=py36pl5.22.0_1
