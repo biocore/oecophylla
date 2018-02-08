@@ -1,6 +1,9 @@
 import os
 import unittest
 import pandas as pd
+import tempfile
+from pathlib import Path
+
 from oecophylla.util.parse import (illumina_filenames_to_df,
                                    extract_sample_reads,
                                    extract_sample_paths,
@@ -151,38 +154,76 @@ class TestParse(unittest.TestCase):
               'iTru7_101_02', 'CTGTGTTG', 'iTru5_01_B', 'AGTGGCAA',
               'Example Project','sample_S22282']],
             columns=['Lane', 'Sample_ID', 'Sample_Name', 'Sample_Plate',
-                   'Sample_Well', 'I7_Index_ID', 'index', 'I5_Index_ID',
-                   'index2', 'Sample_Project', 'Description'])
+                   'Sample_Well', 'I7_Index_ID', 'Index', 'I5_Index_ID',
+                   'Index2', 'Sample_Project', 'Description'])
 
         pdt.assert_frame_equal(df, exp_df)
 
     def test_extract_samples_from_sample_sheet(self):
-        seq_dir = '%s/../../../test_data/test_reads' % os.path.abspath(
-            os.path.dirname(__file__))
-        ss_df = pd.DataFrame(
-            [[1, 'S22205', 'S22205', 'Example Plate 1', 'A1',
-              'iTru7_101_01', 'ACGTTACC', 'iTru5_01_A', 'ACCGACAA',
-              'Example Project',  'sample_S22205'],
-             [1, 'S22282', 'S22282', 'Example Plate 1', 'B1',
-              'iTru7_101_02', 'CTGTGTTG', 'iTru5_01_B', 'AGTGGCAA',
-              'Example Project','sample_S22282']],
-            columns=['Lane', 'Sample_ID', 'Sample_Name', 'Sample_Plate',
-                   'Sample_Well', 'I7_Index_ID', 'index', 'I5_Index_ID',
-                   'index2', 'Sample_Project', 'Description'])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fs = ['S22282_S102_L001_R1_001.fastq.gz',
+                  'S22282_S102_L001_R2_001.fastq.gz',
+                  'S22205_S104_L001_R1_001.fastq.gz',
+                  'S22205_S104_L001_R2_001.fastq.gz']
 
-        sample_paths = extract_samples_from_sample_sheet(
-            ss_df, seq_dir, name_col='Description', prefix_col='Sample_ID')
+            for f in fs:
+                Path(os.path.join(temp_dir,f)).touch()
 
-        exp_sample_paths = {
-            'sample_S22282': {
-                'forward': ['%s/S22282_S102_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22282_S102_L001_R2_001.fastq.gz' % seq_dir]},
-            'sample_S22205': {
-                'forward': ['%s/S22205_S104_L001_R1_001.fastq.gz' % seq_dir],
-                'reverse': ['%s/S22205_S104_L001_R2_001.fastq.gz' % seq_dir]
+            ss_df = pd.DataFrame(
+                [[1, 'S22205', 'S22205', 'Example Plate 1', 'A1',
+                  'iTru7_101_01', 'ACGTTACC', 'iTru5_01_A', 'ACCGACAA',
+                  'Example Project',  'sample_S22205'],
+                 [1, 'S22282', 'S22282', 'Example Plate 1', 'B1',
+                  'iTru7_101_02', 'CTGTGTTG', 'iTru5_01_B', 'AGTGGCAA',
+                  'Example Project','sample_S22282']],
+                columns=['Lane', 'Sample_ID', 'Sample_Name', 'Sample_Plate',
+                       'Sample_Well', 'I7_Index_ID', 'Index', 'I5_Index_ID',
+                       'Index2', 'Sample_Project', 'Description'])
+
+            sample_paths = extract_samples_from_sample_sheet(
+                ss_df, temp_dir, name_col='Description', prefix_col='Sample_ID')
+
+            exp_sample_paths = {
+                'sample_S22282': {
+                    'forward': ['%s/S22282_S102_L001_R1_001.fastq.gz' % temp_dir],
+                    'reverse': ['%s/S22282_S102_L001_R2_001.fastq.gz' % temp_dir]},
+                'sample_S22205': {
+                    'forward': ['%s/S22205_S104_L001_R1_001.fastq.gz' % temp_dir],
+                    'reverse': ['%s/S22205_S104_L001_R2_001.fastq.gz' % temp_dir]
+                }
             }
-        }
-        self.assertDictEqual(sample_paths, exp_sample_paths)
+            self.assertDictEqual(sample_paths, exp_sample_paths)
+
+
+    def test_read_sample_sheet_duplicates(self):
+
+        bad_sample_sheet = ('[Header]\n'
+                            'IEMFileVersion,4\n'
+                            'Investigator Name,Knight\n'
+                            'Experiment Name,\n'
+                            'Date,2017-08-13\n'
+                            'Workflow,GenerateFASTQ\n'
+                            'Application,FASTQ Only\n'
+                            'Assay,Metagenomics\n'
+                            'Description,\n'
+                            'Chemistry,Default\n\n'
+                            '[Reads]\n'
+                            '150\n'
+                            '150\n\n'
+                            '[Settings]\n'
+                            'ReverseComplement,0\n\n'
+                            '[Data]\n'
+                            'Lane,Sample_ID,Sample_Name,Index,Description\n'
+                            '1,S22205,S22205,ACCGACAA,sample_S22205\n'
+                            '1,S22282,S22282,AGTGGCAA,sample_S22282\n'
+                            '1,S22205,S22205,ACCGACAA,sample_S22205\n')
+
+        with tempfile.NamedTemporaryFile() as ss_temp:
+
+            with open(ss_temp.name, 'w') as f:
+                f.write(bad_sample_sheet)
+            with self.assertRaises(ValueError):
+                read_sample_sheet(ss_temp.name)
 
 
     def test_extract_samples_from_sample_sheet_missing(self):
