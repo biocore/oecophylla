@@ -199,13 +199,15 @@ rule assemble_per_sample_multiqc:
               multiqc -f -o {out_dir} {assemble_dir}/*/quast/report.tsv 2> {log} 1>&2
               """)
 
+rule metaquast:
+    input:
+        expand(assemble_dir + "{sample}/metaquast/{sample}.metaquast.done",
+               sample=samples)
 
 rule assemble:
     input:
         expand(assemble_dir + "{sample}/{assembler}/{sample}.contigs.fa",
                sample=samples, assembler=config['params']['assemblers']),
-        expand(assemble_dir + "{sample}/metaquast/{sample}.metaquast.done",
-               sample=samples),
         expand(assemble_dir + "{sample}/quast/{sample}.quast.done",
                sample=samples),
         assemble_dir + "multiQC_per_sample/multiqc_report.html"
