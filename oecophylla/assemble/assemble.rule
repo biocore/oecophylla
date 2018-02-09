@@ -159,25 +159,6 @@ rule assemble_quast:
                   touch {output.done}
                   """)
 
-
-rule assemble_simplify_fasta_headers:
-    input:
-        assemble_dir + "{sample}/{assembler}/{sample}.contigs.fa"
-    output:
-        fasta = assemble_dir + "{sample}/{assembler}/{sample}.contigs.simple.fa",
-        headers = assemble_dir + "{sample}/{assembler}/{sample}.contigs.headers.txt"
-    log:
-        assemble_dir + "logs/assemble_simplify_fasta_headers.sample_{sample}.log"
-    threads:
-        1
-    run:
-        prepend = '{0}_{1}_contig_'.format(wildcards.sample,
-                                           wildcards.assembler)
-
-        simplify_headers(input[0], prepend=prepend,
-                         output_fp=output.fasta, header_fp=output.headers)
-
-
 rule assemble_per_sample_multiqc:
     """
     Runs multiqc for combined input files.
