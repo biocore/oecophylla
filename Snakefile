@@ -32,7 +32,7 @@ include: "oecophylla/util/simplify_fasta.rule"
 include: "oecophylla/distance/distance.rule"
 include: "oecophylla/assemble/assemble.rule"
 include: "oecophylla/map/map.rule"
-# include: "oecophylla/bin/bin.rule"
+include: "oecophylla/bin/bin.rule"
 # include: "oecophylla/anvio/anvio.rule"
 include: "oecophylla/taxonomy/taxonomy.rule"
 include: "oecophylla/function/function.rule"
@@ -57,4 +57,6 @@ rule all:
         # Function
         rules.function.input,
         # Map
-        rules.map.input
+        rules.map.input,
+        # Bin
+        rules.bin.input

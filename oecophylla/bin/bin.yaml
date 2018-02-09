@@ -1,0 +1,6 @@
+channels:
+  - bioconda
+dependencies:
+  - maxbin2
+  - samtools
+  - bbmap

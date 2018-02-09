@@ -1,43 +1,47 @@
 rule bin_make_cov_files:
     input:
-        bams = lambda wildcards: expand(map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.bam",
-               bin_sample=wildcards.bin_sample,
-               abund_sample=config['params']['abundance_samples']),
-        ref = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['params']['mapping_assembler']
+        bams = lambda wildcards: expand(rules.map_bowtie2.output.bam,
+                                        abund_sample=bin_config[wildcards.bin_sample],
+                                        bin_sample=wildcards.bin_sample),
+        ref = rules.map_bowtie2_index.input
     output:
-        temp(bin_dir + "{bin_sample}/abundance_files/{bin_sample}_abund_list.txt")
+        bin_dir + "{bin_sample}/abundance_files/{bin_sample}_abund_files.tar.gz"
     log:
         bin_dir + "logs/bin_make_cov_files.sample_{bin_sample}.log"
     benchmark:
         "benchmarks/bin/bin_make_cov_files.sample_{bin_sample}.txt"
     threads:
         12
+    params:
+        env = config['envs']['bin']
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
-            out_dir = os.path.dirname(output[0])
-            abund_list = ''
+            out_fp = os.path.abspath(output[0])
             for bam in input.bams:
                 fn = os.path.basename(bam).split('.')[0]
                 shell("""
+                        set +u; {params.env}; set -u;
+
                         samtools view {bam} --threads {threads} -h | \
                         pileup.sh -Xmx8g out={temp_dir}/{fn}_pileup.txt 2> {log} 1>&2
 
                         awk '{{print $1"\t"$2}}' {temp_dir}/{fn}_pileup.txt | \
                         grep -v '^#' > {temp_dir}/{fn}_abund.txt
                       """)
-                abund_list += os.path.join(out_dir, fn + '_abund.txt\n')
 
             shell("""
-                    scp {temp_dir}/*.txt {out_dir}/.
+                    cd {temp_dir}
+                    mkdir {wildcards.bin_sample}_abund_files
+                    mv *.txt {wildcards.bin_sample}_abund_files/.
+                    tar -czvf {wildcards.bin_sample}_abund_files.tar.gz {wildcards.bin_sample}_abund_files
+                    scp {wildcards.bin_sample}_abund_files.tar.gz {out_fp}
                   """)
-            with open(output[0],'w') as f:
-                f.write(abund_list)
 
 
 rule bin_run_maxbin:
     input:
-        abund = bin_dir + "{bin_sample}/abundance_files/{bin_sample}_abund_list.txt",
-        ref = assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['params']['mapping_assembler']
+        abund = rules.bin_make_cov_files.output,
+        ref = rules.map_bowtie2_index.input
     output: 
         bin_dir + "{bin_sample}/maxbin/{bin_sample}.summary"
     log:
@@ -45,7 +49,8 @@ rule bin_run_maxbin:
     benchmark:
         "benchmarks/bin/bin_run_maxbin.sample_{bin_sample}.txt"
     params:
-        maxbin = config['params']['maxbin']
+        maxbin = config['params']['maxbin'],
+        env = config['envs']['bin']
     threads:
         12
     run:
@@ -54,8 +59,28 @@ rule bin_run_maxbin:
             if params.maxbin is None:
                 params.maxbin = ''
             shell("""
-                    run_MaxBin.pl -contig {input.ref} -out {temp_dir}/{wildcards.bin_sample} \
-                    -abund_list {input.abund} {params.maxbin} -thread {threads} 2> {log} 1>&2
+                    set +u; {params.env}; set -u;
+
+                    mkdir {temp_dir}/abund_files
+                    tar -xzvf {input.abund} -C {temp_dir}/abund_files --strip-components=1
+
+                    touch {temp_dir}/abund_list.txt
+
+                    for f in {temp_dir}/abund_files/*.txt
+                    do
+                        echo $f >> {temp_dir}/abund_list.txt
+                    done
+
+                    sleep 30
+
+                    run_MaxBin.pl -contig {input.ref} \
+                    -out {temp_dir}/{wildcards.bin_sample} \
+                    -abund_list {temp_dir}/abund_list.txt \
+                    {params.maxbin} -thread {threads} 2> {log} 1>&2
+
+                    sleep 30
+
+                    rm -r {temp_dir}/abund_files
 
                     scp {temp_dir}/* {out_base}/.
                   """)
@@ -63,7 +88,7 @@ rule bin_run_maxbin:
 
 rule summarize_maxbin:
     input:
-        bin_dir + "{bin_sample}/maxbin/{bin_sample}.summary"
+        rules.bin_run_maxbin.output
     output:
         bin_dir + "{bin_sample}/maxbin/{bin_sample}_maxbin_bins.txt"
     log:
@@ -87,40 +112,12 @@ rule summarize_maxbin:
         with open(output[0], 'w') as out:
             out.write(bins)
 
-rule tar_bin_cov_files:
-    input:
-        abund_list = bin_dir + "{bin_sample}/abundance_files/{bin_sample}_abund_list.txt",
-        bin_summary = bin_dir + "{bin_sample}/maxbin/{bin_sample}_maxbin_bins.txt"
-    output:
-        bin_dir + "{bin_sample}/abundance_files.tar.gz"
-    threads:
-        1
-    benchmark:
-        "benchmarks/bin/tar_bin_cov_files.sample_{bin_sample}.txt"
-    run:
-        abund_dir = os.path.dirname(input.abund_list)
-        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
-            shell("""
-                    scp -r {abund_dir} {temp_dir}/abundance_files
-
-                    tar -czvf {temp_dir}/abundance_files.tar.gz  {temp_dir}/abundance_files
-
-                    scp  {temp_dir}/abundance_files.tar.gz {output}
-
-                    rm -r {abund_dir}
-                  """)
 
 rule bin_maxbin:
     input:
-        expand(bin_dir + "{bin_sample}/maxbin/{bin_sample}.summary",
-               bin_sample = config['params']['binning_samples']),
-        expand(bin_dir + "{bin_sample}/abundance_files.tar.gz",
-               bin_sample = config['params']['binning_samples'])
+        expand(rules.summarize_maxbin.output, bin_sample=bin_config.keys())
 
 
 rule bin:
     input:
-        expand(bin_dir + "{bin_sample}/maxbin/{bin_sample}.summary",
-               bin_sample=config['params']['binning_samples']),
-        expand(bin_dir + "{bin_sample}/abundance_files.tar.gz",
-               bin_sample = config['params']['binning_samples'])
+        rules.bin_maxbin.input
