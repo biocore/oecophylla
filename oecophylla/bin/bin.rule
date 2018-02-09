@@ -71,14 +71,10 @@ rule bin_run_maxbin:
                         echo $f >> {temp_dir}/abund_list.txt
                     done
 
-                    sleep 30
-
                     run_MaxBin.pl -contig {input.ref} \
                     -out {temp_dir}/{wildcards.bin_sample} \
                     -abund_list {temp_dir}/abund_list.txt \
                     {params.maxbin} -thread {threads} 2> {log} 1>&2
-
-                    sleep 30
 
                     rm -r {temp_dir}/abund_files
 
@@ -90,7 +86,7 @@ rule summarize_maxbin:
     input:
         rules.bin_run_maxbin.output
     output:
-        bin_dir + "{bin_sample}/maxbin/{bin_sample}_maxbin_bins.txt"
+        bins = bin_dir + "{bin_sample}/maxbin/{bin_sample}_maxbin_bins.txt"
     log:
         bin_dir + "logs/summarize_maxbin.sample_{bin_sample}.log"
     benchmark:
