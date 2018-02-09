@@ -20,7 +20,9 @@ rule anvi_gen_contigs_database:
             shell("""
                     set +u; {params.env}; set -u
 
-                    anvi-gen-contigs-database -f {input} -o {temp_dir}/{dbname} 2> {log} 1>&2
+                    anvi-gen-contigs-database -f {input} \
+                    -o {temp_dir}/{dbname} \
+                    -n '{wildcards.bin_sample} contigs db' 2> {log} 1>&2
 
                     scp {temp_dir}/{dbname} {output.db}
                     scp {temp_dir}/{h5name} {output.h5}
