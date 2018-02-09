@@ -107,7 +107,7 @@ rule anvi_run_centrifuge:
                     scp {temp_dir}/{hits_name} {output.hits}
                     scp {temp_dir}/{report_name} {output.report}
 
-                    set +u; {params.cent_env}; set -u
+                    set +u; {params.anvi_env}; set -u
 
                     anvi-import-taxonomy -c {input.db} \
                     -i {output.report} {output.hits} \
