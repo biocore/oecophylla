@@ -31,7 +31,7 @@ rule anvi_gen_contigs_database:
 
 rule anvi_run_hmms:
     input:
-        rules.anvi_gen_contigs_database.output
+        db = rules.anvi_gen_contigs_database.output.db
     output:
         done = touch(anvio_dir + "{bin_sample}/{bin_sample}.db.run-hmms.done")
     threads:
