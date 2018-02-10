@@ -41,8 +41,8 @@ rule map_bowtie2_index:
 rule map_bowtie2:
     input:
         idx = rules.map_bowtie2_index.output,
-        forward = lambda wildcards: rules.qc_filter.output.forward.format(sample=wildcards.bin_sample),
-        reverse = lambda wildcards: rules.qc_filter.output.reverse.format(sample=wildcards.bin_sample)
+        forward = lambda wildcards: rules.qc_filter.output.forward.format(sample=wildcards.abund_sample),
+        reverse = lambda wildcards: rules.qc_filter.output.reverse.format(sample=wildcards.abund_sample)
     output:
         bam = map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.bam",
         bai = map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.bam.bai"
