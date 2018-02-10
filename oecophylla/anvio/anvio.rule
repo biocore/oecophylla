@@ -24,7 +24,7 @@ rule anvi_gen_contigs_database:
                     -o {temp_dir}/{dbname} \
                     -n '{wildcards.bin_sample} contigs db' 2> {log} 1>&2
 
-                    anvi-run-hmms -c {dbname} --num-threads {threads} 2>> {log} 1>&2
+                    anvi-run-hmms -c {temp_dir}/{dbname} --num-threads {threads} 2>> {log} 1>&2
 
                     scp {temp_dir}/{dbname} {output.db}
                     scp {temp_dir}/{h5name} {output.h5}
