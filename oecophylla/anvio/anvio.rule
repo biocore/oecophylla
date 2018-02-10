@@ -92,7 +92,7 @@ rule anvi_run_centrifuge:
 
                     anvi-import-taxonomy -c {db} \
                     -i {output.report} {output.hits} \
-                    -p centrifuge
+                    -p centrifuge 2> {log} 1>&2
                   """)
 
 rule anvi_profile:
@@ -128,7 +128,7 @@ rule anvi_profile:
                     -c {db} \
                     --skip-SNV-profiling \
                     --overwrite-output-destinations \
-                    -o {temp_dir}/out
+                    -o {temp_dir}/out 2> {log} 1>&2
 
                     scp {temp_dir}/out/* {prof_dir}/.
                   """)
@@ -163,7 +163,7 @@ rule anvi_merge:
                     anvi-merge {input.profiles} \
                     -o {temp_dir}/SAMPLES_MERGED \
                     -c {db} \
-                    -W
+                    -W 2> {log} 1>&2
 
                     scp -r {temp_dir}/SAMPLES_MERGED/* {merge_dir}/.
                   """)
@@ -190,7 +190,7 @@ rule anvi_add_maxbin:
                 -c {db} \
                 -C "MaxBin2" \
                 --contigs-mode \
-                {input.bins}
+                {input.bins} 2> {log} 1>&2
               """)
 
 
@@ -216,9 +216,9 @@ rule anvi_summarize:
                     anvi-summarize -p {input.prof} \
                     -c {db} \
                     -o {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT \
-                    -C CONCOCT
+                    -C CONCOCT 2> {log} 1>&2
 
-                    scp {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT/general_bins_summary.txt {output.txt}
+                    scp {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT/bins_summary.txt {output.txt}
                     scp {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT/index.html {output.report}
                     
                     tar -czvf {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT.tar.gz {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT
