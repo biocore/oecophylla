@@ -45,7 +45,7 @@ rule anvi_export_gene_calls:
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             out_name = os.path.basename(output.gene_calls)
-            db = anvio_dir + "{bin_sample}/{bin_sample}.db"
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
                     set +u; {params.env}; set -u
 
@@ -75,7 +75,7 @@ rule anvi_run_centrifuge:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             hits_name = os.path.basename(output.hits)
             report_name = os.path.basename(output.report)
-            db = anvio_dir + "{bin_sample}/{bin_sample}.db"
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
                     set +u; {params.cent_env}; set -u
 
@@ -116,7 +116,7 @@ rule anvi_profile:
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             prof_dir = os.path.dirname(output.prof)
-            db = anvio_dir + "{bin_sample}/{bin_sample}.db"
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
                     set +u; {params.env}; set -u
 
@@ -156,7 +156,7 @@ rule anvi_merge:
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             merge_dir = os.path.dirname(output.prof)
-            db = anvio_dir + "{bin_sample}/{bin_sample}.db"
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
                     set +u; {params.env}; set -u
 
@@ -182,7 +182,7 @@ rule anvi_add_maxbin:
     params:
         env = config['envs']['anvio']
     run:
-        db = anvio_dir + "{bin_sample}/{bin_sample}.db"
+        db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
         shell("""
                 set +u; {params.env}; set -u
 
@@ -209,7 +209,7 @@ rule anvi_summarize:
         env = config['envs']['anvio']
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
-            db = anvio_dir + "{bin_sample}/{bin_sample}.db"
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
                     set +u; {params.env}; set -u
 
