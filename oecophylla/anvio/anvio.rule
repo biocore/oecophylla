@@ -6,7 +6,7 @@ rule anvi_gen_contigs_database:
         h5 = anvio_dir + "{bin_sample}/{bin_sample}.h5",
         done = touch(anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done")
     threads:
-        4
+        8
     params:
         env = config['envs']['anvio']
     log:
