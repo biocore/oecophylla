@@ -1,5 +1,6 @@
-sample_S22205:
-- sample_S22205
-- sample_S22282
 sample_S22282:
 - sample_S22205
+- sample_S22282
+combined_samples:
+- sample_S22205
+- sample_S22282
