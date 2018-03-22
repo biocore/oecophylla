@@ -1,6 +1,7 @@
 data_dir="data/"
 raw_dir="results/raw/"
 map_dir="results/map/"
+bin_dir="results/bin/"
 qc_dir="results/qc/"
 assemble_dir="results/assemble/"
 bin_dir="results/bin/"

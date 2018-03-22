@@ -192,3 +192,31 @@ rule assemble:
         expand(assemble_dir + "{sample}/quast/{sample}.quast.done",
                sample=samples),
         assemble_dir + "multiQC_per_sample/multiqc_report.html"
+
+ruleorder: assemble_coassemble_combine > qc_filter
+
+rule assemble_coassemble_combine:
+    input:
+        forward = lambda wildcards: expand(qc_dir + "{insample}/filtered/{insample}.R1.trimmed.filtered.fastq.gz",
+                                           insample = coassembly_config[wildcards.cosample]),
+        reverse = lambda wildcards: expand(qc_dir + "{insample}/filtered/{insample}.R2.trimmed.filtered.fastq.gz",
+                                           insample = coassembly_config[wildcards.cosample])
+    output:
+        forward = temp(qc_dir + "{cosample}/filtered/{cosample}.R1.trimmed.filtered.fastq.gz"),
+        reverse = temp(qc_dir + "{cosample}/filtered/{cosample}.R2.trimmed.filtered.fastq.gz")
+    run:
+        f_fastqs = ' '.join(input.forward)
+        r_fastqs = ' '.join(input.reverse)
+        shell("""
+              cat {f_fastqs} > {output.forward} 2> {log}
+              cat {r_fastqs} > {output.reverse} 2> {log}
+              """)
+
+
+rule coassemble:
+    input:
+        expand(assemble_dir + "{cosample}/{assembler}/{cosample}.contigs.fa",
+               cosample=coassembly_config.keys(),
+               assembler=config['params']['assemblers']),
+        expand(assemble_dir + "{cosample}/quast/{cosample}.quast.done",
+               cosample=coassembly_config.keys())

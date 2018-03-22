@@ -22,6 +22,22 @@ except:
     mapping = False
     bin_config = {}
 
+# import coassembly yaml if present in params
+
+try:
+    with open(config['params']["coassembly_config"]) as f:
+        coassembly_config = yaml.load(f)
+    if coassembly_config is not None:
+        mapping = True
+
+    # test to make sure that coassembly sample names don't overlap sample names
+    if set(coassembly_config) & set(samples):
+        raise ValueError('Coassembly names cannot overlap with sample names')
+except:
+    mapping = False
+    coassembly_config = {}
+
+
 
 include: "oecophylla/util/folders.rule"
 
@@ -32,7 +48,7 @@ include: "oecophylla/util/simplify_fasta.rule"
 include: "oecophylla/distance/distance.rule"
 include: "oecophylla/assemble/assemble.rule"
 include: "oecophylla/map/map.rule"
-# include: "oecophylla/bin/bin.rule"
+include: "oecophylla/bin/bin.rule"
 # include: "oecophylla/anvio/anvio.rule"
 include: "oecophylla/taxonomy/taxonomy.rule"
 include: "oecophylla/function/function.rule"
@@ -57,4 +73,6 @@ rule all:
         # Function
         rules.function.input,
         # Map
-        rules.map.input
+        rules.map.input,
+        # Bin
+        rules.bin.input

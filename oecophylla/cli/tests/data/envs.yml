@@ -9,3 +9,4 @@ shogun: source activate oecophylla-shogun
 assemble: source activate oecophylla-assemble
 distance: source activate oecophylla-distance
 map: source activate oecophylla-map
+bin: source activate oecophylla-bin
