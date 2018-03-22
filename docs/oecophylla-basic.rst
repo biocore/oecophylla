@@ -1,12 +1,13 @@
 Running Oecophylla locally
 ==========================
 
-For this tutorial, we'll analyze a pair of shallowly sequenced  microbiome 
-samples distributed with the repository. They are located in ``oecophylla/
-test_data/test_reads``.
+For this tutorial, we'll analyze a pair of shallowly sequenced microbiome 
+samples distributed with the repository. They are located in
+``oecophylla/test_data/test_reads``.
 
 This tutorial essentially duplicates the automatic execution of test data
-above, walking you through each step.
+above, walking you through each step with the test data, but *as if you were
+running on your own data*. 
 
 Gather inputs
 -------------
@@ -30,8 +31,8 @@ modules on a cluster.
 The *parameters file* specifies the parameters for each tool being executed, 
 including paths to the relevant databases.
 
-Information from these three files is combined by Oecophylla into a single ``
-config.yaml`` configuration file and placed in the output directory of a run. 
+Information from these three files is combined by Oecophylla into a single 
+``config.yaml`` configuration file and placed in the output directory of a run.
 This serves as complete record of the settings chosen for execution of a run, 
 as well as instructions for restarting or extending the processing on a 
 dataset for subsequent invokations of Oecophylla. 
@@ -41,16 +42,16 @@ Run QC with Oecophylla
 ----------------------
 
 To run a simple workflow, executing read trimming and QC summaries, run the 
-following from the Oecophylla directory:
+following *from the Oecophylla directory*:
 
 ..  code-block:: bash
     :caption: note that the backslash here is just escaping the return
     
-    oecophylla workflow 
-    --input-dir test_data/test_reads 
-    --params test_data/test_config/test_params.yml 
-    --envs test_data/test_config/test_envs.yml 
-    --output-dir test_output qc"
+    oecophylla workflow \
+    --input-dir test_data/test_reads \
+    --params test_data/test_config/test_params.yml \
+    --envs test_data/test_config/test_envs.yml \
+    --output-dir test_output qc
 
 Then go get a cup of coffee. 
 

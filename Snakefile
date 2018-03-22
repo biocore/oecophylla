@@ -22,6 +22,22 @@ except:
     mapping = False
     bin_config = {}
 
+# import coassembly yaml if present in params
+
+try:
+    with open(config['params']["coassembly_config"]) as f:
+        coassembly_config = yaml.load(f)
+    if coassembly_config is not None:
+        mapping = True
+
+    # test to make sure that coassembly sample names don't overlap sample names
+    if set(coassembly_config) & set(samples):
+        raise ValueError('Coassembly names cannot overlap with sample names')
+except:
+    mapping = False
+    coassembly_config = {}
+
+
 
 include: "oecophylla/util/folders.rule"
 

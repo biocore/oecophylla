@@ -17,6 +17,7 @@ params:
   - megahit
   - metaspades
   binning_config: test_data/test_config/test_binning.yml
+  coassembly_config: test_data/test_config/test_coassemble.yml
   mapping_assembler: metaspades
   filter_db: test_data/test_dbs/bowtie2/phix
   trimmer: atropos
