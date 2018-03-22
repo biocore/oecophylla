@@ -61,7 +61,7 @@
         "n"         : 1,
         "mem"       : 2
     },
-    "anvi_run_hmms": {
+    "anvi_gen_contigs_database": {
         "time" : "8:00:00",
         "n": 8,
         "mem": 16

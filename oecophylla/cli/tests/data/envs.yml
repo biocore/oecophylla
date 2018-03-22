@@ -10,3 +10,4 @@ assemble: source activate oecophylla-assemble
 distance: source activate oecophylla-distance
 map: source activate oecophylla-map
 bin: source activate oecophylla-bin
+anvio: source activate oecophylla-anvio

@@ -1,14 +1,14 @@
-ANVIO_ENV = config['anvi_env']
-
 rule anvi_gen_contigs_database:
     input:
-        assemble_dir + "{bin_sample}/%s/{bin_sample}.contigs.simple.fa" % config['params']['mapping_assembler']
+        rules.map_bowtie2_index.input
     output:
         db = anvio_dir + "{bin_sample}/{bin_sample}.db",
-        h5 =  anvio_dir + "{bin_sample}/{bin_sample}.h5",
+        h5 = anvio_dir + "{bin_sample}/{bin_sample}.h5",
         done = touch(anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done")
     threads:
-        4
+        8
+    params:
+        env = config['envs']['anvio']
     log:
         anvio_dir + "logs/anvi_gen_contigs_database.sample_{bin_sample}.log"
     benchmark:
@@ -18,84 +18,69 @@ rule anvi_gen_contigs_database:
             dbname = os.path.basename(output.db)
             h5name = os.path.basename(output.h5)
             shell("""
-                    set +u; {ANVIO_ENV}; set -u
+                    set +u; {params.env}; set -u
 
-                    anvi-gen-contigs-database -f {input} -o {temp_dir}/{dbname} 2> {log} 1>&2
+                    anvi-gen-contigs-database -f {input} \
+                    -o {temp_dir}/{dbname} \
+                    -n '{wildcards.bin_sample} contigs db' 2> {log} 1>&2
+
+                    anvi-run-hmms -c {temp_dir}/{dbname} --num-threads {threads} 2>> {log} 1>&2
 
                     scp {temp_dir}/{dbname} {output.db}
                     scp {temp_dir}/{h5name} {output.h5}
                   """)
 
-rule anvi_run_hmms:
-    input:
-        anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done"
-    output:
-        touch(anvio_dir + "{bin_sample}/{bin_sample}.db.run-hmms.done")
-    threads:
-        12
-    log:
-        anvio_dir + "logs/anvi_run_hmms.sample_{bin_sample}.log"
-    benchmark:
-        "benchmarks/anvio/anvi_run_hmms.sample_{bin_sample}.txt"
-    run:
-        db = os.path.join(os.path.dirname(input[0]),wildcards.bin_sample + '.db')
-        shell("""
-                set +u; {ANVIO_ENV}; set -u
-
-                anvi-run-hmms -c {db} --num-threads {threads} 2> {log} 1>&2
-              """)
 
 rule anvi_export_gene_calls:
     input:
-        anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done",
-        anvio_dir + "{bin_sample}/{bin_sample}.db.run-hmms.done"
+        rules.anvi_gen_contigs_database.output.done
     output:
-        anvio_dir + "{bin_sample}/{bin_sample}.gene-calls.fa"
+        gene_calls = anvio_dir + "{bin_sample}/{bin_sample}.gene-calls.fa"
     log:
         anvio_dir + "logs/anvi_export_gene_calls.sample_{bin_sample}.log"
     benchmark:
         "benchmarks/anvio/anvi_export_gene_calls.sample_{bin_sample}.txt"
+    params:
+        env = config['envs']['anvio']
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
-            out_name = os.path.basename(output[0])
-            db = os.path.join(os.path.dirname(input[0]),wildcards.bin_sample + '.db')
+            out_name = os.path.basename(output.gene_calls)
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
-                    set +u; {ANVIO_ENV}; set -u
+                    set +u; {params.env}; set -u
 
                     anvi-get-dna-sequences-for-gene-calls -c {db} -o {temp_dir}/{out_name} 2> {log} 1>&2
 
-                    scp {temp_dir}/{out_name} {output}
+                    scp {temp_dir}/{out_name} {output.gene_calls}
                   """)
+
 
 rule anvi_run_centrifuge:
     input:
-        fa=anvio_dir + "{bin_sample}/{bin_sample}.gene-calls.fa",
-        db_done = anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done"
+        fa = rules.anvi_export_gene_calls.output.gene_calls
     output:
-        hits=anvio_dir + "{bin_sample}/centrifuge_hits.tsv",
-        report=anvio_dir + "{bin_sample}/centrifuge_report.tsv",
-        done=touch(anvio_dir + "{bin_sample}/{bin_sample}.db.added_centrifuge.done")
+        hits = anvio_dir + "{bin_sample}/centrifuge_hits.tsv",
+        report = anvio_dir + "{bin_sample}/centrifuge_report.tsv"
     log:
         anvio_dir + "logs/anvi_run_centrifuge.sample_{bin_sample}.log"
     benchmark:
         "benchmarks/anvio/anvi_run_centrifuge.sample_{bin_sample}.txt"
     params:
-        centrifuge_base=config['params']['anvio']['centrifuge_base'],
-        centrifuge_models=config['params']['anvio']['centrifuge_models']
-    threads: 12
+        centrifuge_db = config['params']['centrifuge']['db'],
+        anvi_env = config['envs']['anvio'],
+        cent_env = config['envs']['centrifuge']
+    threads:
+        12
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             hits_name = os.path.basename(output.hits)
             report_name = os.path.basename(output.report)
-            db_dir = os.path.dirname(input.db_done)
-            db = os.path.join(db_dir, wildcards.bin_sample + '.db')
-            db_name = os.path.basename(db)
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
-                    set +u; {ANVIO_ENV}; set -u
+                    set +u; {params.cent_env}; set -u
 
-                    export CENTRIFUGE_BASE={params.centrifuge_base}
                     centrifuge -f --threads {threads} \
-                    -x {params.centrifuge_models} \
+                    -x {params.centrifuge_db} \
                     {input.fa} \
                     -S {temp_dir}/{hits_name} \
                     --report-file {temp_dir}/{report_name}
@@ -103,35 +88,37 @@ rule anvi_run_centrifuge:
                     scp {temp_dir}/{hits_name} {output.hits}
                     scp {temp_dir}/{report_name} {output.report}
 
-                    cd {db_dir}
+                    set +u; {params.anvi_env}; set -u
 
-                    anvi-import-taxonomy -c {db_name} \
-                    -i centrifuge_report.tsv centrifuge_hits.tsv \
-                    -p centrifuge
+                    anvi-import-taxonomy -c {db} \
+                    -i {output.report} {output.hits} \
+                    -p centrifuge 2> {log} 1>&2
                   """)
 
 rule anvi_profile:
     input:
-        bam = map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.bam",
-        bai = map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.bam.bai",
-        db_done = anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done",
-        centrifute_done = anvio_dir + "{bin_sample}/{bin_sample}.db.added_centrifuge.done"
+        bam = rules.map_bowtie2.output.bam,
+        bai = rules.map_bowtie2.output.bai,
+        db_done = rules.anvi_gen_contigs_database.output.done,
+        hits = rules.anvi_run_centrifuge.output.hits
     output:
-        aux=anvio_dir + "{bin_sample}/{bin_sample}.{abund_sample}.bam-ANVIO_PROFILE/AUXILIARY-DATA.h5",
-        prof=anvio_dir + "{bin_sample}/{bin_sample}.{abund_sample}.bam-ANVIO_PROFILE/PROFILE.db",
-        log=anvio_dir + "{bin_sample}/{bin_sample}.{abund_sample}.bam-ANVIO_PROFILE/RUNLOG.txt"
+        aux = anvio_dir + "{bin_sample}/{bin_sample}.{abund_sample}.bam-ANVIO_PROFILE/AUXILIARY-DATA.h5",
+        prof = anvio_dir + "{bin_sample}/{bin_sample}.{abund_sample}.bam-ANVIO_PROFILE/PROFILE.db",
+        log = anvio_dir + "{bin_sample}/{bin_sample}.{abund_sample}.bam-ANVIO_PROFILE/RUNLOG.txt"
     log:
         anvio_dir + "logs/anvi_profile.sample_{bin_sample}.abund_sample_{abund_sample}.log"
     benchmark:
         "benchmarks/anvio/anvi_profile.sample_{bin_sample}.abund_sample_{abund_sample}.txt"
-    threads: 12
+    threads:
+        12
+    params:
+        env = config['envs']['anvio']
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             prof_dir = os.path.dirname(output.prof)
-            db_dir = os.path.dirname(input.db_done)
-            db = os.path.join(db_dir,wildcards.bin_sample + '.db')
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
-                    set +u; {ANVIO_ENV}; set -u
+                    set +u; {params.env}; set -u
 
                     scp {input.bam} {temp_dir}/{wildcards.bin_sample}_{wildcards.abund_sample}.bam
                     scp {input.bai} {temp_dir}/{wildcards.bin_sample}_{wildcards.abund_sample}.bam.bai
@@ -141,71 +128,75 @@ rule anvi_profile:
                     -c {db} \
                     --skip-SNV-profiling \
                     --overwrite-output-destinations \
-                    -o {temp_dir}/out
+                    -o {temp_dir}/out 2> {log} 1>&2
 
                     scp {temp_dir}/out/* {prof_dir}/.
                   """)
 
+        lambda wildcards: expand(map_dir + "{bin_sample}/mapping/{bin_sample}_{abund_sample}.bam",
+               abund_sample=bin_config[wildcards.bin_sample],
+               bin_sample=wildcards.bin_sample)
+
 rule anvi_merge:
     input:
-        profiles=lambda wildcards: expand(anvio_dir + "{bin_sample}/{bin_sample}.{abund_sample}.bam-ANVIO_PROFILE/PROFILE.db",
-                        bin_sample=wildcards.bin_sample,
-                        abund_sample=config['params']['abundance_samples']),
-        db_done = anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done",
-        centrifuge_done=anvio_dir + "{bin_sample}/{bin_sample}.db.added_centrifuge.done",
-        hmms_done=anvio_dir + "{bin_sample}/{bin_sample}.db.run-hmms.done"
+        profiles = lambda wildcards: expand(rules.anvi_profile.output.prof,
+                                            bin_sample=wildcards.bin_sample,
+                                            abund_sample=bin_config[wildcards.bin_sample]),
     output:        
-        aux=anvio_dir + "{bin_sample}/SAMPLES_MERGED/AUXILIARY-DATA.h5",
-        prof=anvio_dir + "{bin_sample}/SAMPLES_MERGED/PROFILE.db",
-        runlog=anvio_dir + "{bin_sample}/SAMPLES_MERGED/RUNLOG.txt",
-        samps=anvio_dir + "{bin_sample}/SAMPLES_MERGED/SAMPLES.db"
+        aux = anvio_dir + "{bin_sample}/SAMPLES_MERGED/AUXILIARY-DATA.h5",
+        prof = anvio_dir + "{bin_sample}/SAMPLES_MERGED/PROFILE.db",
+        runlog = anvio_dir + "{bin_sample}/SAMPLES_MERGED/RUNLOG.txt",
+        samps = anvio_dir + "{bin_sample}/SAMPLES_MERGED/SAMPLES.db"
     log:
         anvio_dir + "logs/anvi_merge.sample_{bin_sample}.log"
     benchmark:
         "benchmarks/anvio/anvi_merge.sample_{bin_sample}.txt"
+    params:
+        env = config['envs']['anvio']
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             merge_dir = os.path.dirname(output.prof)
-            db = os.path.join(os.path.dirname(input.db_done),wildcards.bin_sample + '.db')
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
-                    set +u; {ANVIO_ENV}; set -u
+                    set +u; {params.env}; set -u
 
                     anvi-merge {input.profiles} \
                     -o {temp_dir}/SAMPLES_MERGED \
                     -c {db} \
-                    -W
+                    -W 2> {log} 1>&2
 
                     scp -r {temp_dir}/SAMPLES_MERGED/* {merge_dir}/.
                   """)
 
+
 rule anvi_add_maxbin:
     input:
-        bins = bin_dir + "{bin_sample}/maxbin/{bin_sample}_maxbin_bins.txt",
-        prof = anvio_dir + "{bin_sample}/SAMPLES_MERGED/PROFILE.db",
-        db_done = anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done"
+        bins = rules.summarize_maxbin.output.bins,
+        prof = rules.anvi_merge.output.prof
     output:
-        touch(anvio_dir + "{bin_sample}/{bin_sample}.db.anvi_add_maxbin.done")
+        done = touch(anvio_dir + "{bin_sample}/{bin_sample}.db.anvi_add_maxbin.done")
     log:
         anvio_dir + "logs/anvi_add_maxbin.sample_{bin_sample}.log"
     benchmark:
         "benchmarks/anvio/anvi_add_maxbin.sample_{bin_sample}.txt"
+    params:
+        env = config['envs']['anvio']
     run:
-        db = os.path.join(os.path.dirname(input.db_done),wildcards.bin_sample + '.db')
+        db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
         shell("""
-                set +u; {ANVIO_ENV}; set -u
+                set +u; {params.env}; set -u
 
                 anvi-import-collection -p {input.prof} \
                 -c {db} \
                 -C "MaxBin2" \
                 --contigs-mode \
-                {input.bins}
+                {input.bins} 2> {log} 1>&2
               """)
 
 
 rule anvi_summarize:
     input:
-        prof = anvio_dir + "{bin_sample}/SAMPLES_MERGED/PROFILE.db",
-        db_done = anvio_dir + "{bin_sample}/{bin_sample}.anvi_gen_contigs_database.done"
+        prof = rules.anvi_merge.output.prof
     output:
         tar = anvio_dir + "{bin_sample}/{bin_sample}_samples-summary_CONCOCT.tar.gz",
         report = anvio_dir + "{bin_sample}/{bin_sample}_samples-summary_CONCOCT.html",
@@ -214,18 +205,20 @@ rule anvi_summarize:
         anvio_dir + "logs/anvi_summarize.sample_{bin_sample}.log"
     benchmark:
         "benchmarks/anvio/anvi_summarize.sample_{bin_sample}.txt"
+    params:
+        env = config['envs']['anvio']
     run:
         with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
-            db = os.path.join(os.path.dirname(input.db_done),wildcards.bin_sample + '.db')
+            db = anvio_dir + "{s}/{s}.db".format(s=wildcards.bin_sample)
             shell("""
-                    set +u; {ANVIO_ENV}; set -u
+                    set +u; {params.env}; set -u
 
                     anvi-summarize -p {input.prof} \
                     -c {db} \
                     -o {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT \
-                    -C CONCOCT
+                    -C CONCOCT 2> {log} 1>&2
 
-                    scp {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT/general_bins_summary.txt {output.txt}
+                    scp {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT/bins_summary.txt {output.txt}
                     scp {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT/index.html {output.report}
                     
                     tar -czvf {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT.tar.gz {temp_dir}/{wildcards.bin_sample}_samples-summary_CONCOCT
@@ -236,7 +229,6 @@ rule anvi_summarize:
 
 rule anvio:
     input:
-        expand(anvio_dir + "{bin_sample}/{bin_sample}_samples-summary_CONCOCT.tar.gz",
-               bin_sample=config['params']['binning_samples']),
-        expand(anvio_dir + "{bin_sample}/{bin_sample}.db.anvi_add_maxbin.done",
-               bin_sample=config['params']['binning_samples'])
+        expand(rules.anvi_summarize.output.tar, bin_sample=bin_config.keys()),
+        expand(rules.anvi_add_maxbin.output.done, bin_sample=bin_config.keys())
+
