@@ -1,14 +1,8 @@
-abundance_samples:
-- sample_S22282
-- sample_S22205
 assemblers:
 - megahit
 - metaspades
-binning_samples:
-- sample_S22282
-- sample_S22205
-mapping_assembler:
-- metaspades
+binning_config: test_data/test_config/test_binning.yml
+mapping_assembler: metaspades
 filter_db: test_data/test_dbs/bowtie2/phix
 trimmer: atropos
 anvio:

@@ -1,3 +1,4 @@
+import yaml
 import os
 import tempfile
 
@@ -9,30 +10,29 @@ except KeyError:
     print('Error: you must pass a config file using --configfile')
     raise
 
-try:
-    config['params']["binning_samples"]
-except KeyError as e:
-    config['params']["binning_samples"] = []
-    print('Error: binning_samples not found in %s' % str(e))
+
+# import mapping/binning yaml if present in params
 
 try:
-    config['params']["abundance_samples"]
-except KeyError as e:
-    config['params']["abundance_samples"] = []
-    print('Error: abundance_samples not found in %s' % str(e))
+    with open(config['params']["binning_config"]) as f:
+        bin_config = yaml.load(f)
+    if bin_config is not None:
+        mapping = True
+except:
+    mapping = False
+    bin_config = {}
 
 
 include: "oecophylla/util/folders.rule"
 
 include: "oecophylla/qc/qc.rule"
 include: "oecophylla/util/clean.rule"
-include: "oecophylla/util/test.rule"
 include: "oecophylla/util/util.rule"
 include: "oecophylla/util/simplify_fasta.rule"
 include: "oecophylla/distance/distance.rule"
 include: "oecophylla/assemble/assemble.rule"
-# include: "oecophylla/map/map.rule"
-include: "oecophylla/bin/bin.rule"
+include: "oecophylla/map/map.rule"
+# include: "oecophylla/bin/bin.rule"
 # include: "oecophylla/anvio/anvio.rule"
 include: "oecophylla/taxonomy/taxonomy.rule"
 include: "oecophylla/function/function.rule"
@@ -55,4 +55,6 @@ rule all:
         # Taxonomy
         rules.taxonomy.input,
         # Function
-        rules.function.input
+        rules.function.input,
+        # Map
+        rules.map.input
