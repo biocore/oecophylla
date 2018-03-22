@@ -7,8 +7,8 @@ huge, you will most likely want to run your analysis on a cluster.
 
 Snakemake (and thus Oecophylla) are built to run in a cluster environment.
 
-There are currently two primary ways to run Oecophylla on a cluster: generic
-cluster execution (currently enabled with Torque/PBS and SLURM schedulers)
+There are currently two primary ways to run Oecophylla on a cluster: **generic
+cluster** execution (currently enabled with Torque/PBS and SLURM schedulers)
 and **cluster profile** execution.
 
 
@@ -59,6 +59,13 @@ with the exception that you must specify a cluster workflow type with the ``
 --workflow-type`` parameter and provide a path to a ``cluster.json`` file with 
 the ``--cluster-config`` parameter.
 
+You will also want to provide a path to your local scratch space for cluster
+execution---this is typically a fast hard drive located in the cluster node
+itself, and saves the cluster from having to write certain types of data to
+the networked cluster filesystem. On our Barnacle cluster, this local scratch
+space is accessed at ``/localscratch``. Oecophylla jobs are all optimized to
+use local scratch space wherever possible.
+
 From the Barnacle login node, enter the main Oecophylla Conda environment and 
 run the following command:
 
@@ -72,6 +79,7 @@ run the following command:
     --params cluster_configs/barnacle/tool_params.yml \
     --envs cluster_configs/barnacle/envs.yml \
     --jobs 16 \
+    --local-scratch /localscratch \
     --output-dir cluster_test qc
 
 Note that we have specified ``--workflow-type torque``. This tells Oecophylla 
@@ -114,6 +122,7 @@ the ``--profile`` flag, and pass 'profile' to the ``--workflow-type`` flag:
     --input-dir test_data/test_reads \
     --params cluster_configs/barnacle/tool_params.yml \
     --envs cluster_configs/barnacle/envs.yml \
+    --local-scratch /localscratch \
     --output-dir cluster_test qc
 
 Note that in this case, the number of simultaneous jobs is being specified in
