@@ -1,4 +1,3 @@
-anvi: source activate oecophylla-anvi
 humann2: source activate oecophylla-humann2
 qc: source activate oecophylla-qc
 raw: source activate oecophylla-qc
@@ -8,3 +7,6 @@ centrifuge: source activate oecophylla-centrifuge
 shogun: source activate oecophylla-shogun
 assemble: source activate oecophylla-assemble
 distance: source activate oecophylla-distance
+map: source activate oecophylla-map
+bin: source activate oecophylla-bin
+anvio: source activate oecophylla-anvio
