@@ -229,7 +229,7 @@ rule function_shogun:
         strain_kegg = func_dir + "{sample}/shogun/{sample}.strain.kegg.txt",
         strain_modules = func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.txt",
         strain_modcov = func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.coverage.txt",
-        strain_pathways = func_dir + "{sample}/shogun/{sample}.strain.kegg.pathways.txt"
+        strain_pathways = func_dir + "{sample}/shogun/{sample}.strain.kegg.pathways.txt",
         strain_pathcov = func_dir + "{sample}/shogun/{sample}.strain.kegg.pathways.coverage.txt"
     params:
         env = config['envs']['shogun'],
