@@ -320,7 +320,7 @@ rule function_shogun_combine_profiles:
         "benchmarks/function/function_shogun_combine_profiles.txt"
     run:
         for level in ('genus', 'species', 'strain'):
-            for target in ('kegg', 'modules', 'coverage'):
+            for target in ('kegg', 'modules', 'modcov', 'pathways', 'pathcov'):
                 item = '%s_%s' % (level, target)
                 pandas2biom(output[item],
                             combine_profiles(zip(samples, input[item])))
