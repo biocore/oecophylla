@@ -2,6 +2,8 @@ channels:
   - bioconda
   - anaconda
   - biocore
+  - conda-forge
 dependencies:
+  - glpk==4.65
   - humann2
   - biom-format
