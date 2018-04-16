@@ -216,15 +216,21 @@ rule function_shogun:
         genus_norm = func_dir + "{sample}/shogun/{sample}.genus.normalized.txt",
         genus_kegg = func_dir + "{sample}/shogun/{sample}.genus.kegg.txt",
         genus_modules = func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.txt",
-        genus_coverage = func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.coverage.txt",
+        genus_modcov = func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.coverage.txt",
+        genus_pathways = func_dir + "{sample}/shogun/{sample}.genus.kegg.pathways.txt",
+        genus_pathcov = func_dir + "{sample}/shogun/{sample}.genus.kegg.pathways.coverage.txt",
         species_norm = func_dir + "{sample}/shogun/{sample}.species.normalized.txt",
         species_kegg = func_dir + "{sample}/shogun/{sample}.species.kegg.txt",
         species_modules = func_dir + "{sample}/shogun/{sample}.species.kegg.modules.txt",
-        species_coverage = func_dir + "{sample}/shogun/{sample}.species.kegg.modules.coverage.txt",
+        species_modcov = func_dir + "{sample}/shogun/{sample}.species.kegg.modules.coverage.txt",
+        species_pathways = func_dir + "{sample}/shogun/{sample}.species.kegg.pathways.txt",
+        species_pathcov = func_dir + "{sample}/shogun/{sample}.species.kegg.pathways.coverage.txt",
         strain_norm = func_dir + "{sample}/shogun/{sample}.strain.normalized.txt",
         strain_kegg = func_dir + "{sample}/shogun/{sample}.strain.kegg.txt",
         strain_modules = func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.txt",
-        strain_coverage = func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.coverage.txt"
+        strain_modcov = func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.coverage.txt",
+        strain_pathways = func_dir + "{sample}/shogun/{sample}.strain.kegg.pathways.txt",
+        strain_pathcov = func_dir + "{sample}/shogun/{sample}.strain.kegg.pathways.coverage.txt"
     params:
         env = config['envs']['shogun'],
         db = config['params']['shogun']['db']
@@ -266,37 +272,55 @@ rule function_shogun_combine_profiles:
                             sample=samples),
         genus_modules = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.txt",
                                sample=samples),
-        genus_coverage = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.coverage.txt",
+        genus_modcov = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.modules.coverage.txt",
+                                sample=samples),
+        genus_pathways = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.pathways.txt",
+                               sample=samples),
+        genus_pathcov = expand(func_dir + "{sample}/shogun/{sample}.genus.kegg.pathways.coverage.txt",
                                 sample=samples),
         species_kegg = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.txt",
                               sample=samples),
         species_modules = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.modules.txt",
                                  sample=samples),
-        species_coverage = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.modules.coverage.txt",
+        species_modcov = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.modules.coverage.txt",
+                                  sample=samples),
+        species_pathways = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.pathways.txt",
+                                 sample=samples),
+        species_pathcov = expand(func_dir + "{sample}/shogun/{sample}.species.kegg.pathways.coverage.txt",
                                   sample=samples),
         strain_kegg = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.txt",
                              sample=samples),
         strain_modules = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.txt",
                                 sample=samples),
-        strain_coverage = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.coverage.txt",
+        strain_modcov = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.modules.coverage.txt",
+                                 sample=samples),
+        strain_pathways = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.pathways.txt",
+                                sample=samples),
+        strain_pathcov = expand(func_dir + "{sample}/shogun/{sample}.strain.kegg.pathways.coverage.txt",
                                  sample=samples)
     output:
         genus_kegg = func_dir + "shogun/genus.kegg.biom",
         genus_modules = func_dir + "shogun/genus.kegg.modules.biom",
-        genus_coverage = func_dir + "shogun/genus.kegg.modules.coverage.biom",
+        genus_modcov = func_dir + "shogun/genus.kegg.modules.coverage.biom",
+        genus_pathways = func_dir + "shogun/genus.kegg.pathways.biom",
+        genus_pathcov = func_dir + "shogun/genus.kegg.pathways.coverage.biom",
         species_kegg = func_dir + "shogun/species.kegg.biom",
         species_modules = func_dir + "shogun/species.kegg.modules.biom",
-        species_coverage = func_dir + "shogun/species.kegg.modules.coverage.biom",
+        species_modcov = func_dir + "shogun/species.kegg.modules.coverage.biom",
+        species_pathways = func_dir + "shogun/species.kegg.pathways.biom",
+        species_pathcov = func_dir + "shogun/species.kegg.pathways.coverage.biom",
         strain_kegg = func_dir + "shogun/strain.kegg.biom",
         strain_modules = func_dir + "shogun/strain.kegg.modules.biom",
-        strain_coverage = func_dir + "shogun/strain.kegg.modules.coverage.biom"
+        strain_modcov = func_dir + "shogun/strain.kegg.modules.coverage.biom",
+        strain_pathways = func_dir + "shogun/strain.kegg.pathways.biom",
+        strain_pathcov = func_dir + "shogun/strain.kegg.pathways.coverage.biom"
     log:
         func_dir + "logs/function_shogun_combine_profiles.log"
     benchmark:
         "benchmarks/function/function_shogun_combine_profiles.txt"
     run:
         for level in ('genus', 'species', 'strain'):
-            for target in ('kegg', 'modules', 'coverage'):
+            for target in ('kegg', 'modules', 'modcov', 'pathways', 'pathcov'):
                 item = '%s_%s' % (level, target)
                 pandas2biom(output[item],
                             combine_profiles(zip(samples, input[item])))
