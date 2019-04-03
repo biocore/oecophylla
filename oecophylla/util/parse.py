@@ -140,7 +140,10 @@ def read_sample_sheet(f, sep=',', comment='#'):
                 if line.startswith('[') or line.strip() == '':
                     data = False
                     continue
-                data_lines += line
+                elif not line.startswith(sep):
+                    data_lines += line
+                else:
+                    continue
             elif line.startswith('[Data]'):
                 data = True
                 continue
