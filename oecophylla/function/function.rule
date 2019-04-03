@@ -64,7 +64,7 @@ rule function_humann2:
     benchmark:
         "benchmarks/function/function_humann2.sample_{sample}.json"
     run:
-        with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
+        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
                   set +u; {params.env}; set -u
 
@@ -123,7 +123,7 @@ rule function_humann2_combine_tables:
         "benchmarks/function/function_humann2_combine_tables.json"
     run:
         out_dir = os.path.join(func_dir, "humann2")
-        with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
+        with tempfile.TemporaryDirectory(dir=find_local_scratch(TMP_DIR_ROOT)) as temp_dir:
             shell("""
                   set +u; {params.env}; set -u
 
