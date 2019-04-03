@@ -18,7 +18,7 @@ humann2:
   other: ''
 maxbin: -plotmarker
 metaphlan2:
-  db: /databases/metaphlan2/db_v20/mpa_v20_m200
+  db: /databases/metaphlan2/db_v20/
   # taxon name to TaxID dictionary
   name2tid: 
   levels: phylum,genus,species
